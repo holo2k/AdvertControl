@@ -1,0 +1,6 @@
+@AdControl.Avalonia.Logic_HostAddress = http://localhost:5291
+
+GET {{AdControl.Avalonia.Logic_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
