@@ -1,0 +1,94 @@
+syntax = "proto3";
+package adcontrol.protos;
+option csharp_namespace = "AdControl.Protos";
+
+// Общий enum для типа элемента
+enum ItemType {
+  IMAGE = 0;
+  VIDEO = 1;
+  TABLE = 2;
+  INLINE_JSON = 3;
+}
+
+message KeycloakUserModel {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  bool emailVerified = 4;
+  string firstName = 5;
+  string lastName = 6;
+  bool enabled = 7;
+  bool totp = 8;
+  int64 createdTimestamp = 9;
+}
+
+message Screen {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  string resolution = 4;
+  string location = 5;
+  int64 lastHeartbeatAt = 6;
+  int64 pairedAt = 7;
+  int64 createdAt = 8;
+  int64 updatedAt = 9;
+}
+
+message ConfigItem {
+  string id = 1;
+  string configId = 2;
+  ItemType type = 3;
+  string url = 4;
+  string inlineData = 5;
+  string checksum = 6;
+  int64 size = 7;
+  int32 durationSeconds = 8;
+  int32 order = 9;
+}
+
+message Config {
+  string id = 1;
+  string userId = 2;
+  int64 createdAt = 3;
+  repeated ConfigItem items = 4;
+}
+
+message ScreenConfig {
+  string id = 1;
+  string screenId = 2;
+  string configId = 3;
+  bool isActive = 4;
+  int64 assignedAt = 5;
+}
+
+/* Requests / Responses */
+message CreateScreenRequest { string name = 1; string resolution = 2; string location = 3; }
+message CreateScreenResponse { string id = 1; string status = 2; string error = 3; }
+message DeleteScreenRequest { string id = 1; }
+message DeleteScreenResponse { string status = 1; string error = 2; }
+message GetScreenRequest { string id = 1; }
+message GetScreenResponse { Screen screen = 1; }
+message ListScreensRequest { string filterName = 1; int32 limit = 2; int32 offset = 3; }
+message ListScreensResponse { repeated Screen screens = 1; int32 total = 2; }
+
+/* Config requests */
+message CreateConfigRequest {
+  string userId = 1;
+  repeated ConfigItem items = 2;
+}
+message CreateConfigResponse { string id = 1; string status = 2; string error = 3; }
+message GetConfigRequest { string id = 1; }
+message GetConfigResponse { Config config = 1; }
+message AssignConfigRequest { string screenId = 1; string configId = 2; bool isActive = 3; }
+message AssignConfigResponse { string id = 1; string status = 2; string error = 3; }
+
+/* Service */
+service ScreenService {
+  rpc CreateScreen(CreateScreenRequest) returns (CreateScreenResponse);
+  rpc DeleteScreen(DeleteScreenRequest) returns (DeleteScreenResponse);
+  rpc GetScreen(GetScreenRequest) returns (GetScreenResponse);
+  rpc ListScreens(ListScreensRequest) returns (ListScreensResponse);
+  rpc CreateConfig(CreateConfigRequest) returns (CreateConfigResponse);
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+  rpc AssignConfigToScreen(AssignConfigRequest) returns (AssignConfigResponse);
+}

@@ -1,0 +1,27 @@
+syntax = "proto3";
+package adcontrol.protos;
+option csharp_namespace = "AdControl.Protos";
+
+import "screen_service.proto";
+
+message ScreenConfigDto {
+  string configId = 1;
+  int64 version = 2;
+  repeated ConfigItem items = 3;
+  int64 updatedAt = 4;
+}
+
+message GetConfigForScreenRequest {
+  string screenId = 1;
+  int64 knownVersion = 2;
+}
+
+message GetConfigForScreenResponse {
+  bool notModified = 1;
+  ScreenConfigDto config = 2;
+  string error = 3;
+}
+
+service AvaloniaLogicService {
+  rpc GetConfigForScreen(GetConfigForScreenRequest) returns (GetConfigForScreenResponse);
+}
