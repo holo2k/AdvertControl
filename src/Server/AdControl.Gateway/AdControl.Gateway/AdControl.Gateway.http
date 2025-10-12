@@ -1,0 +1,6 @@
+@AdControl.Gateway_HostAddress = http://localhost:5098
+
+GET {{AdControl.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
