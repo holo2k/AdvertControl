@@ -1,7 +1,11 @@
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using AdControl.Gateway.Application.Minio;
 using AdControl.Protos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
@@ -49,16 +53,67 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
 // Keycloak auth
 var keycloakAuthority = builder.Configuration.GetValue<string>("Keycloak:Authority");
+
+static string Base64UrlDecode(string input)
+{
+    var padded = input.Replace('-', '+').Replace('_', '/');
+    switch (padded.Length % 4)
+    {
+        case 2:
+            padded += "==";
+            break;
+        case 3:
+            padded += "=";
+            break;
+    }
+
+    var bytes = Convert.FromBase64String(padded);
+    return Encoding.UTF8.GetString(bytes);
+}
+
+
 if (!string.IsNullOrEmpty(keycloakAuthority))
 {
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
             options.Authority = keycloakAuthority;
-            options.Audience = builder.Configuration.GetValue<string>("Keycloak:Audience") ?? "gateway";
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = new TokenValidationParameters { ValidateAudience = true };
+            options.RequireHttpsMetadata = false; //dev
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                NameClaimType = "preferred_username",
+                RoleClaimType = ClaimTypes.Role,
+                ValidateAudience = false,
+                ValidateIssuer = true
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = ctx =>
+                {
+                    if (ctx.SecurityToken is JsonWebToken jsonJwt)
+                    {
+                        var payloadJson = Base64UrlDecode(jsonJwt.EncodedPayload);
+
+                        using var doc = JsonDocument.Parse(payloadJson);
+                        if (doc.RootElement.TryGetProperty("realm_access", out var realmAccess) &&
+                            realmAccess.TryGetProperty("roles", out var rolesEl))
+                        {
+                            var identity = ctx.Principal!.Identity as ClaimsIdentity;
+                            foreach (var r in rolesEl.EnumerateArray())
+                            {
+                                var role = r.GetString();
+                                if (!string.IsNullOrEmpty(role))
+                                    identity!.AddClaim(new Claim(ClaimTypes.Role, role));
+                            }
+                        }
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
+
     builder.Services.AddAuthorization();
 }
 

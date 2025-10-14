@@ -57,9 +57,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - KEYCLOAK_DEFAULT_ADMIN=admin
+      - KEYCLOAK_DEFAULT_PASSWORD=qwerty
     ports:
       - "5003:5003"
     depends_on:
+      keycloak:
+        condition: service_started
       postgres:
         condition: service_healthy
     volumes:

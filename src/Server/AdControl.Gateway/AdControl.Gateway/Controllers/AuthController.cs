@@ -1,7 +1,7 @@
 ﻿using AdControl.Gateway.Application.Dtos;
 using AdControl.Protos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace AdControl.Gateway.Controllers;
 
@@ -16,17 +16,21 @@ public class AuthController : ControllerBase
         this.authServiceClient = authServiceClient;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
+        if (!dto.Roles.Any(r => r is "Admin" or "User"))
+            throw new Exception("User must have at least one valid role: 'User' or 'Admin'.");
         var request = new RegisterRequest
         {
             Email = dto.Username,
             Password = dto.Password,
             RepeatPassword = dto.RepeatPassword,
+            Roles = { dto.Roles }
         };
-        
-        var resp =  await authServiceClient.RegisterAsync(request);
+
+        var resp = await authServiceClient.RegisterAsync(request);
         return Ok(resp);
     }
 
@@ -36,7 +40,7 @@ public class AuthController : ControllerBase
         var request = new LoginRequest
         {
             Email = dto.Username,
-            Password = dto.Password,
+            Password = dto.Password
         };
         var resp = await authServiceClient.LoginAsync(request);
         return Ok(resp);
