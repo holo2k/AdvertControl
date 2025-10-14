@@ -2,24 +2,11 @@ syntax = "proto3";
 package adcontrol.protos;
 option csharp_namespace = "AdControl.Protos";
 
-// Общий enum для типа элемента
 enum ItemType {
   IMAGE = 0;
   VIDEO = 1;
   TABLE = 2;
   INLINE_JSON = 3;
-}
-
-message KeycloakUserModel {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  bool emailVerified = 4;
-  string firstName = 5;
-  string lastName = 6;
-  bool enabled = 7;
-  bool totp = 8;
-  int64 createdTimestamp = 9;
 }
 
 message Screen {

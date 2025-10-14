@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-// Kestrel: слушаем нужный порт и разрешаем HTTP/2
+// Kestrel: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HTTP/2
 builder.WebHost.ConfigureKestrel(options =>
 {
     var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5000;
@@ -74,6 +74,14 @@ builder.Services
 
 builder.Services.AddGrpcClient<AvaloniaLogicService.AvaloniaLogicServiceClient>(o =>
         o.Address = new Uri(builder.Configuration["Grpc:AvaloniaLogicService"] ?? "http://localhost:5002"))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+
+builder.Services
+    .AddGrpcClient<AuthService.AuthServiceClient>(o =>
+        o.Address = new Uri(builder.Configuration["Grpc:AuthService"] ?? "http://localhost:5003"))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
     {
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator

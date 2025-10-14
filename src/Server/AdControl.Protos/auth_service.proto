@@ -1,0 +1,30 @@
+syntax = "proto3";
+package adcontrol.protos;
+option csharp_namespace = "AdControl.Protos";
+
+
+message KeycloakUserModel {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  bool emailVerified = 4;
+  string firstName = 5;
+  string lastName = 6;
+  bool enabled = 7;
+  bool totp = 8;
+  int64 createdTimestamp = 9;
+}
+
+message LoginRequest { string email = 1; string password = 2;}
+message LoginResponse {string token = 1;}
+message RegisterRequest {string email = 1; string password = 2; string repeatPassword = 3;}
+message RegisterResponse{string token = 1;}
+message LogoutRequest{string token = 1;}
+message LogoutResponse{bool success = 1;}
+
+
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
