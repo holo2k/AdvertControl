@@ -19,6 +19,16 @@ public class ConfigRepository : IConfigRepository
         return await _db.Configs.Include(c => c.Items).FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
+    public Task<Config?> GetConfigForScreenAsync(Guid screenId, CancellationToken ct = default)
+    {
+        return _db.Screens
+            .Where(s => s.Id == screenId)
+            .SelectMany(s => s.ScreenConfigs)
+            .Where(sc => sc.IsActive)
+            .Select(sc => sc.Config)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<Config> CreateAsync(Config cfg, CancellationToken ct = default)
     {
         _db.Configs.Add(cfg);
