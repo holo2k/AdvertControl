@@ -1,9 +1,130 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:screenClient="clr-namespace:AdControl.ScreenClient"
+        xmlns:services="clr-namespace:AdControl.ScreenClient.Services"
+        x:DataType="screenClient:MainWindow"
+        x:CompileBindings="True"
         x:Class="AdControl.ScreenClient.MainWindow"
-        Title="AdControl.ScreenClient">
-    Welcome to Avalonia!
+        Title="AdControl Screen Client"
+        Width="700" Height="550"
+        Background="#F5F7FA"
+        WindowStartupLocation="CenterScreen">
+
+	<Window.Styles>
+		<Style Selector="Button.primary">
+			<Setter Property="Background" Value="#0078D7"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="Height" Value="40"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="Transitions">
+				<Transitions>
+					<BrushTransition Property="Background" Duration="0.1"/>
+				</Transitions>
+			</Setter>
+		</Style>
+		<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#1085E5"/>
+		</Style>
+		<Style Selector="Button.primary:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="#006BCB"/>
+		</Style>
+
+		<Style Selector="Button.outline">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="Foreground" Value="#4C5870"/>
+			<Setter Property="BorderBrush" Value="#CDD5E1"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="Height" Value="40"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="Transitions">
+				<Transitions>
+					<BrushTransition Property="Background" Duration="0.1"/>
+					<BrushTransition Property="Foreground" Duration="0.1"/>
+				</Transitions>
+			</Setter>
+		</Style>
+		<Style Selector="Button.outline:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#F5F7FA"/>
+			<Setter Property="Foreground" Value="#0078D7"/>
+			<Setter Property="BorderBrush" Value="#0078D7"/>
+		</Style>
+
+		<Style Selector="Label.code-display">
+			<Setter Property="FontSize" Value="28" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+			<Setter Property="Background" Value="#EAF0F6"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="CornerRadius" Value="4"/>
+		</Style>
+	</Window.Styles>
+
+	<StackPanel Margin="24" Spacing="16">
+
+		<TextBlock Name="StatusText"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="#4C5870"/>
+
+		<StackPanel Orientation="Horizontal" Spacing="12">
+			<Button Name="StartPairButton"
+                    Content="Start Pairing"
+                    Width="160"
+                    Classes="primary"
+                    Click="StartPairButton_Click"/>
+
+			<Button Name="UnpairButton"
+                    Content="Unpair"
+                    Width="160"
+                    Classes="outline"
+                    Click="UnpairButton_Click"
+                    IsVisible="False"/>
+		</StackPanel>
+
+		<Border Height="1" Background="#E0E0E0" Margin="0 8" />
+
+		<Label Name="PairCodeText"
+                 Width="240"
+                 Height="50"
+                 Content="CODE"
+                 Classes="code-display"/>
+
+		<TextBlock Text="Items:"
+                   FontWeight="Bold"
+                   FontSize="18"
+                   Foreground="#24292E"
+                   Margin="0 10 0 0"/>
+
+		<ScrollViewer Height="350">
+			<ItemsControl Name="ItemsList" ItemsSource="{Binding Items}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="services:ConfigItemDto">
+						<Border Padding="16"
+                                Margin="0 0 6 8"
+                                Background="White"
+                                CornerRadius="6"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1"
+                                BoxShadow="0 2 8 0 #1A000000">
+							<StackPanel Spacing="4">
+								<TextBlock Text="{Binding Type}"
+                                           FontWeight="Bold"
+                                           FontSize="15"
+                                           Foreground="#24292E"/>
+								<TextBlock Text="{Binding Url}"
+                                           TextWrapping="Wrap"
+                                           FontSize="14"
+                                           Foreground="#586069"/>
+							</StackPanel>
+						</Border>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</StackPanel>
 </Window>
