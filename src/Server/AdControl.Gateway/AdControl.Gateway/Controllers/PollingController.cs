@@ -4,6 +4,7 @@ using AdControl.Gateway.Application.Minio;
 using AdControl.Protos;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
@@ -16,17 +17,17 @@ namespace AdControl.Gateway.Controllers;
 public class PollingController : ControllerBase
 {
     private readonly AvaloniaLogicService.AvaloniaLogicServiceClient _avaloniaClient;
-    private readonly MinioClient _minio;
+    private readonly IMinioClient _minio;
     private readonly MinioSettings _minioSettings;
     private readonly IConnectionMultiplexer _redis;
 
     public PollingController(AvaloniaLogicService.AvaloniaLogicServiceClient avaloniaClient,
-        IConnectionMultiplexer redis, MinioClient minio, MinioSettings minioSettings)
+        IConnectionMultiplexer redis, IMinioClient minio, IOptions<MinioSettings> options)
     {
         _avaloniaClient = avaloniaClient;
         _redis = redis;
         _minio = minio;
-        _minioSettings = minioSettings;
+        _minioSettings = options.Value;
     }
 
     // POST api/polling/pair/start

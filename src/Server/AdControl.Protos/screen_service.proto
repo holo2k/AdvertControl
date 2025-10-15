@@ -38,6 +38,7 @@ message Config {
   string userId = 2;
   int64 createdAt = 3;
   repeated ConfigItem items = 4;
+  int64 version = 5;
 }
 
 message ScreenConfig {

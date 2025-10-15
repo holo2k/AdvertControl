@@ -35,4 +35,11 @@ public class ConfigService : IConfigService
     {
         await _repo.AssignToScreenAsync(screenId, configId, isActive, ct);
     }
+
+    public async Task<Config?> GetConfigForScreenAsync(Guid screenId, CancellationToken ct = default)
+    {
+        var cfg = await _repo.GetConfigForScreenAsync(screenId, ct);
+
+        return cfg;
+    }
 }
