@@ -54,6 +54,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         Items = new ObservableCollection<ConfigItemDto>
         {
+            //просто заглушки для файлов 
             new("1", "Video", "file:///C:/123.mp4", "inlineData1", "checksum1", 1024, 5, 1),
             new("2", "Image", "C:/321.png", "inlineData2", "checksum2", 2048, 5, 2),
             new("3", "Table", "C:/data.json", "inlineData3", "checksum3", 512, 5, 3)
