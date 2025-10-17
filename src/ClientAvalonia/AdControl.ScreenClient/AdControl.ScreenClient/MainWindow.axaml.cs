@@ -257,8 +257,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
                         await Task.Delay(TimeSpan.FromSeconds(item.DurationSeconds), token);
                     }
-
-                    if (item.Type == "Table")
+                    else if (item.Type == "Table")
                     {
                         var dynamicList = await GetDynamicListFromJson(item.Url);
 
