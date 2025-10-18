@@ -87,11 +87,12 @@ public class AuthController : ControllerBase
         {
             Token = token
         };
-        var currentUserId = await authServiceClient.GetCurrentUserIdAsync(requestUserId);
+        var currentUserId = await _authServiceClient.GetCurrentUserIdAsync(requestUserId);
         if (id != currentUserId.Id)
         {
             return Unauthorized();
         }
+
         var request = new UserInfoRequest
         {
             Id = id
