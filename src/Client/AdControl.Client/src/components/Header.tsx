@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-export function Header() {
+export function Header({isMinimal = false}: {isMinimal?: boolean}): JSX.Element {
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-10">
       <div className="flex items-center gap-4">
@@ -31,7 +31,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      {!isMinimal && (<div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5 text-gray-600" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
@@ -57,7 +57,7 @@ export function Header() {
             <DropdownMenuItem className="text-red-600">Выйти</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div>)}
     </header>
   );
 }
