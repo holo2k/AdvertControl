@@ -10,9 +10,9 @@ const kpiData = [
   { label: "Ожидает обновления", value: "0", icon: Clock, color: "#f59e0b" },
 ];
 
-const activityLog = [];
-
-const screenLocations = [];
+//пока формат api неизвестен
+const activityLog: any[] = [];
+const screenLocations: any[] = [];
 
 export function DashboardPage() {
   return (

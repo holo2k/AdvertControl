@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import type { JSX } from "react";
 
 export function Header({isMinimal = false}: {isMinimal?: boolean}): JSX.Element {
   return (
