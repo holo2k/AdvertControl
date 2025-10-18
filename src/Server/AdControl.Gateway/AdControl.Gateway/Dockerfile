@@ -35,4 +35,4 @@ COPY Server/AdControl.Protos/ Server/AdControl.Protos/
 COPY Server/AdControl.Gateway/AdControl.Gateway/ Server/AdControl.Gateway/AdControl.Gateway/
 COPY Server/AdControl.Gateway/AdControl.Gateway.Application/ Server/AdControl.Gateway/AdControl.Gateway.Application/
 
-ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj && dotnet watch run --project Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj --urls http://+:80"]
+ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj && dotnet run --project Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj --urls http://+:80"]

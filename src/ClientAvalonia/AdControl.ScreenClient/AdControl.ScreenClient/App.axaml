@@ -1,4 +1,9 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="AdControl.ScreenClient.App">
+    <Application.Styles>
+        <FluentTheme></FluentTheme>
+        <MediaFluentTheme></MediaFluentTheme>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+    </Application.Styles>
 </Application>

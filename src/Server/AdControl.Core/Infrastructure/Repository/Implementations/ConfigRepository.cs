@@ -19,14 +19,20 @@ public class ConfigRepository : IConfigRepository
         return await _db.Configs.Include(c => c.Items).FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
-    public Task<Config?> GetConfigForScreenAsync(Guid screenId, CancellationToken ct = default)
+
+    public async Task<Config?> GetConfigForScreenAsync(Guid screenId, CancellationToken ct = default)
     {
-        return _db.Screens
-            .Where(s => s.Id == screenId)
-            .SelectMany(s => s.ScreenConfigs)
-            .Where(sc => sc.IsActive)
-            .Select(sc => sc.Config)
+        var screen = await _db.Screens
+            .Include(s => s.ScreenConfigs)
+            .ThenInclude(sc => sc.Config)
+            .ThenInclude(c => c.Items)
+            .Where(s => s.ScreenConfigs.Any(sc => sc.IsActive && sc.ScreenId == screenId))
             .FirstOrDefaultAsync(ct);
+
+        return screen?.ScreenConfigs
+            .Where(sc => sc.IsActive && sc.ScreenId == screenId)
+            .Select(sc => sc.Config)
+            .FirstOrDefault();
     }
 
     public async Task<Config> CreateAsync(Config cfg, CancellationToken ct = default)

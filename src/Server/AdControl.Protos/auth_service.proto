@@ -21,10 +21,16 @@ message RegisterRequest {string email = 1; string password = 2; string repeatPas
 message RegisterResponse{string token = 1;}
 message LogoutRequest{string token = 1;}
 message LogoutResponse{bool success = 1;}
+message UserIdRequest{string token = 1;}
+message UserIdResponse{string id = 1;}
+message UserInfoRequest{string id = 1;}
+message UserInfoResponse{string username = 1; repeated string roles=2;}
 
 
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Logout(LogoutRequest) returns (LogoutResponse);
+  rpc GetCurrentUserId(UserIdRequest) returns (UserIdResponse);
+  rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse);
 }

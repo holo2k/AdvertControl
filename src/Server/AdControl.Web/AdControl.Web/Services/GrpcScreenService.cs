@@ -1,4 +1,6 @@
-﻿using AdControl.Application.Services.Abstractions;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AdControl.Application.Services.Abstractions;
 using AdControl.Protos;
 using Grpc.Core;
 using ConfigItem = AdControl.Domain.Models.ConfigItem;
@@ -23,8 +25,9 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
     {
         try
         {
-            // TODO AUTH
+            var userIdString = GetUserIdFromMetadata(context);
             Guid? userId = null;
+            if (Guid.TryParse(userIdString, out var g)) userId = g;
             var created = await _screens.CreateAsync(request.Name, request.Resolution, request.Location, userId);
             return new CreateScreenResponse { Id = created.Id.ToString(), Status = "created" };
         }
@@ -85,9 +88,9 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
     {
         try
         {
-            // TODO AUTH
+            var userIdString = GetUserIdFromMetadata(context);
             Guid? userId = null;
-            if (!string.IsNullOrEmpty(request.UserId) && Guid.TryParse(request.UserId, out var uid)) userId = uid;
+            if (Guid.TryParse(userIdString, out var g)) userId = g;
 
             var items = request.Items.Select(i => new ConfigItem
             {
@@ -160,5 +163,25 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
     private static long DateTimeToUnixMs(DateTime dt)
     {
         return new DateTimeOffset(dt.ToUniversalTime()).ToUnixTimeMilliseconds();
+    }
+
+    private static string? GetUserIdFromMetadata(ServerCallContext context)
+    {
+        var authEntry =
+            context.RequestHeaders.FirstOrDefault(h => h.Key == "authorization" || h.Key == "authorization-bin");
+        if (authEntry == null) return null;
+
+        var auth = authEntry.Value;
+        if (string.IsNullOrEmpty(auth)) return null;
+
+        // "Bearer <token>"
+        var token = auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? auth.Substring(7) : auth;
+
+        var handler = new JwtSecurityTokenHandler();
+        if (!handler.CanReadToken(token)) return null;
+        var jwt = handler.ReadJwtToken(token);
+
+        var sub = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+        return sub;
     }
 }

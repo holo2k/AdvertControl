@@ -10,121 +10,200 @@
         Background="#F5F7FA"
         WindowStartupLocation="CenterScreen">
 
-	<Window.Styles>
-		<Style Selector="Button.primary">
-			<Setter Property="Background" Value="#0078D7"/>
-			<Setter Property="Foreground" Value="White"/>
-			<Setter Property="FontSize" Value="16"/>
-			<Setter Property="Height" Value="40"/>
-			<Setter Property="CornerRadius" Value="4"/>
-			<Setter Property="BorderThickness" Value="0"/>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="VerticalContentAlignment" Value="Center"/>
-			<Setter Property="Transitions">
-				<Transitions>
-					<BrushTransition Property="Background" Duration="0.1"/>
-				</Transitions>
-			</Setter>
-		</Style>
-		<Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#1085E5"/>
-		</Style>
-		<Style Selector="Button.primary:pressed /template/ ContentPresenter">
-			<Setter Property="Background" Value="#006BCB"/>
-		</Style>
+    <Window.Styles>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#0078D7"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0.1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1085E5"/>
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#006BCB"/>
+        </Style>
 
-		<Style Selector="Button.outline">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="Foreground" Value="#4C5870"/>
-			<Setter Property="BorderBrush" Value="#CDD5E1"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="FontSize" Value="16"/>
-			<Setter Property="Height" Value="40"/>
-			<Setter Property="CornerRadius" Value="4"/>
-			<Setter Property="Transitions">
-				<Transitions>
-					<BrushTransition Property="Background" Duration="0.1"/>
-					<BrushTransition Property="Foreground" Duration="0.1"/>
-				</Transitions>
-			</Setter>
-		</Style>
-		<Style Selector="Button.outline:pointerover /template/ ContentPresenter">
-			<Setter Property="Background" Value="#F5F7FA"/>
-			<Setter Property="Foreground" Value="#0078D7"/>
-			<Setter Property="BorderBrush" Value="#0078D7"/>
-		</Style>
+        <Style Selector="Button.outline">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#4C5870"/>
+            <Setter Property="BorderBrush" Value="#CDD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0.1"/>
+                    <BrushTransition Property="Foreground" Duration="0.1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.outline:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F5F7FA"/>
+            <Setter Property="Foreground" Value="#0078D7"/>
+            <Setter Property="BorderBrush" Value="#0078D7"/>
+        </Style>
 
-		<Style Selector="Label.code-display">
-			<Setter Property="FontSize" Value="28" />
-			<Setter Property="FontWeight" Value="Bold" />
-			<Setter Property="VerticalContentAlignment" Value="Center" />
-			<Setter Property="Background" Value="#EAF0F6"/>
-			<Setter Property="BorderThickness" Value="0"/>
-			<Setter Property="CornerRadius" Value="4"/>
-		</Style>
-	</Window.Styles>
+        <Style Selector="Label.code-display">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="#EAF0F6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+    </Window.Styles>
 
-	<StackPanel Margin="24" Spacing="16">
+    <StackPanel Margin="24" Spacing="16">
 
-		<TextBlock Name="StatusText"
+        <TextBlock Name="StatusText"
                    FontSize="16"
                    FontWeight="SemiBold"
                    Foreground="#4C5870"/>
 
-		<StackPanel Orientation="Horizontal" Spacing="12">
-			<Button Name="StartPairButton"
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Name="StartPairButton"
                     Content="Start Pairing"
                     Width="160"
                     Classes="primary"
                     Click="StartPairButton_Click"/>
 
-			<Button Name="UnpairButton"
+            <Button Name="UnpairButton"
                     Content="Unpair"
                     Width="160"
                     Classes="outline"
                     Click="UnpairButton_Click"
                     IsVisible="False"/>
-		</StackPanel>
+        </StackPanel>
 
-		<Border Height="1" Background="#E0E0E0" Margin="0 8" />
+        <Border Height="1" Background="#E0E0E0" Margin="0 8" />
 
-		<Label Name="PairCodeText"
+        <Label Name="PairCodeText"
                  Width="240"
                  Height="50"
                  Content="CODE"
                  Classes="code-display"/>
 
-		<TextBlock Text="Items:"
+        <TextBlock Text="Items:"
+                   IsVisible="False"
                    FontWeight="Bold"
                    FontSize="18"
                    Foreground="#24292E"
                    Margin="0 10 0 0"/>
 
-		<ScrollViewer Height="350">
-			<ItemsControl Name="ItemsList" ItemsSource="{Binding Items}">
-				<ItemsControl.ItemTemplate>
-					<DataTemplate x:DataType="services:ConfigItemDto">
-						<Border Padding="16"
+        <ScrollViewer Height="350" IsVisible="False">
+            <ItemsControl Name="ItemsList" ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="services:ConfigItemDto">
+                        <Border Padding="16"
                                 Margin="0 0 6 8"
                                 Background="White"
                                 CornerRadius="6"
                                 BorderBrush="#E0E0E0"
                                 BorderThickness="1"
                                 BoxShadow="0 2 8 0 #1A000000">
-							<StackPanel Spacing="4">
-								<TextBlock Text="{Binding Type}"
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{Binding Type}"
                                            FontWeight="Bold"
                                            FontSize="15"
                                            Foreground="#24292E"/>
-								<TextBlock Text="{Binding Url}"
+                                <TextBlock Text="{Binding Url}"
                                            TextWrapping="Wrap"
                                            FontSize="14"
                                            Foreground="#586069"/>
-							</StackPanel>
-						</Border>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
-		</ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Добавляем элемент для отображения видео -->
+        <MediaPlayerControl x:Name="VideoPlayerControl"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  IsLoopingEnabled="True"
+                                  Margin="10"
+                                  Height="{Binding Height}"
+                                  IsVisible="False" />
+        <Image x:Name="ImageControl"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Margin="10"
+                            Height="{Binding Height}"
+                            IsVisible="False" />
+        <UserControl>
+            <UserControl.Resources>
+                <screenClient:ExpandoPropertyConverter x:Key="ExpandoConverter"/>
+            </UserControl.Resources>
+
+        </UserControl>
+		<DataGrid x:Name="JsonTable"
+          Margin="20"
+          IsReadOnly="False"
+          GridLinesVisibility="All"
+          BorderThickness="1"
+          BorderBrush="Gray"
+          AutoGenerateColumns="False"
+          RowHeight="40"
+          FontSize="18"
+          FontFamily="Segoe UI"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          ColumnWidth="*"
+          HeadersVisibility="Column">
+
+			<DataGrid.Styles>
+				<!-- Стиль для строк -->
+				<Style Selector="DataGridRow">
+					<Setter Property="Background" Value="White"/>
+					<Setter Property="Foreground" Value="Black"/>
+					<Setter Property="FontSize" Value="18"/>
+					<Setter Property="Height" Value="40"/>
+				</Style>
+
+				<!-- Контраст для четных строк -->
+				<Style Selector="DataGridRow:nth-child(even)">
+					<Setter Property="Background" Value="#FFF0F0F0"/>
+				</Style>
+
+				<!-- Стиль для заголовков -->
+				<Style Selector="DataGridColumnHeader">
+					<Setter Property="Background" Value="#FFDDDDDD"/>
+					<Setter Property="FontWeight" Value="Bold"/>
+					<Setter Property="FontSize" Value="18"/>
+					<Setter Property="Foreground" Value="Black"/>
+					<Setter Property="HorizontalContentAlignment" Value="Center"/>
+				</Style>
+
+				<!-- Стиль для ячеек -->
+				<Style Selector="DataGridCell">
+					<Setter Property="Padding" Value="10,0"/>
+					<Setter Property="FontSize" Value="18"/>
+					<Setter Property="Foreground" Value="Black"/>
+					<Setter Property="Background" Value="Transparent"/>
+					<Setter Property="HorizontalContentAlignment" Value="Center"/>
+					<Setter Property="VerticalContentAlignment" Value="Center"/>
+				</Style>
+
+				<!-- Hover эффект -->
+				<Style Selector="DataGridRow:hover">
+					<Setter Property="Background" Value="#FFD0E0FF"/>
+				</Style>
+
+			</DataGrid.Styles>
+		</DataGrid>
+        
+
 	</StackPanel>
 </Window>

@@ -61,8 +61,7 @@ message ListScreensResponse { repeated Screen screens = 1; int32 total = 2; }
 
 /* Config requests */
 message CreateConfigRequest {
-  string userId = 1;
-  repeated ConfigItem items = 2;
+  repeated ConfigItem items = 1;
 }
 message CreateConfigResponse { string id = 1; string status = 2; string error = 3; }
 message GetConfigRequest { string id = 1; }

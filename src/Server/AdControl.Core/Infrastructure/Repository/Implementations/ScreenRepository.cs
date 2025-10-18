@@ -16,7 +16,8 @@ public class ScreenRepository : IScreenRepository
 
     public async Task<Screen?> GetAsync(Guid id, CancellationToken ct = default)
     {
-        return await _db.Screens.Include(s => s.ScreenConfigs).FirstOrDefaultAsync(x => x.Id == id, ct);
+        return await _db.Screens.Include(s => s.ScreenConfigs).ThenInclude(sc => sc.Config)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
     public async Task<List<Screen>> ListAsync(string? filterName, int limit, int offset, CancellationToken ct = default)

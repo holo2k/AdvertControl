@@ -49,4 +49,39 @@ public class AuthService : Protos.AuthService.AuthServiceBase
 
         throw new RpcException(new Status(StatusCode.Internal, "Logout failed"));
     }
+
+    public override async Task<UserIdResponse> GetCurrentUserId(UserIdRequest request, ServerCallContext context)
+    {
+        var token = request.Token;
+        var userId = await _keycloakSetupService.GetCurrentUserIdAsync(token);
+
+        return new UserIdResponse
+        {
+            Id = userId ?? "" 
+        };
+    }
+
+    public override async Task<UserInfoResponse> GetUserInfo(UserInfoRequest request, ServerCallContext context)
+    {
+        var userJson = await _keycloakSetupService.GetUserByIdAsync(request.Id);
+        if (userJson == null) 
+            return null;  
+
+        var username = userJson.Value.TryGetProperty("username", out var usernameProp) 
+            ? usernameProp.GetString() 
+            : null;
+
+        var roles = userJson.Value.TryGetProperty("roles", out var rolesProp) 
+            ? rolesProp.EnumerateArray().Select(role => role.GetString()).ToList() 
+            : new List<string>(); 
+
+        var resp = new UserInfoResponse
+        {
+            Username = username,
+        };
+
+        resp.Roles.AddRange(roles);
+
+        return resp;
+    }
 }

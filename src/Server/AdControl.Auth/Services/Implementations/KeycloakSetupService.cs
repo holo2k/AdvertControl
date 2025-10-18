@@ -28,6 +28,49 @@ public class KeycloakSetupService : IKeycloakSetupService
             o.BaseUrl ?? Environment.GetEnvironmentVariable("KEYCLOAK_BASEURL") ?? "http://keycloak:8080";
     }
 
+    public async Task<string?> GetCurrentUserIdAsync(string token)
+    {
+        //var masterToken = await AcquireMasterTokenAsync();
+        var url = $"{_keycloakBaseUrl}/realms/{_defaultRealm}/protocol/openid-connect/userinfo";
+        using var req = new HttpRequestMessage(HttpMethod.Get, url)
+        {
+            Headers =
+            {
+                Authorization = new AuthenticationHeaderValue("Bearer", token)
+            }
+        };
+
+        var resp = await _httpClient.SendAsync(req);
+        var result = resp.Content.ReadAsStringAsync();
+        if (!resp.IsSuccessStatusCode) return null;
+
+        var body = await resp.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        var userId = doc.RootElement.GetProperty("sub").GetString();
+
+        return userId;
+    }
+
+    public async Task<JsonElement?> GetUserByIdAsync(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+
+        var masterToken = await AcquireMasterTokenAsync();
+        var url = $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users/{userId}";
+
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+
+        using var resp = await _httpClient.SendAsync(req);
+        if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+        resp.EnsureSuccessStatusCode();
+
+        var body = await resp.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        return doc.RootElement.Clone(); // клон, безопасно вернуть после dispose
+    }
+
+
     public async Task EnsureSetupAsync()
     {
         var masterToken = await AcquireMasterTokenAsync();
@@ -163,23 +206,23 @@ public class KeycloakSetupService : IKeycloakSetupService
 
     public async Task<string> GetJwtTokenAsync(string username, string password, string? realmName = null)
     {
-        var masterToken = await AcquireMasterTokenAsync();
-
         var realm = realmName ?? _defaultRealm;
         var url = $"{_keycloakBaseUrl}/realms/{Uri.EscapeDataString(realm)}/protocol/openid-connect/token";
         var form = new List<KeyValuePair<string, string>>
         {
             new("grant_type", "password"),
-            new("client_id", _defaultClientId), // всегда app-client
+            new("client_id", _defaultClientId),
             new("username", username),
-            new("password", password)
+            new("password", password),
+            new("scope", "openid profile email")
         };
 
         using var req = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new FormUrlEncodedContent(form),
-            Headers = { Authorization = new AuthenticationHeaderValue("Bearer", masterToken) }
+            Content = new FormUrlEncodedContent(form)
+            // Убираем Authorization
         };
+
         var resp = await _httpClient.SendAsync(req);
         resp.EnsureSuccessStatusCode();
         var body = await resp.Content.ReadAsStringAsync();
@@ -187,6 +230,7 @@ public class KeycloakSetupService : IKeycloakSetupService
         using var doc = JsonDocument.Parse(body);
         return doc.RootElement.GetProperty("access_token").GetString()!;
     }
+
 
     private async Task CreateUserIfNotExistsAsync(string username, string password, string[] roles, string masterToken)
     {

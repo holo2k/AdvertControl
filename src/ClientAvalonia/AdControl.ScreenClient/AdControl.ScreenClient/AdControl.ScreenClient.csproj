@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Controls.MediaPlayer" Version="11.3.5" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.6" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.6" />
@@ -18,6 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Text.Json" Version="9.0.10" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.6">
@@ -27,5 +30,8 @@
   </ItemGroup>
 	<ItemGroup>
     <ProjectReference Include="..\..\..\Server\AdControl.Protos\AdControl.Protos.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaUILicenseKey Include="avln_on_key:v1:796b878acd8e4386a4f16fb0f1ee83f0" />
   </ItemGroup>
 </Project>

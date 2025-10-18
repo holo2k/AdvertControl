@@ -43,4 +43,4 @@ COPY Server/AdControl.Web/AdControl.Domain/ Server/AdControl.Web/AdControl.Domai
 COPY Server/AdControl.Web/AdControl.Application/ Server/AdControl.Web/AdControl.Application/
 
 # Hot reload для дебага
-ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic.csproj && dotnet watch run --project Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic.csproj --urls http://+:5002"]
+ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic.csproj && dotnet run --project Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic.csproj --urls http://+:5002"]

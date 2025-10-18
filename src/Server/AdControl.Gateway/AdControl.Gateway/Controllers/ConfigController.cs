@@ -3,6 +3,7 @@ using AdControl.Protos;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static AdControl.Protos.AuthService;
 
 namespace AdControl.Gateway.Controllers;
 
@@ -10,18 +11,20 @@ namespace AdControl.Gateway.Controllers;
 [Route("api/config")]
 public class ConfigController : ControllerBase
 {
+    private readonly AuthServiceClient _authServiceClient;
     private readonly ScreenService.ScreenServiceClient _screenClient;
 
-    public ConfigController(ScreenService.ScreenServiceClient screenClient)
+    public ConfigController(ScreenService.ScreenServiceClient screenClient, AuthServiceClient authServiceClient)
     {
         _screenClient = screenClient;
+        _authServiceClient = authServiceClient;
     }
 
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateConfigDto dto)
     {
-        var req = new CreateConfigRequest { UserId = dto.UserId ?? "" };
+        var req = new CreateConfigRequest();
 
         if (dto.Items != null)
             foreach (var it in dto.Items)
@@ -32,7 +35,7 @@ public class ConfigController : ControllerBase
 
                 var ci = new ConfigItem
                 {
-                    Id = it.Id ?? Guid.NewGuid().ToString(),
+                    Id = it.Id ?? Guid.CreateVersion7().ToString(),
                     ConfigId = "", // сервис создаст
                     Type = type,
                     Url = it.Url ?? "",

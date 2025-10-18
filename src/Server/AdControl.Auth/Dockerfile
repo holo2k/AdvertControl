@@ -38,4 +38,4 @@ COPY Server/AdControl.Protos/ Server/AdControl.Protos/
 COPY Server/AdControl.Auth/ Server/AdControl.Auth/
 
 # Hot reload для разработки
-ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Auth/AdControl.Auth.csproj && dotnet watch run --project Server/AdControl.Auth/AdControl.Auth.csproj --urls http://+:5003"]
+ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Auth/AdControl.Auth.csproj && dotnet run --project Server/AdControl.Auth/AdControl.Auth.csproj --urls http://+:5003"]
