@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:screenClient="clr-namespace:AdControl.ScreenClient"
         xmlns:services="clr-namespace:AdControl.ScreenClient.Services"
+        xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         x:DataType="screenClient:MainWindow"
         x:CompileBindings="True"
         x:Class="AdControl.ScreenClient.MainWindow"
@@ -63,10 +64,15 @@
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
     </Window.Styles>
+    
+    <Window.Resources>
+        <SolidColorBrush x:Key="SystemControlTransparentBrush" Color="Transparent"/>
+    </Window.Resources>
+
 
     <StackPanel Margin="24" Spacing="16">
 
-        <TextBlock Name="StatusText"
+        <TextBlock x:Name="StatusText"
                    FontSize="16"
                    FontWeight="SemiBold"
                    Foreground="#4C5870"/>
@@ -128,14 +134,14 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- Добавляем элемент для отображения видео -->
-        <MediaPlayerControl x:Name="VideoPlayerControl"
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch"
-                                  IsLoopingEnabled="True"
-                                  Margin="10"
-                                  Height="{Binding Height}"
-                                  IsVisible="False" />
+        <!-- отображение видео -->
+        <vlc:VideoView x:Name="VideoViewControl"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Margin="10"
+                   Height="350"
+                   IsVisible="False" />
+        
         <Image x:Name="ImageControl"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Stretch"
