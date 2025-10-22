@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:screenClient="clr-namespace:AdControl.ScreenClient"
         xmlns:services="clr-namespace:AdControl.ScreenClient.Services"
+        xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         x:DataType="screenClient:MainWindow"
         x:CompileBindings="True"
         x:Class="AdControl.ScreenClient.MainWindow"
@@ -63,45 +64,111 @@
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
     </Window.Styles>
+    
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="24" RowSpacing="16">
 
-    <StackPanel Margin="24" Spacing="16">
+        <!-- Статус и кнопки -->
+        <StackPanel Grid.Row="0" Spacing="12">
+            <TextBlock x:Name="StatusText"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#4C5870"/>
+            
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Name="StartPairButton"
+                        Content="Start Pairing"
+                        Width="160"
+                        Classes="primary"
+                        Click="StartPairButton_Click"/>
 
-        <TextBlock Name="StatusText"
-                   FontSize="16"
-                   FontWeight="SemiBold"
-                   Foreground="#4C5870"/>
+                <Button Name="UnpairButton"
+                        Content="Unpair"
+                        Width="160"
+                        Classes="outline"
+                        Click="UnpairButton_Click"
+                        IsVisible="False"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Spacing="12">
-            <Button Name="StartPairButton"
-                    Content="Start Pairing"
-                    Width="160"
-                    Classes="primary"
-                    Click="StartPairButton_Click"/>
-
-            <Button Name="UnpairButton"
-                    Content="Unpair"
-                    Width="160"
-                    Classes="outline"
-                    Click="UnpairButton_Click"
-                    IsVisible="False"/>
+            <Border Height="1" Background="#E0E0E0" Margin="0 8" />
         </StackPanel>
 
-        <Border Height="1" Background="#E0E0E0" Margin="0 8" />
+        <Label Grid.Row="1"
+               Name="PairCodeText"
+               Width="240"
+               Height="50"
+               Content="CODE"
+               Classes="code-display"/>
 
-        <Label Name="PairCodeText"
-                 Width="240"
-                 Height="50"
-                 Content="CODE"
-                 Classes="code-display"/>
+        <Grid Grid.Row="2">
+            <!-- Видео -->
+            <vlc:VideoView x:Name="VideoViewControl"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Margin="10"
+                           IsVisible="False" />
 
-        <TextBlock Text="Items:"
-                   IsVisible="False"
-                   FontWeight="Bold"
-                   FontSize="18"
-                   Foreground="#24292E"
-                   Margin="0 10 0 0"/>
+            <!-- Изображение -->
+            <Image x:Name="ImageControl"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Margin="10"
+                   Stretch="Uniform"
+                   IsVisible="False" />
 
-        <ScrollViewer Height="350" IsVisible="False">
+            <!-- Таблица -->
+            <DataGrid x:Name="JsonTable"
+                      Margin="10"
+                      IsReadOnly="False"
+                      GridLinesVisibility="All"
+                      BorderThickness="1"
+                      BorderBrush="Gray"
+                      AutoGenerateColumns="False"
+                      RowHeight="40"
+                      FontSize="18"
+                      FontFamily="Segoe UI"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      ColumnWidth="*"
+                      HeadersVisibility="Column"
+                      IsVisible="False">
+
+                <DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="Background" Value="White"/>
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="FontSize" Value="18"/>
+                        <Setter Property="Height" Value="40"/>
+                    </Style>
+
+                    <Style Selector="DataGridRow:nth-child(even)">
+                        <Setter Property="Background" Value="#FFF0F0F0"/>
+                    </Style>
+
+                    <Style Selector="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#FFDDDDDD"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="18"/>
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    </Style>
+
+                    <Style Selector="DataGridCell">
+                        <Setter Property="Padding" Value="10,0"/>
+                        <Setter Property="FontSize" Value="18"/>
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+
+                    <Style Selector="DataGridRow:hover">
+                        <Setter Property="Background" Value="#FFD0E0FF"/>
+                    </Style>
+                </DataGrid.Styles>
+            </DataGrid>
+        </Grid>
+
+        <ScrollViewer Grid.Row="3" Height="150" IsVisible="False">
             <ItemsControl Name="ItemsList" ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="services:ConfigItemDto">
@@ -128,82 +195,5 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <!-- Добавляем элемент для отображения видео -->
-        <MediaPlayerControl x:Name="VideoPlayerControl"
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch"
-                                  IsLoopingEnabled="True"
-                                  Margin="10"
-                                  Height="{Binding Height}"
-                                  IsVisible="False" />
-        <Image x:Name="ImageControl"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            Margin="10"
-                            Height="{Binding Height}"
-                            IsVisible="False" />
-        <UserControl>
-            <UserControl.Resources>
-                <screenClient:ExpandoPropertyConverter x:Key="ExpandoConverter"/>
-            </UserControl.Resources>
-
-        </UserControl>
-		<DataGrid x:Name="JsonTable"
-          Margin="20"
-          IsReadOnly="False"
-          GridLinesVisibility="All"
-          BorderThickness="1"
-          BorderBrush="Gray"
-          AutoGenerateColumns="False"
-          RowHeight="40"
-          FontSize="18"
-          FontFamily="Segoe UI"
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch"
-          ColumnWidth="*"
-          HeadersVisibility="Column">
-
-			<DataGrid.Styles>
-				<!-- Стиль для строк -->
-				<Style Selector="DataGridRow">
-					<Setter Property="Background" Value="White"/>
-					<Setter Property="Foreground" Value="Black"/>
-					<Setter Property="FontSize" Value="18"/>
-					<Setter Property="Height" Value="40"/>
-				</Style>
-
-				<!-- Контраст для четных строк -->
-				<Style Selector="DataGridRow:nth-child(even)">
-					<Setter Property="Background" Value="#FFF0F0F0"/>
-				</Style>
-
-				<!-- Стиль для заголовков -->
-				<Style Selector="DataGridColumnHeader">
-					<Setter Property="Background" Value="#FFDDDDDD"/>
-					<Setter Property="FontWeight" Value="Bold"/>
-					<Setter Property="FontSize" Value="18"/>
-					<Setter Property="Foreground" Value="Black"/>
-					<Setter Property="HorizontalContentAlignment" Value="Center"/>
-				</Style>
-
-				<!-- Стиль для ячеек -->
-				<Style Selector="DataGridCell">
-					<Setter Property="Padding" Value="10,0"/>
-					<Setter Property="FontSize" Value="18"/>
-					<Setter Property="Foreground" Value="Black"/>
-					<Setter Property="Background" Value="Transparent"/>
-					<Setter Property="HorizontalContentAlignment" Value="Center"/>
-					<Setter Property="VerticalContentAlignment" Value="Center"/>
-				</Style>
-
-				<!-- Hover эффект -->
-				<Style Selector="DataGridRow:hover">
-					<Setter Property="Background" Value="#FFD0E0FF"/>
-				</Style>
-
-			</DataGrid.Styles>
-		</DataGrid>
-        
-
-	</StackPanel>
+    </Grid>
 </Window>

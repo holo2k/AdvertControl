@@ -124,6 +124,7 @@ services:
     environment:
       - Grpc__ScreenService=https://adcontrol-web:5001
       - Grpc__AvaloniaLogicService=https://adcontrol-avalonia-logic:5002
+      - Grpc__FileService=https://adcontrol-web:5001
       - Redis__Url=redis:6379
       - Minio__Endpoint=minio:9000
       - Minio__AccessKey=minioaccess

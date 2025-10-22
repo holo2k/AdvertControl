@@ -2,17 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Копируем только csproj для кэша зависимостей
+# РљРѕРїРёСЂСѓРµРј С‚РѕР»СЊРєРѕ csproj РґР»СЏ РєСЌС€Р° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№
 COPY Server/AdControl.Core/AdControl.Core.csproj Server/AdControl.Core/
 COPY Server/AdControl.Protos/AdControl.Protos.csproj Server/AdControl.Protos/
 COPY Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj Server/AdControl.Web/AdControl.Web/
 COPY Server/AdControl.Web/AdControl.Domain/AdControl.Domain.csproj Server/AdControl.Web/AdControl.Domain/
 COPY Server/AdControl.Web/AdControl.Application/AdControl.Application.csproj Server/AdControl.Web/AdControl.Application/
 COPY Server/AdControl.Gateway/AdControl.Gateway.Application/AdControl.Gateway.Application.csproj Server/AdControl.Gateway/AdControl.Gateway.Application/
-# Восстанавливаем зависимости
+# Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·Р°РІРёСЃРёРјРѕСЃС‚Рё
 RUN dotnet restore "Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj"
 
-# Копируем весь код
+# РљРѕРїРёСЂСѓРµРј РІРµСЃСЊ РєРѕРґ
 COPY Server/AdControl.Core/ Server/AdControl.Core/
 COPY Server/AdControl.Protos/ Server/AdControl.Protos/
 COPY Server/AdControl.Web/AdControl.Web/ Server/AdControl.Web/AdControl.Web/
@@ -20,7 +20,7 @@ COPY Server/AdControl.Web/AdControl.Domain/ Server/AdControl.Web/AdControl.Domai
 COPY Server/AdControl.Web/AdControl.Application/ Server/AdControl.Web/AdControl.Application/
 COPY Server/AdControl.Gateway/AdControl.Gateway.Application/ Server/AdControl.Gateway/AdControl.Gateway.Application/
 
-# Сборка и публикация
+# РЎР±РѕСЂРєР° Рё РїСѓР±Р»РёРєР°С†РёСЏ
 RUN dotnet publish "Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj" -c Release -o /app/publish
 
 # ========== Runtime stage ==========
@@ -36,7 +36,7 @@ WORKDIR /src
 ENV ASPNETCORE_ENVIRONMENT=Development
 ENV NUGET_PACKAGES=/root/.nuget/packages
 
-# Копируем все проекты для корректной структуры при дебаге
+# РљРѕРїРёСЂСѓРµРј РІСЃРµ РїСЂРѕРµРєС‚С‹ РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂС‹ РїСЂРё РґРµР±Р°РіРµ
 COPY Server/AdControl.Core/ Server/AdControl.Core/
 COPY Server/AdControl.Protos/ Server/AdControl.Protos/
 COPY Server/AdControl.Web/AdControl.Web/ Server/AdControl.Web/AdControl.Web/
@@ -44,5 +44,5 @@ COPY Server/AdControl.Web/AdControl.Domain/ Server/AdControl.Web/AdControl.Domai
 COPY Server/AdControl.Web/AdControl.Application/ Server/AdControl.Web/AdControl.Application/
 COPY Server/AdControl.Gateway/AdControl.Gateway.Application/ Server/AdControl.Gateway/AdControl.Gateway.Application/
 
-# Hot reload для дебага
+# Hot reload РґР»СЏ РґРµР±Р°РіР°
 ENTRYPOINT ["bash", "-lc", "dotnet restore Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj && dotnet watch run --project Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj --urls http://+:5001"]

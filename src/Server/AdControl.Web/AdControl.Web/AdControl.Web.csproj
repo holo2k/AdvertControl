@@ -20,6 +20,7 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+		<PackageReference Include="Minio" Version="6.0.5" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
@@ -27,6 +28,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\AdControl.Core\AdControl.Core.csproj" />
+	  <ProjectReference Include="..\..\AdControl.Gateway\AdControl.Gateway.Application\AdControl.Gateway.Application.csproj" />
 	  <ProjectReference Include="..\..\AdControl.Protos\AdControl.Protos.csproj" />
 	</ItemGroup>
 </Project>

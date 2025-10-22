@@ -16,6 +16,7 @@
 		<Protobuf Include="avalonia_logic.proto" GrpcServices="Both" />
 		<Protobuf Include="screen_service.proto" GrpcServices="Both" />
 		<Protobuf Include="auth_service.proto" GrpcServices="Both" />
+        <Protobuf Include="file_service.proto" GrpcServices="Both" />
 	</ItemGroup>
 
 </Project>

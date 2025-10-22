@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading;
-using System.Threading.Tasks;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
 using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,9 +16,10 @@ namespace AdControl.ScreenClient;
 
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private readonly CancellationTokenSource _cts = new();
     private readonly int _intervalSeconds;
+    private readonly PlayerService _player;
     private readonly PollingService _polling;
+    private CancellationTokenSource _cts = new();
     private long _knownVersion;
     private string _screenId;
     private List<ExpandoObject>? _tableView;
@@ -35,44 +27,32 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public MainWindow()
     {
         InitializeComponent();
-        VideoPlayerControl.Player?.InitializeAsync();
-        // DI
+
+        _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
         _polling = App.Services?.GetRequiredService<PollingService>()
-                   ?? throw new InvalidOperationException("DI service not initialized");
+                   ?? throw new InvalidOperationException("PollingService not found");
 
         var cfg = App.Services?.GetService<IConfiguration>();
         _screenId = cfg?["Screen:Id"] ?? Environment.GetEnvironmentVariable("SCREEN_ID") ?? string.Empty;
 
         _intervalSeconds = int.TryParse(cfg?["Polling:IntervalSeconds"], out var s) ? s : 5;
 
-        // Bind DataContext for ListBox (if Items is bound to ListBox in XAML)
         DataContext = this;
 
-        if (string.IsNullOrWhiteSpace(_screenId))
-            StatusText.Text = "ScreenId not set. Use pairing or set SCREEN_ID.";
-        else
-            StatusText.Text = $"ScreenId={_screenId}";
-
-        Items = new ObservableCollection<ConfigItemDto>
-        {
-            //просто заглушки для файлов 
-            new("1", "Video", "file:///C:/123.mp4", "inlineData1", "checksum1", 1024, 5, 1),
-            new("2", "Image", "C:/321.png", "inlineData2", "checksum2", 2048, 5, 2),
-            new("3", "Table", "C:/data.json", "inlineData3", "checksum3", 512, 5, 3)
-        };
-
-        // Start polling loop
-        StartLoopAsync(_cts.Token);
-
-        PairCodeText.Content = "CODE";
+        StatusText.Text = string.IsNullOrWhiteSpace(_screenId)
+            ? "ScreenId not set. Use pairing or set SCREEN_ID."
+            : $"ScreenId={_screenId}";
 
         SetState(ScreenState.NotPaired);
 
-        // Start ShowItemsAsync immediately to continuously show items
-        ShowItemsAsync(_cts.Token);
-
-        DataContext = this;
+        _ = StartAsync(_cts.Token);
     }
+
+    public ObservableCollection<ConfigItemDto> Items { get; } = new();
+
+    public ConfigItemDto? CurrentItem { get; set; }
+
+    public ScreenState State { get; private set; } = ScreenState.NotPaired;
 
     public List<ExpandoObject>? TableView
     {
@@ -87,61 +67,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    // ?????????? ??? ???????? ????????
-    public ConfigItemDto? CurrentItem { get; set; }
-
-    public ScreenState State { get; private set; } = ScreenState.NotPaired;
-
-    public ObservableCollection<ConfigItemDto> Items { get; } = new();
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
-
-    private async Task<List<ExpandoObject>?> GetDynamicListFromJson(string jsonPath)
+    private async Task StartAsync(CancellationToken token)
     {
-        var json = await File.ReadAllTextAsync(jsonPath);
+        var showTask = Task.Run(() => ShowItemsAsync(token), token);
+        var loopTask = Task.Run(() => StartLoopAsync(token), token);
 
-        //НЕ УДАЛЯТЬ
-        // using var stream = await httpClient.GetStreamAsync(jsonPath);
-        // using var reader = new StreamReader(stream);
-        // var json = await reader.ReadToEndAsync();
-
-        var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(json)!;
-
-        if (rows == null || rows.Count == 0) return null;
-
-        var dynamicList = new List<ExpandoObject>();
-
-        foreach (var rowDict in rows)
-        {
-            var expando = new ExpandoObject() as IDictionary<string, object>;
-
-            foreach (var pair in rowDict)
-            {
-                var key = pair.Key;
-                var element = pair.Value;
-                object value;
-
-                // Надежное извлечение чистого значения из JsonElement
-                value = element.ValueKind switch
-                {
-                    JsonValueKind.String => element.GetString(),
-                    JsonValueKind.Number => element.TryGetDecimal(out var d) ? d : element.GetRawText(),
-                    JsonValueKind.True => true,
-                    JsonValueKind.False => false,
-                    JsonValueKind.Null => null,
-                    _ => element.GetRawText()
-                };
-
-                // Добавляем пару ключ-значение в ExpandoObject
-                expando.Add(key, value!);
-            }
-
-            dynamicList.Add((ExpandoObject)expando);
-        }
-
-        return dynamicList;
+        await Task.WhenAll(showTask, loopTask);
     }
+
 
     private void SetState(ScreenState state)
     {
@@ -151,53 +86,73 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ItemsList.IsVisible = state == ScreenState.Paired;
     }
 
+    private async Task<List<ExpandoObject>?> GetDynamicListFromJson(string jsonPath)
+    {
+        if (!File.Exists(jsonPath))
+            return null;
+
+        var json = await File.ReadAllTextAsync(jsonPath);
+
+        var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(json);
+        if (rows is null || rows.Count == 0)
+            return null;
+
+        var list = new List<ExpandoObject>();
+        foreach (var dict in rows)
+        {
+            var exp = new ExpandoObject() as IDictionary<string, object?>;
+            foreach (var pair in dict)
+            {
+                object? value = pair.Value.ValueKind switch
+                {
+                    JsonValueKind.String => pair.Value.GetString(),
+                    JsonValueKind.Number => pair.Value.TryGetDecimal(out var d) ? d : pair.Value.GetRawText(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    _ => null
+                };
+                exp[pair.Key] = value;
+            }
+
+            list.Add((ExpandoObject)exp);
+        }
+
+        return list;
+    }
+
     private async Task StartLoopAsync(CancellationToken token)
     {
         try
         {
-            // Implement polling loop logic here
+            while (!token.IsCancellationRequested)
+            {
+                await PollOnce(token);
+                await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), token);
+            }
         }
         catch (TaskCanceledException)
         {
         }
         catch (Exception ex)
         {
-            // Handle error
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Loop error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                StatusText.Text = $"Loop error: {ex.Message}");
         }
     }
+
 
     private async Task PollOnce(CancellationToken token)
     {
         try
         {
-            StatusText.Text = $"Polling... knownVersion={_knownVersion}";
-
-            // Sample data for testing (replace with real polling logic)
-            var cfg = new ConfigDto(
-                1,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                new[]
-                {
-                    new ConfigItemDto("1", "Video", "file:///C:/123.mp4", "inlineData1", "checksum1", 1024, 5, 1),
-                    new ConfigItemDto("2", "Image", "C:/321.png", "inlineData2", "checksum2", 2048, 5, 2),
-                    new ConfigItemDto("3", "Table", "C:/data.json", "inlineData3", "checksum3", 512, 5,
-                        3)
-                }
-            );
-
-            if (cfg == null)
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                    StatusText.Text = "No response (gateway and direct grpc unavailable)");
-                return;
-            }
+                StatusText.Text = $"Polling... knownVersion={_knownVersion}";
+            });
 
-            if (cfg.NotModified)
-            {
-                await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Not modified (v={_knownVersion})");
-                return;
-            }
+            var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
+
+            if (cfg == null) throw new Exception("Config is empty");
 
             _knownVersion = cfg.Version;
 
@@ -205,124 +160,84 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             {
                 Items.Clear();
                 foreach (var i in cfg.Items ?? Array.Empty<ConfigItemDto>())
-                    Items.Add(new ConfigItemDto(i.Id, i.Type, i.Url, i.InlineData, i.Checksum, i.Size,
-                        i.DurationSeconds, i.Order));
+                    Items.Add(i);
 
                 StatusText.Text = $"Loaded v={cfg.Version}, items={cfg.Items?.Length ?? 0}";
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"Error: {ex.Message}"; });
         }
     }
+
 
     private async Task ShowItemsAsync(CancellationToken token)
     {
-        try
+        while (!token.IsCancellationRequested)
         {
-            while (!token.IsCancellationRequested)
-                foreach (var item in Items)
+            var currentVersion = _knownVersion;
+            var snapshot = await Dispatcher.UIThread.InvokeAsync(() => Items.ToList());
+
+            foreach (var item in snapshot)
+            {
+                if (_knownVersion != currentVersion)
+                    break;
+
+                CurrentItem = item;
+
+                switch (item.Type)
                 {
-                    if (token.IsCancellationRequested) break;
+                    case "Video":
+                        await _player.ShowVideoAsync(item.Url, item.DurationSeconds, token);
+                        break;
 
-                    CurrentItem = item;
+                    case "Image":
+                        await _player.ShowImageAsync(item.Url, item.DurationSeconds, token);
+                        break;
 
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        VideoPlayerControl.IsVisible = false;
-                        ImageControl.IsVisible = false;
-                        JsonTable.IsVisible = false;
-                    });
-
-                    if (item.Type == "Video")
-                    {
-                        await Dispatcher.UIThread.InvokeAsync(async () =>
-                        {
-                            VideoPlayerControl.IsVisible = true;
-                            await Task.Yield();
-                            VideoPlayerControl.Player.Source = new UriSource(item.Url);
-                            VideoPlayerControl.Player.IsLoopingEnabled = true;
-                            VideoPlayerControl.Player.PrepareAsync();
-                            VideoPlayerControl.Player.PlayAsync();
-                            await Task.Delay(TimeSpan.FromSeconds(item.DurationSeconds), token);
-                            VideoPlayerControl.Player.PauseAsync();
-                        });
-                    }
-                    else if (item.Type == "Image")
-                    {
-                        await Dispatcher.UIThread.InvokeAsync(() =>
-                        {
-                            ImageControl.IsVisible = true;
-                            ImageControl.Source = new Bitmap(item.Url);
-                        });
-
-                        await Task.Delay(TimeSpan.FromSeconds(item.DurationSeconds), token);
-                    }
-                    else if (item.Type == "Table")
-                    {
-                        var dynamicList = await GetDynamicListFromJson(item.Url);
-
-                        if (dynamicList is null || dynamicList.Count == 0) return;
-
-                        await Dispatcher.UIThread.InvokeAsync(() =>
-                        {
-                            JsonTable.Columns.Clear();
-
-                            var firstRow = dynamicList.First() as IDictionary<string, object>;
-
-                            foreach (var colName in firstRow!.Keys)
-                            {
-                                var gridColumn = new DataGridTextColumn
-                                {
-                                    Header = colName,
-                                    Binding = new Binding(".")
-                                    {
-                                        Converter = new ExpandoPropertyConverter(),
-                                        ConverterParameter = colName,
-                                        Mode = BindingMode.OneWay
-                                    }
-                                };
-                                JsonTable.Columns.Add(gridColumn);
-                            }
-
-                            JsonTable.IsVisible = true;
-                            JsonTable.ItemsSource = dynamicList;
-                        });
-                        await Task.Delay(TimeSpan.FromSeconds(item.DurationSeconds), token);
-                    }
+                    case "Table":
+                        var rows = await GetDynamicListFromJson(item.Url);
+                        if (rows != null)
+                            await _player.ShowTableAsync(rows, item.DurationSeconds, token);
+                        break;
                 }
-        }
-        catch (TaskCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
+
+                if (_knownVersion != currentVersion)
+                    break;
+            }
+
+            await Task.Delay(200, token);
         }
     }
+
 
     protected override void OnClosed(EventArgs e)
     {
         _cts.Cancel();
+
+        try
+        {
+            _player.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"PlayerService dispose error: {ex}");
+        }
+
         base.OnClosed(e);
     }
 
     private async void StartPairButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_cts.IsCancellationRequested)
-        {
-            _cts.Dispose();
-            _cts.TryReset();
-        }
-
+        _cts.Cancel();
+        _cts = new CancellationTokenSource();
         await StartPairingAsync();
     }
 
     private void UnpairButton_Click(object? sender, RoutedEventArgs e)
     {
         _cts.Cancel();
-
         _knownVersion = 0;
         _screenId = string.Empty;
         Items.Clear();
@@ -339,7 +254,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         PairCodeText.Content = code;
 
-        var started = false;
+        bool started;
         try
         {
             started = await _polling.StartPairAsync(tempId, code, ttlMinutes, info);
@@ -372,6 +287,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     StatusText.Text = $"Paired. ScreenId={_screenId}";
                     SetState(ScreenState.Paired);
 
+                    _ = StartLoopAsync(_cts.Token);
                     await SaveScreenIdToAppSettingsAsync(_screenId);
 
                     // Start polling loop after pairing

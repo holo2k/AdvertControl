@@ -1,0 +1,25 @@
+syntax = "proto3";
+package adcontrol.protos;
+option csharp_namespace = "AdControl.Protos";
+
+message UploadFileRequest {
+  string fileName = 1;
+  bytes fileData = 2;
+}
+
+message UploadFileResponse {
+  string fileUrl = 1;
+}
+
+message GetFileRequest {
+  string fileName = 1;
+}
+
+message GetFileResponse {
+  bytes fileData = 1;
+}
+
+service FileService  {
+  rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+  rpc GetFile(GetFileRequest) returns (GetFileResponse);
+}

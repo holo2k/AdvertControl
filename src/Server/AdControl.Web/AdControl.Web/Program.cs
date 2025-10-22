@@ -3,9 +3,11 @@ using AdControl.Application.Services.Abstractions;
 using AdControl.Application.Services.Implementations;
 using AdControl.Core.Infrastructure.Repository.Implementations;
 using AdControl.Core.Persistence;
+using AdControl.Gateway.Application.Minio;
 using AdControl.Web.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,11 @@ builder.Services.AddScoped<IConfigService, ConfigService>();
 
 // gRPC
 builder.Services.AddGrpc();
+builder.Services.Configure<MinioSettings>(
+    builder.Configuration.GetSection("Minio"));
+builder.Services.AddSingleton<MinioFileService>(sp =>
+    new MinioFileService(sp.GetRequiredService<IOptions<MinioSettings>>()));
+
 
 var app = builder.Build();
 
@@ -51,6 +58,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapGrpcService<GrpcScreenService>();
+app.MapGrpcService<GrpcMinioService>();
+
 app.MapGet("/", () => "AdControl.Web gRPC running");
 
 app.Run();
