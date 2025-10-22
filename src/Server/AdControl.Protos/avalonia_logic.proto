@@ -22,6 +22,15 @@ message GetConfigForScreenResponse {
   string error = 3;
 }
 
+message IsScreenExistRequest{
+	string screenId = 1;
+}
+
+message IsScreenExistResponse{
+	bool isExist = 1;
+}
+
 service AvaloniaLogicService {
   rpc GetConfigForScreen(GetConfigForScreenRequest) returns (GetConfigForScreenResponse);
+  rpc IsScreenExist(IsScreenExistRequest) returns (IsScreenExistResponse);
 }

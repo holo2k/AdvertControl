@@ -7,7 +7,8 @@
         x:CompileBindings="True"
         x:Class="AdControl.ScreenClient.MainWindow"
         Title="AdControl Screen Client"
-        Width="700" Height="550"
+        WindowState="FullScreen"
+        SystemDecorations="None"
         Background="#F5F7FA"
         WindowStartupLocation="CenterScreen">
 
@@ -33,15 +34,35 @@
         <Style Selector="Button.primary:pressed /template/ ContentPresenter">
             <Setter Property="Background" Value="#006BCB"/>
         </Style>
-
+        <Style Selector="Button.exit">
+            <Setter Property="Background" Value="#FFE57373"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderBrush" Value="#CDD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0.1"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.exit:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFD32F2F"/>
+        </Style>
         <Style Selector="Button.outline">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#4C5870"/>
+            <Setter Property="Background" Value="#0078D7"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#CDD5E1"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Height" Value="40"/>
             <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <BrushTransition Property="Background" Duration="0.1"/>
@@ -56,67 +77,81 @@
         </Style>
 
         <Style Selector="Label.code-display">
-            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontSize" Value="92" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="#EAF0F6"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#0b60e0"></Setter>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="4"/>
         </Style>
+        <Style Selector="ToggleButton#HeaderToggle">
+            <Setter Property="Background" Value="#FFFFFFFF"/>
+            <Setter Property="Foreground" Value="#1565C0"/>
+            <Setter Property="BorderBrush" Value="#CDD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0.12"/>
+                    <BrushTransition Property="BorderBrush" Duration="0.12"/>
+                    <DoubleTransition Property="Opacity" Duration="0.2" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <!-- Hover -->
+        <Style Selector="ToggleButton#HeaderToggle:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFF5FBFF"/>
+            <Setter Property="BorderBrush" Value="#A6C8F0"/>
+        </Style>
+
+        <!-- Pressed -->
+        <Style Selector="ToggleButton#HeaderToggle:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#FFEAF6FF"/>
+            <Setter Property="BorderBrush" Value="#7FB8E6"/>
+        </Style>
+
+        <!-- Checked: фон/рамка для состояния "свернуто/развёрнуто" -->
+        <Style Selector="ToggleButton#HeaderToggle:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EAF6FF"/>
+            <Setter Property="BorderBrush" Value="#5AA0DD"/>
+            <Setter Property="Foreground" Value="#0B57A6"/>
+        </Style>
+
+        <Style Selector="Grid#HeaderBar:pointerover ToggleButton#HeaderToggle">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+        <Style Selector="ToggleButton#HeaderToggle:checked">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+       
     </Window.Styles>
-    
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="24" RowSpacing="16">
 
-        <!-- Статус и кнопки -->
-        <StackPanel Grid.Row="0" Spacing="12">
-            <TextBlock x:Name="StatusText"
-                       FontSize="16"
-                       FontWeight="SemiBold"
-                       Foreground="#4C5870"/>
-            
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <Button Name="StartPairButton"
-                        Content="Start Pairing"
-                        Width="160"
-                        Classes="primary"
-                        Click="StartPairButton_Click"/>
+	<Grid Margin="15">
 
-                <Button Name="UnpairButton"
-                        Content="Unpair"
-                        Width="160"
-                        Classes="outline"
-                        Click="UnpairButton_Click"
-                        IsVisible="False"/>
-            </StackPanel>
-
-            <Border Height="1" Background="#E0E0E0" Margin="0 8" />
-        </StackPanel>
-
-        <Label Grid.Row="1"
-               Name="PairCodeText"
-               Width="240"
-               Height="50"
-               Content="CODE"
-               Classes="code-display"/>
-
-        <Grid Grid.Row="2">
-            <!-- Видео -->
-            <vlc:VideoView x:Name="VideoViewControl"
+        <!-- Панель с контентом-->
+		<Grid  ZIndex="0">
+			<!-- Видео -->
+			<vlc:VideoView x:Name="VideoViewControl"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            Margin="10"
                            IsVisible="False" />
 
-            <!-- Изображение -->
-            <Image x:Name="ImageControl"
+			<!-- Изображение -->
+			<Image x:Name="ImageControl"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Margin="10"
-                   Stretch="Uniform"
-                   IsVisible="False" />
+                   Stretch="UniformToFill"
+                   IsVisible="True" />
 
-            <!-- Таблица -->
-            <DataGrid x:Name="JsonTable"
+			<!-- Таблица -->
+			<DataGrid x:Name="JsonTable"
                       Margin="10"
                       IsReadOnly="False"
                       GridLinesVisibility="All"
@@ -132,43 +167,129 @@
                       HeadersVisibility="Column"
                       IsVisible="False">
 
-                <DataGrid.Styles>
-                    <Style Selector="DataGridRow">
-                        <Setter Property="Background" Value="White"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Setter Property="FontSize" Value="18"/>
-                        <Setter Property="Height" Value="40"/>
-                    </Style>
+				<DataGrid.Styles>
+					<Style Selector="DataGridRow">
+						<Setter Property="Background" Value="White"/>
+						<Setter Property="Foreground" Value="Black"/>
+						<Setter Property="FontSize" Value="18"/>
+						<Setter Property="Height" Value="40"/>
+					</Style>
 
-                    <Style Selector="DataGridRow:nth-child(even)">
-                        <Setter Property="Background" Value="#FFF0F0F0"/>
-                    </Style>
+					<Style Selector="DataGridRow:nth-child(even)">
+						<Setter Property="Background" Value="#FFF0F0F0"/>
+					</Style>
 
-                    <Style Selector="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#FFDDDDDD"/>
-                        <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="FontSize" Value="18"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    </Style>
+					<Style Selector="DataGridColumnHeader">
+						<Setter Property="Background" Value="#FFDDDDDD"/>
+						<Setter Property="FontWeight" Value="Bold"/>
+						<Setter Property="FontSize" Value="18"/>
+						<Setter Property="Foreground" Value="Black"/>
+						<Setter Property="HorizontalContentAlignment" Value="Center"/>
+					</Style>
 
-                    <Style Selector="DataGridCell">
-                        <Setter Property="Padding" Value="10,0"/>
-                        <Setter Property="FontSize" Value="18"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    </Style>
+					<Style Selector="DataGridCell">
+						<Setter Property="Padding" Value="10,0"/>
+						<Setter Property="FontSize" Value="18"/>
+						<Setter Property="Foreground" Value="Black"/>
+						<Setter Property="Background" Value="Transparent"/>
+						<Setter Property="HorizontalContentAlignment" Value="Center"/>
+						<Setter Property="VerticalContentAlignment" Value="Center"/>
+					</Style>
 
-                    <Style Selector="DataGridRow:hover">
-                        <Setter Property="Background" Value="#FFD0E0FF"/>
-                    </Style>
-                </DataGrid.Styles>
-            </DataGrid>
-        </Grid>
+					<Style Selector="DataGridRow:hover">
+						<Setter Property="Background" Value="#FFD0E0FF"/>
+					</Style>
+				</DataGrid.Styles>
+			</DataGrid>
+		</Grid>
 
-        <ScrollViewer Grid.Row="3" Height="150" IsVisible="False">
+		<!-- Верхняя панель (Header) -->
+		<Grid x:Name="HeaderArea"
+			  Background="Transparent"
+			  ZIndex="10"
+              VerticalAlignment="Top"
+			  RowDefinitions="Auto,*">
+
+			<!-- Шапка -->
+			<Grid Grid.Row="0" Height="96" x:Name="HeaderBar"
+                  Background="Transparent"
+                  PointerEntered="HeaderBar_OnPointerEntered"
+                  PointerExited="HeaderBar_OnPointerExited">
+
+                <ToggleButton x:Name="HeaderToggle"
+                              Width="70"
+                              Height="48"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              Margin="8"
+                              Opacity="0"
+                              Click="HeaderToggle_Click"
+                              RenderTransformOrigin="0.5,0.5">
+                    <ToggleButton.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
+                        </Transitions>
+                    </ToggleButton.Transitions>
+
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <TextBlock Text="Ad" FontSize="14" Foreground="#1565C0" FontWeight="Bold"/>
+                        <TextBlock Text="Control" FontSize="11" Foreground="#1565C0" FontWeight="Bold"/>
+                    </StackPanel>
+                </ToggleButton>
+                <StackPanel x:Name="HeaderContent"
+                            Orientation="Vertical"
+                            Margin="48,0,0,0"
+                            Spacing="12">
+					<TextBlock x:Name="StatusText"
+							   FontSize="16"
+							   FontWeight="SemiBold"
+							   Foreground="White"
+                               Background="#0078D7"
+                               Width="500"
+                               Height="20"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               />
+
+					<StackPanel Orientation="Horizontal" Spacing="12">
+						<Button x:Name="StartPairButton"
+								Content="Привязать экран"
+								Width="160"
+								Classes="primary"
+								Click="StartPairButton_Click"/>
+						<Button x:Name="UnpairButton"
+								Content="Отвязать экран"
+								Width="160"
+								Classes="outline"
+								Click="UnpairButton_Click"
+								IsVisible="False"/>
+                        <Button x:Name="ExitButton"
+                                Content="Закрыть приложение"
+                                FontSize="12"
+                                Width="160"
+                                Classes="exit"
+                                Click="ExitButton_Click"/>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
+
+			<!-- Раскрывающаяся область -->
+			<Border Grid.Row="1"
+					x:Name="HeaderExpandedArea"
+					Background="#F5F7FA"
+					IsVisible="False">
+				<Label Name="PairCodeText"
+					   Content="Здесь будет код"
+					   Classes="code-display"
+					   HorizontalAlignment="Center"
+					   VerticalAlignment="Center"
+					   HorizontalContentAlignment="Center"
+					   VerticalContentAlignment="Center"/>
+			</Border>
+		</Grid>
+
+        <ScrollViewer Height="150" IsVisible="False">
             <ItemsControl Name="ItemsList" ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="services:ConfigItemDto">

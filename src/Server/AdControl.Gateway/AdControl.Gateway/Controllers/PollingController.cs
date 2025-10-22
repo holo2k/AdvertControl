@@ -30,6 +30,17 @@ public class PollingController : ControllerBase
         _minioSettings = options.Value;
     }
 
+    // GET api/polling/is-assigned/{id}
+    [HttpGet("is-assigned/{id}")]
+    public async Task<IActionResult> IsAssigned(string id)
+    {
+        var req = new IsScreenExistRequest { ScreenId = id };
+        var resp = await _avaloniaClient.IsScreenExistAsync(req).ResponseAsync;
+        if (resp is not { IsExist: true })
+            return NotFound(false);
+        return Ok(true);
+    }
+
     // POST api/polling/pair/start
     // От экрана. Экран генерирует tempDisplayId и code.
     [HttpPost("pair/start")]
@@ -86,10 +97,10 @@ public class PollingController : ControllerBase
             var grpcResp = await _avaloniaClient.GetConfigForScreenAsync(req).ResponseAsync;
 
             if (!string.IsNullOrEmpty(grpcResp.Error))
-                return StatusCode(500, new { error = grpcResp.Error });
+                return StatusCode(StatusCodes.Status404NotFound, new { error = grpcResp.Error });
 
             if (grpcResp.NotModified)
-                return StatusCode(304);
+                return StatusCode(StatusCodes.Status304NotModified);
 
             var cfg = grpcResp.Config;
 

@@ -15,6 +15,26 @@ public class GrpcAvaloniaService : AvaloniaLogicService.AvaloniaLogicServiceBase
         _screenService = screenService;
     }
 
+    public override async Task<IsScreenExistResponse> IsScreenExist(IsScreenExistRequest request,
+        ServerCallContext context)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.ScreenId))
+            return new IsScreenExistResponse { IsExist = false };
+
+        try
+        {
+            var screenId = Guid.Parse(request.ScreenId);
+            var screen = await _screenService.GetAsync(screenId, context.CancellationToken);
+            if (screen == null)
+                return new IsScreenExistResponse { IsExist = false };
+            return new IsScreenExistResponse { IsExist = true };
+        }
+        catch (Exception ex)
+        {
+            return new IsScreenExistResponse { IsExist = false };
+        }
+    }
+
     public override async Task<GetConfigForScreenResponse> GetConfigForScreen(GetConfigForScreenRequest request,
         ServerCallContext context)
     {

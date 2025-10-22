@@ -7,10 +7,13 @@ using System.Text.Json.Nodes;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 
 namespace AdControl.ScreenClient;
 
@@ -20,13 +23,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly PlayerService _player;
     private readonly PollingService _polling;
     private CancellationTokenSource _cts = new();
+
     private long _knownVersion;
     private string _screenId;
-    private List<ExpandoObject>? _tableView;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        DataContext = this;
+        SetState(ScreenState.NotPaired);
 
         _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
         _polling = App.Services?.GetRequiredService<PollingService>()
@@ -35,17 +41,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var cfg = App.Services?.GetService<IConfiguration>();
         _screenId = cfg?["Screen:Id"] ?? Environment.GetEnvironmentVariable("SCREEN_ID") ?? string.Empty;
 
+        if (!string.IsNullOrWhiteSpace(_screenId))
+            _ = CheckScreenExistAndAdjustAsync(_screenId);
+
         _intervalSeconds = int.TryParse(cfg?["Polling:IntervalSeconds"], out var s) ? s : 5;
 
-        DataContext = this;
-
         StatusText.Text = string.IsNullOrWhiteSpace(_screenId)
-            ? "ScreenId not set. Use pairing or set SCREEN_ID."
-            : $"ScreenId={_screenId}";
-
-        SetState(ScreenState.NotPaired);
+            ? "ID экрана не установлено. Используйте привязку."
+            : $"ID={_screenId}";
 
         _ = StartAsync(_cts.Token);
+        ImageControl.IsVisible = true;
     }
 
     public ObservableCollection<ConfigItemDto> Items { get; } = new();
@@ -54,34 +60,54 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     public ScreenState State { get; private set; } = ScreenState.NotPaired;
 
-    public List<ExpandoObject>? TableView
-    {
-        get => _tableView;
-        set
-        {
-            if (_tableView != value)
-            {
-                _tableView = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TableView)));
-            }
-        }
-    }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private async Task StartAsync(CancellationToken token)
     {
         var showTask = Task.Run(() => ShowItemsAsync(token), token);
         var loopTask = Task.Run(() => StartLoopAsync(token), token);
-
         await Task.WhenAll(showTask, loopTask);
     }
 
+    private async Task CheckScreenExistAndAdjustAsync(string screenId)
+    {
+        var exists = await _polling.IsScreenExistAsync(screenId).ConfigureAwait(false);
+
+        if (exists is false)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText.Text =
+                    "Текущий ID экрана не существует в базе экранов. Он будет удалён и экран будет переключён в состояние подключения.";
+                Task.Delay(TimeSpan.FromSeconds(10));
+                SetState(ScreenState.NotPaired);
+            });
+
+            await DeleteScreenId();
+        }
+        else
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.Paired));
+            await Dispatcher.UIThread.InvokeAsync(() => CollapseHeader(true, true));
+        }
+    }
+
+    private async Task DeleteScreenId()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+        if (File.Exists(path))
+        {
+            var root = new JsonObject { ["Screen"] = new JsonObject { ["Id"] = string.Empty } };
+            await File.WriteAllTextAsync(path,
+                root.ToJsonString(new JsonSerializerOptions { WriteIndented = true })).ConfigureAwait(false);
+        }
+    }
 
     private void SetState(ScreenState state)
     {
         State = state;
         StartPairButton.IsVisible = state == ScreenState.NotPaired;
+        UnpairButton.IsVisible = state == ScreenState.Paired;
         PairCodeText.IsVisible = state == ScreenState.Pairing;
         ItemsList.IsVisible = state == ScreenState.Paired;
     }
@@ -126,6 +152,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             while (!token.IsCancellationRequested)
             {
+                if (State != ScreenState.Paired)
+                {
+                    await Task.Delay(500, token);
+                    continue;
+                }
+
                 await PollOnce(token);
                 await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), token);
             }
@@ -136,7 +168,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         catch (Exception ex)
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
-                StatusText.Text = $"Loop error: {ex.Message}");
+                StatusText.Text = $"Ошибка во время цикла обращения к серверу: {ex.Message}");
         }
     }
 
@@ -145,14 +177,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText.Text = $"Polling... knownVersion={_knownVersion}";
-            });
+            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = "Обращение к серверу..."; });
 
-            var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
+            //var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
 
-            if (cfg == null) throw new Exception("Config is empty");
+            var cfg = new ConfigDto(
+                1,
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                new[]
+                {
+                    new ConfigItemDto("1", "Image", "C:/321.png", "inlineData1", "checksum1", 1024, 5, 1)
+                }
+            );
+
+
+            if (cfg == null) throw new Exception("Конфиг пуст.");
 
             _knownVersion = cfg.Version;
 
@@ -162,12 +201,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 foreach (var i in cfg.Items ?? Array.Empty<ConfigItemDto>())
                     Items.Add(i);
 
-                StatusText.Text = $"Loaded v={cfg.Version}, items={cfg.Items?.Length ?? 0}";
+                StatusText.Text = $"Загружен конфиг с версией {cfg.Version}";
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"Error: {ex.Message}"; });
+            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"Ошибка: {ex.Message}"; });
         }
     }
 
@@ -176,6 +215,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         while (!token.IsCancellationRequested)
         {
+            if (State != ScreenState.Paired) continue;
+
             var currentVersion = _knownVersion;
             var snapshot = await Dispatcher.UIThread.InvokeAsync(() => Items.ToList());
 
@@ -235,25 +276,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await StartPairingAsync();
     }
 
-    private void UnpairButton_Click(object? sender, RoutedEventArgs e)
+    private async void UnpairButton_Click(object? sender, RoutedEventArgs e)
     {
         _cts.Cancel();
         _knownVersion = 0;
         _screenId = string.Empty;
         Items.Clear();
-        StatusText.Text = "Screen unpaired.";
-        SetState(ScreenState.NotPaired);
+        StatusText.Text = "Экран не привязан.";
+        await DeleteScreenId();
+        await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
     }
 
     public async Task StartPairingAsync(int ttlMinutes = 10, string? info = null)
     {
-        SetState(ScreenState.Pairing);
+        await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.Pairing));
+        StatusText.Text = "Введите данный код в вашем кабинете - adcontrol.ru/pairing";
 
         var tempId = Guid.NewGuid().ToString("N");
         var code = new Random().Next(0, 1000000).ToString("D6");
 
         PairCodeText.Content = code;
-
+        await Dispatcher.UIThread.InvokeAsync(() => HeaderExpandedArea.IsVisible = true);
         bool started;
         try
         {
@@ -261,15 +304,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Pair start failed: {ex.Message}";
-            SetState(ScreenState.NotPaired);
+            StatusText.Text = $"Ошибка привязки: {ex.Message}";
+            await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
             return;
         }
 
         if (!started)
         {
-            StatusText.Text = "Pair start rejected by server.";
-            SetState(ScreenState.NotPaired);
+            StatusText.Text = "Привязка отклонена сервером.";
+            await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
             return;
         }
 
@@ -284,8 +327,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 if (assigned)
                 {
                     _screenId = assignedScreenId ?? string.Empty;
-                    StatusText.Text = $"Paired. ScreenId={_screenId}";
-                    SetState(ScreenState.Paired);
+                    StatusText.Text = $"Связано. ID Экрана = {_screenId}";
+                    await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.Paired));
+                    await Dispatcher.UIThread.InvokeAsync(() => CollapseHeader(true, true));
 
                     _ = StartLoopAsync(_cts.Token);
                     await SaveScreenIdToAppSettingsAsync(_screenId);
@@ -303,8 +347,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await Task.Delay(2000, _cts.Token);
         }
 
-        StatusText.Text = "Pairing timed out.";
-        SetState(ScreenState.NotPaired);
+        StatusText.Text = "Время привязки вышло.";
+        await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
     }
 
     private async Task SaveScreenIdToAppSettingsAsync(string screenId)
@@ -332,7 +376,58 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         catch (Exception ex)
         {
             // Показываем ошибку в UI, но не ломаем поток привязки
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Saving config failed: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Ошибка сохранения ID: {ex.Message}");
         }
+    }
+
+    private void HeaderToggle_Click(object? sender, RoutedEventArgs e)
+    {
+        // Toggle раскрытия/свёртывания шапки.
+        var toggled = HeaderToggle.IsChecked ?? false;
+        CollapseHeader(!toggled, false);
+    }
+
+    private void CollapseHeader(bool collapse, bool hideToggle)
+    {
+        HeaderContent.IsVisible = !collapse;
+        HeaderExpandedArea.IsVisible = !collapse;
+
+        HeaderToggle.IsChecked = !collapse;
+        HeaderToggle.IsVisible = true;
+    }
+
+
+    private async void ExitButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var box = MessageBoxManager
+            .GetMessageBoxStandard("Предупреждение", "Вы уверены что хотите закрыть приложение?",
+                ButtonEnum.YesNo);
+
+        var result = await box.ShowAsync();
+
+        if (result == ButtonResult.Yes)
+            Close();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            var shouldCollapse = HeaderContent.IsVisible;
+
+            CollapseHeader(shouldCollapse, false);
+        }
+
+        base.OnKeyDown(e);
+    }
+
+    private void HeaderBar_OnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        HeaderToggle.Opacity = 1;
+    }
+
+    private void HeaderBar_OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        HeaderToggle.Opacity = 0;
     }
 }

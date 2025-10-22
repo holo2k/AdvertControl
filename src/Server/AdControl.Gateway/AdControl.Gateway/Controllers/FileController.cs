@@ -1,4 +1,5 @@
 using AdControl.Protos;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdControl.Gateway.Controllers;
@@ -23,7 +24,7 @@ public class FileController : ControllerBase
         var request = new UploadFileRequest
         {
             FileName = file.FileName,
-            FileData = Google.Protobuf.ByteString.CopyFrom(ms.ToArray())
+            FileData = ByteString.CopyFrom(ms.ToArray())
         };
 
         var resp = await _fileServiceClient.UploadFileAsync(request);
@@ -38,12 +39,14 @@ public class FileController : ControllerBase
 
         return File(resp.FileData.ToByteArray(), "application/octet-stream", fileName);
     }
-    
+
     [HttpGet("by-url/{url}")]
     public async Task<IActionResult> GetByUrl(string url)
     {
-        var uri = new Uri(url);
-        var fileName = Path.GetFileName(uri.AbsolutePath);
+        var decodedUrl = Uri.UnescapeDataString(url);
+
+        var fileName = decodedUrl.Split('/').LastOrDefault();
+
         return await Get(fileName);
     }
 }
