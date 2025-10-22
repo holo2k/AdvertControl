@@ -1,14 +1,14 @@
-using Minio;
 using Microsoft.Extensions.Options;
+using Minio;
 using Minio.DataModel.Args;
 
 namespace AdControl.Gateway.Application.Minio;
 
 public class MinioFileService
 {
+    private const string BucketName = "files";
     private readonly IMinioClient _minioClient;
     private readonly MinioSettings _settings;
-    private const string BucketName = "files";
 
     public MinioFileService(IOptions<MinioSettings> settings)
     {
@@ -29,11 +29,9 @@ public class MinioFileService
         );
 
         if (!exists)
-        {
             await _minioClient.MakeBucketAsync(
                 new MakeBucketArgs().WithBucket(BucketName)
             );
-        }
     }
 
     public async Task<string> UploadFileAsync(string fileName, byte[] data)
@@ -46,7 +44,8 @@ public class MinioFileService
             .WithObjectSize(ms.Length)
             .WithContentType("application/octet-stream"));
 
-        return $"http://{_settings.Endpoint}/{BucketName}/{fileName}";
+        return $"{fileName}";
+        //return $"http://{_settings.Endpoint}/{BucketName}/{fileName}";
     }
 
     public async Task<byte[]> GetFileAsync(string fileName)
