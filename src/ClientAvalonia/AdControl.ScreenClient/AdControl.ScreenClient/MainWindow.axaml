@@ -131,7 +131,7 @@
        
     </Window.Styles>
 
-	<Grid Margin="15">
+	<Grid Margin="0">
 
         <!-- Панель с контентом-->
 		<Grid  ZIndex="0">
@@ -139,74 +139,106 @@
 			<vlc:VideoView x:Name="VideoViewControl"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
-                           Margin="10"
-                           IsVisible="False" />
+                           Margin="0"
+                           IsVisible="False" 
+                           />
 
 			<!-- Изображение -->
 			<Image x:Name="ImageControl"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
-                   Margin="10"
+                   Margin="0"
                    Stretch="UniformToFill"
                    IsVisible="True" />
 
 			<!-- Таблица -->
 			<DataGrid x:Name="JsonTable"
-                      Margin="10"
-                      IsReadOnly="False"
-                      GridLinesVisibility="All"
-                      BorderThickness="1"
-                      BorderBrush="Gray"
-                      AutoGenerateColumns="False"
-                      RowHeight="40"
-                      FontSize="18"
-                      FontFamily="Segoe UI"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      ColumnWidth="*"
-                      HeadersVisibility="Column"
-                      IsVisible="False">
+          Margin="20"
+          IsReadOnly="True"
+          GridLinesVisibility="None"
+          BorderThickness="0"
+          AutoGenerateColumns="False"
+          RowHeight="50"
+          FontSize="20"
+          FontFamily="Segoe UI"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          ColumnWidth="*"
+          HeadersVisibility="Column"
+          Background="#F5F7FA"
+          IsVisible="True">
 
-				<DataGrid.Styles>
-					<Style Selector="DataGridRow">
-						<Setter Property="Background" Value="White"/>
-						<Setter Property="Foreground" Value="Black"/>
-						<Setter Property="FontSize" Value="18"/>
-						<Setter Property="Height" Value="40"/>
-					</Style>
+    <DataGrid.Styles>
+        <!-- Ряды -->
+        <Style Selector="DataGridRow">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#222222"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Margin" Value="2,2,2,2"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
 
-					<Style Selector="DataGridRow:nth-child(even)">
-						<Setter Property="Background" Value="#FFF0F0F0"/>
-					</Style>
+        <!-- Чередование рядов -->
+        <Style Selector="DataGridRow:nth-child(even)">
+            <Setter Property="Background" Value="#F0F4F8"/>
+        </Style>
 
-					<Style Selector="DataGridColumnHeader">
-						<Setter Property="Background" Value="#FFDDDDDD"/>
-						<Setter Property="FontWeight" Value="Bold"/>
-						<Setter Property="FontSize" Value="18"/>
-						<Setter Property="Foreground" Value="Black"/>
-						<Setter Property="HorizontalContentAlignment" Value="Center"/>
-					</Style>
+        <!-- Hover эффект -->
+        <Style Selector="DataGridRow:hover">
+            <Setter Property="Background" Value="#D9E8FF"/>
+            <Setter Property="Foreground" Value="#0B57A6"/>
+        </Style>
 
-					<Style Selector="DataGridCell">
-						<Setter Property="Padding" Value="10,0"/>
-						<Setter Property="FontSize" Value="18"/>
-						<Setter Property="Foreground" Value="Black"/>
-						<Setter Property="Background" Value="Transparent"/>
-						<Setter Property="HorizontalContentAlignment" Value="Center"/>
-						<Setter Property="VerticalContentAlignment" Value="Center"/>
-					</Style>
+        <!-- Заголовки -->
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="#0078D7"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
 
-					<Style Selector="DataGridRow:hover">
-						<Setter Property="Background" Value="#FFD0E0FF"/>
-					</Style>
-				</DataGrid.Styles>
-			</DataGrid>
+        <!-- Ячейки -->
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#222222"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Выделение ряда -->
+        <Style Selector="DataGridRow:focus, DataGridRow:selected">
+            <Setter Property="Background" Value="#0B57A6"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- Сетка (линии между ячейками) -->
+        <Style Selector="DataGridCell:focus">
+            <Setter Property="BorderBrush" Value="#0078D7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </DataGrid.Styles>
+</DataGrid>
+
 		</Grid>
 
 		<!-- Верхняя панель (Header) -->
 		<Grid x:Name="HeaderArea"
 			  Background="Transparent"
-			  ZIndex="10"
+			  ZIndex="100"
+              Margin="15"
               VerticalAlignment="Top"
 			  RowDefinitions="Auto,*">
 

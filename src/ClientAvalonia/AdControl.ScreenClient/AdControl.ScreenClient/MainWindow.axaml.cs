@@ -112,12 +112,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ItemsList.IsVisible = state == ScreenState.Paired;
     }
 
-    private async Task<List<ExpandoObject>?> GetDynamicListFromJson(string jsonPath)
+    private async Task<List<ExpandoObject>?> GetDynamicListFromJson(string json)
     {
-        if (!File.Exists(jsonPath))
-            return null;
+        //if (!File.Exists(json))
+        //    return null;
 
-        var json = await File.ReadAllTextAsync(jsonPath);
+        //var json = await File.ReadAllTextAsync(jsonPath);
 
         var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(json);
         if (rows is null || rows.Count == 0)
@@ -179,16 +179,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = "Обращение к серверу..."; });
 
-            //var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
+            var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
 
-            var cfg = new ConfigDto(
-                1,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                new[]
-                {
-                    new ConfigItemDto("1", "Image", "C:/321.png", "inlineData1", "checksum1", 1024, 5, 1)
-                }
-            );
+            //var cfg = new ConfigDto(
+            //    1,
+            //    DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            //    new[]
+            //    {
+            //        new ConfigItemDto("1", "Image", "C:/321.png", "inlineData1", "checksum1", 1024, 5, 1)
+            //    }
+            //);
 
 
             if (cfg == null) throw new Exception("Конфиг пуст.");
@@ -237,8 +237,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                         await _player.ShowImageAsync(item.Url, item.DurationSeconds, token);
                         break;
 
-                    case "Table":
-                        var rows = await GetDynamicListFromJson(item.Url);
+                    case "InlineJson":
+                        var rows = await GetDynamicListFromJson(item.InlineData);
                         if (rows != null)
                             await _player.ShowTableAsync(rows, item.DurationSeconds, token);
                         break;
@@ -389,11 +389,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void CollapseHeader(bool collapse, bool hideToggle)
     {
-        HeaderContent.IsVisible = !collapse;
-        HeaderExpandedArea.IsVisible = !collapse;
+        var showHeader = !collapse;
+        HeaderContent.IsVisible = showHeader;
+        HeaderExpandedArea.IsVisible = showHeader;
 
-        HeaderToggle.IsChecked = !collapse;
+        HeaderToggle.IsChecked = showHeader;
         HeaderToggle.IsVisible = true;
+
+        // Скрыть видео, если Header показан
+        if (ImageControl.IsVisible || JsonTable.IsVisible)
+            VideoViewControl.IsVisible = false;
+        else
+            VideoViewControl.IsVisible = !showHeader;
     }
 
 
@@ -412,12 +419,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     protected override void OnKeyDown(KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
-        {
-            var shouldCollapse = HeaderContent.IsVisible;
-
-            CollapseHeader(shouldCollapse, false);
-        }
-
+            Dispatcher.UIThread.Post(() => { CollapseHeader(HeaderContent.IsVisible, false); });
         base.OnKeyDown(e);
     }
 
