@@ -2,19 +2,6 @@ syntax = "proto3";
 package adcontrol.protos;
 option csharp_namespace = "AdControl.Protos";
 
-
-message KeycloakUserModel {
-  string id = 1;
-  string username = 2;
-  string email = 3;
-  bool emailVerified = 4;
-  string firstName = 5;
-  string lastName = 6;
-  bool enabled = 7;
-  bool totp = 8;
-  int64 createdTimestamp = 9;
-}
-
 message LoginRequest { string email = 1; string password = 2;}
 message LoginResponse {string token = 1;}
 message RegisterRequest {string email = 1; string password = 2; string repeatPassword = 3; repeated string roles = 4;}
@@ -24,8 +11,21 @@ message LogoutResponse{bool success = 1;}
 message UserIdRequest{string token = 1;}
 message UserIdResponse{string id = 1;}
 message UserInfoRequest{string id = 1;}
-message UserInfoResponse{string username = 1; repeated string roles=2;}
+message UserInfoResponse{string username = 1; repeated string roles=2; string email = 3; string emailVerified = 4; string firstName = 5; string lastName = 6; string phoneNumber = 7; bool enabled = 8;}
 
+message UpdateUserRequest {
+  string id = 1;
+  string email = 2;
+  string firstName = 3;
+  string lastName = 4;
+  string phoneNumber = 5;
+  bool enabled = 6;
+}
+
+message UpdateUserResponse {
+  bool success = 1;
+  string message = 2;
+}
 
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
@@ -33,4 +33,5 @@ service AuthService {
   rpc Logout(LogoutRequest) returns (LogoutResponse);
   rpc GetCurrentUserId(UserIdRequest) returns (UserIdResponse);
   rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 }
