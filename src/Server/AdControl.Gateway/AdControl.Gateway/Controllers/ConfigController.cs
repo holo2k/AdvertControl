@@ -94,6 +94,35 @@ public class ConfigController : ControllerBase
         return Ok(new { id = resp.Id, status = resp.Status });
     }
 
+    [HttpPost("{id}/add-items")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddItems(string id, [FromBody] CreateConfigDto dto)
+    {
+        var items = dto.Items.Select(it => new ConfigItem
+        {
+            Id = it.Id,
+            ConfigId = id, 
+            Type = Enum.TryParse<ItemType>(it.Type, true, out var t)
+                ? t
+                : ItemType.Image,
+            Url = it.Url,
+            InlineData = it.InlineData,
+            Checksum = it.Checksum ?? "",
+            Size = it.Size,
+            DurationSeconds = it.DurationSeconds,
+            Order = it.Order
+        }).ToList();
+        var request = new AddItemsRequest
+        {
+            Id = id,
+            Items = { items }
+        };
+        var response = await _screenClient.AddConfigItemsAsync(request);
+        return Ok(response);
+    }
+
     private Metadata BuildAuthMetadata(HttpContext http)
     {
         var metadata = new Metadata();

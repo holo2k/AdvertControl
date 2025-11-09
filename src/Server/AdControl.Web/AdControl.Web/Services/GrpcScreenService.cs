@@ -78,14 +78,15 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         return new GetScreenResponse { Screen = proto, Type = { types } };
     }
 
-    public override async Task<ListUserScreensResponse> GetListUserScreens(ListUserScreensRequest request, ServerCallContext context)
+    public override async Task<ListUserScreensResponse> GetListUserScreens(ListUserScreensRequest request,
+        ServerCallContext context)
     {
         var userIdString = GetUserIdFromMetadata(context);
         Guid? userId = null;
         if (Guid.TryParse(userIdString, out var g))
             userId = g;
         else throw new UnauthorizedAccessException();
-        
+
         var screenListByUserId = await _screens.GetListByUserIdAsync(Guid.Parse(request.UserId));
         if (screenListByUserId.Any(s => s.UserId != userId))
             throw new UnauthorizedAccessException();
@@ -213,6 +214,51 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
                 Order = it.Order
             });
         return new GetConfigResponse { Config = proto };
+    }
+
+    public override async Task<AddItemsResponse> AddConfigItems(AddItemsRequest request, ServerCallContext context)
+    {
+        var userIdString = GetUserIdFromMetadata(context);
+        Guid? userId = null;
+        if (Guid.TryParse(userIdString, out var g))
+            userId = g;
+        else throw new UnauthorizedAccessException();
+
+        try
+        {
+            if (!Guid.TryParse(request.Id, out var configId)) throw new ValidationException("Wrong config id");
+            var protoItems = request.Items;
+            var items = protoItems.Select(it => new ConfigItem
+                {
+                    Id = string.IsNullOrEmpty(it.Id) ? Guid.NewGuid() : Guid.Parse(it.Id),
+                    ConfigId = Guid.Parse(it.ConfigId),
+                    Type = it.Type.ToString(),
+                    Url = it.Url,
+                    InlineData = it.InlineData,
+                    Checksum = it.Checksum ?? "",
+                    Size = it.Size,
+                    DurationSeconds = it.DurationSeconds,
+                    Order = it.Order
+                })
+                .ToList();
+
+            var cfg = await _configs.AddItems(configId, items, context.CancellationToken);
+            var protoCfg = new Config
+            {
+                Id = cfg.Id.ToString(), UserId = cfg.UserId?.ToString() ?? "",
+                CreatedAt = DateTimeToUnixMs(cfg.CreatedAt), Items = { protoItems }
+            };
+            var response = new AddItemsResponse
+            {
+                Config = protoCfg
+            };
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Add items failed");
+            return new AddItemsResponse();
+        }
     }
 
     public override async Task<AssignConfigResponse> AssignConfigToScreen(AssignConfigRequest request,
