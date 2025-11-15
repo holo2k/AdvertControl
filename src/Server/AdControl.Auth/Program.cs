@@ -25,10 +25,11 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
     builder.WebHost.ConfigureKestrel(options =>
     {
         var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5001;
-        var certPath = "/etc/letsencrypt/live/advertcontrol.ru/cert.pfx"; // путь к pfx
+        var certPath = Environment.GetEnvironmentVariable("CERT_PATH") ?? "/app/certs/cert.pfx";
+        var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD") ?? "YourPwd";
         options.ListenAnyIP(port, listenOptions =>
         {
-            listenOptions.UseHttps(certPath, ""); // пароль пустой, если при экспорте оставили пустым
+            listenOptions.UseHttps(certPath, certPassword);
             listenOptions.Protocols = HttpProtocols.Http2;
         });
     });
