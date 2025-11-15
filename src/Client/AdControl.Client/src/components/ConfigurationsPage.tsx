@@ -77,7 +77,7 @@ export function ConfigurationsPage() {
           <DialogTrigger asChild>
             <Button style={{ backgroundColor: "#2563EB" }} className="gap-2">
               <Plus className="h-4 w-4" />
-              Create Configuration
+              Создать конфигурацию
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
@@ -90,7 +90,7 @@ export function ConfigurationsPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="config-name">Название</Label>
-                <Input id="config-name" placeholder="e.g., Retail Standard Config" />
+                <Input id="config-name" placeholder="" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

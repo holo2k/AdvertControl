@@ -1,0 +1,58 @@
+.unauth-page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9fafb;
+}
+
+.unauth-card {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 16px;
+    background-color: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    text-align: center;
+}
+
+.unauth-header {
+    margin-bottom: 16px;
+}
+
+.unauth-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.unauth-icon .icon {
+    width: 48px;
+    height: 48px;
+    color: #ef4444;
+}
+
+.unauth-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+.unauth-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.unauth-text {
+    color: #4b5563;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.unauth-btn {
+    width: 100%;
+    max-width: 250px;
+    margin-top: 20px;
+}

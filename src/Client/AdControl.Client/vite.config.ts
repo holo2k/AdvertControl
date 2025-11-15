@@ -1,8 +1,14 @@
-import { defineConfig } from 'vite';
+/// <reference types="node" />
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { env } from 'process';
 
-export default defineConfig(() => {
-  const API = 'http://localhost:5000/api';
+export default defineConfig(({ mode }) => {
+
+
+  const API = process.env.SERVER_API_URL ?
+      `${process.env.SERVER_API_URL}` : 'http://localhost:5000/api';
+
   return {
     plugins: [react()],
     server: {
@@ -18,6 +24,7 @@ export default defineConfig(() => {
       port: 5173,
       protocol: 'wss',
       allowedHosts: [
+        "ad-control.ru",
         "localhost",
       ],
       hmr: true,
