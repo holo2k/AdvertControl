@@ -27,11 +27,7 @@ build-adcontrol-auth:
   script:
     - echo "Logging into GitLab Container Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build \
-        -t $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA \
-        -t $IMAGE_REGISTRY/adcontrol-auth:latest \
-        -f src/Server/AdControl.Auth/Dockerfile \
-        src/Server/AdControl.Auth
+    - docker build -t $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-auth:latest -f src/Server/AdControl.Auth/Dockerfile src/Server/AdControl.Auth
     - docker push $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA
     - docker push $IMAGE_REGISTRY/adcontrol-auth:latest
   only:
