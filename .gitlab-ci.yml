@@ -70,16 +70,6 @@ build-adcontrol-avalonia-logic:
     - main
 
 # -----------------------
-# Test stage (placeholder)
-# -----------------------
-unit-test-job:
-  stage: test
-  script:
-    - echo "Unit tests placeholder"
-  only:
-    - main
-
-# -----------------------
 # Deploy stage (pull images & run on server)
 # -----------------------
 deploy-job:
