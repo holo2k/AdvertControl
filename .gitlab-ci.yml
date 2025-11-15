@@ -170,7 +170,7 @@ deploy-frontend-job:
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
         cd docker
-        cd backend
+        cd frontend
 
         echo 'Logging into GitLab Container Registry...'
         echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
