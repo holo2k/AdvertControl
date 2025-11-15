@@ -29,8 +29,8 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
     builder.WebHost.ConfigureKestrel(options =>
     {
         var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5001;
-        var certPath = "/etc/letsencrypt/live/example.com/fullchain.pem";
-        var keyPath = "/etc/letsencrypt/live/example.com/privkey.pem";
+        var certPath = "/etc/letsencrypt/live/advertcontrol.ru/fullchain.pem";
+        var keyPath = "/etc/letsencrypt/live/advertcontrol.ru/privkey.pem";
 
         options.ListenAnyIP(port, listenOptions =>
         {
