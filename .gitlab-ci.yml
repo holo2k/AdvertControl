@@ -18,6 +18,20 @@ build-login:
   only:
     - main
 
+build-protos:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:7.0
+  script:
+    - echo "Building gRPC Protos..."
+    - cd src/Server/AdControl.Protos
+    - dotnet build
+  artifacts:
+    paths:
+      - src/Server/AdControl.Protos/bin/
+      - src/Server/AdControl.Protos/obj/
+  only:
+    - main
+
 # -----------------------
 # Build backend images
 # -----------------------
