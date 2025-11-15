@@ -116,7 +116,7 @@ deploy-job:
     - |
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
-        cd '$WORK_DIR'
+        cd docker
 
         echo 'Logging into GitLab Container Registry...'
         echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
