@@ -1,0 +1,11 @@
+FROM nginx:alpine
+
+LABEL org.opencontainers.image.source https://git.66bit.ru/urfu-2025/advertising-screen-management-system
+
+RUN apk add --no-cache bash
+
+COPY ./nginx /etc/nginx
+COPY wait-for-it.sh .
+RUN chmod +x wait-for-it.sh
+
+CMD ["nginx", "-g", "daemon off;"]

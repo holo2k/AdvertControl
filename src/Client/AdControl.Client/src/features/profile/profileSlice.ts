@@ -1,26 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {apiClient} from "../../api/apiClient";
+import { apiClient } from "../../api/apiClient";
 
 export const fetchProfile = createAsyncThunk(
     "profile/fetchProfile",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await apiClient.get("/user/me");
-            return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response?.data || "Ошибка загрузки профиля");
-        }
-    }
-);
+            const idResponse = await apiClient.post("/auth/get-current-user-id", {});
+            const userId = idResponse.data?.id;
+            if (!userId) throw new Error("Не удалось получить ID пользователя");
 
-export const updateProfile = createAsyncThunk(
-    "profile/updateProfile",
-    async (data, { rejectWithValue }) => {
-        try {
-            const response = await apiClient.put("/user/update", data);
-            return response.data;
+            const userResponse = await apiClient.post(`/auth/get-user-info-by/${userId}`, {});
+            return userResponse.data;
+
         } catch (error) {
-            return rejectWithValue(error.response?.data || "Ошибка обновления профиля");
+            console.error("Ошибка при загрузке профиля:", error);
+            return rejectWithValue(error.response?.data || "Ошибка загрузки профиля");
         }
     }
 );
@@ -37,6 +31,7 @@ const profileSlice = createSlice({
         builder
             .addCase(fetchProfile.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(fetchProfile.fulfilled, (state, action) => {
                 state.loading = false;
@@ -45,9 +40,6 @@ const profileSlice = createSlice({
             .addCase(fetchProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-            })
-            .addCase(updateProfile.fulfilled, (state, action) => {
-                state.data = action.payload;
             });
     },
 });

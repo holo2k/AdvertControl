@@ -1,34 +1,40 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "../api/apiClient";
 
-
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
-    async ({ username, password }, { rejectWithValue }) => {
+    async ({ username, password }: { username: string; password: string }, { rejectWithValue }) => {
         try {
             const response = await apiClient.post("/auth/login", { username, password });
             const { token, user } = response.data;
 
             localStorage.setItem("token", token);
             return { token, user };
-        } catch (error) {
-            return rejectWithValue(error.response?.data || "Ошибка входа");
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || "Ошибка входа");
         }
     }
 );
 
-export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
+export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, { dispatch }) => {
+    try {
+        await apiClient.post("/auth/logout", {});
+    } catch (e) {
+    }
     localStorage.removeItem("token");
+
+    // 🔧 Сбрасываем профиль, если используешь profileSlice
+    dispatch({ type: "profile/clearProfile" });
+
     return {};
 });
-
 const authSlice = createSlice({
     name: "auth",
     initialState: {
         token: localStorage.getItem("token") || null,
         user: null,
         loading: false,
-        error: null,
+        error: null as string | null,
     },
     reducers: {},
     extraReducers: (builder) => {
@@ -44,7 +50,7 @@ const authSlice = createSlice({
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = action.payload as string;
             })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.token = null;

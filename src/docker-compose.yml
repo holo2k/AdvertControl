@@ -1,12 +1,9 @@
-include:
-  - docker-compose.keycloak.yml
-
 services:
   postgres:
     container_name: postgres
     image: postgres:15
     environment:
-      POSTGRES_DB: adcontrol
+      POSTGRES_DB: a dcontrol
       POSTGRES_USER: aduser
       POSTGRES_PASSWORD: secret
     volumes:
@@ -45,16 +42,13 @@ services:
 
   adcontrol-auth:
     container_name: adcontrol-auth
-    build:
-      context: .
-      dockerfile: ./Server/AdControl.Auth/Dockerfile
-      target: dev
+    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-auth:latest
     healthcheck:
       disable: true
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5003
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - KEYCLOAK_DEFAULT_ADMIN=admin
@@ -71,16 +65,13 @@ services:
 
   adcontrol-web:
     container_name: adcontrol-web
-    build:
-      context: .
-      dockerfile: ./Server/AdControl.Web/AdControl.Web/Dockerfile
-      target: dev
+    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-web:latest
     healthcheck:
       disable: true
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5001
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
     ports:
@@ -95,17 +86,15 @@ services:
 
   adcontrol-avalonia-logic:
     container_name: adcontrol-avalonia-logic
-    build:
-      context: .
-      dockerfile: Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Dockerfile
+    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-avalonia-logic:latest
     environment:
       - Redis__Url=redis:6379
       - ASPNETCORE_URLS=http://+:5002
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
-      - ASPNETCORE_PORT=5002  
+      - ASPNETCORE_PORT=5002
     ports:
       - "5002:5002"
     depends_on:
@@ -118,9 +107,7 @@ services:
 
   adcontrol-gateway:
     container_name: adcontrol-gateway
-    build:
-      context: .
-      dockerfile: Server/AdControl.Gateway/AdControl.Gateway/Dockerfile
+    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-gateway:latest
     environment:
       - Grpc__ScreenService=https://adcontrol-web:5001
       - Grpc__AvaloniaLogicService=https://adcontrol-avalonia-logic:5002
@@ -130,19 +117,42 @@ services:
       - Minio__AccessKey=minioaccess
       - Minio__SecretKey=miniosecret
       - ASPNETCORE_URLS=http://+:5000
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_PORT=5000
     ports:
       - "5000:5000"
     depends_on:
-      # adcontrol-web:
-      #   condition: service_healthy
-      # adcontrol-avalonia-logic:
-      #   condition: service_healthy
       redis:
         condition: service_healthy
       minio:
         condition: service_started
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:21.0.1
+    command:
+      - start-dev
+      - --log-level=DEBUG
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_USERNAME: aduser
+      KC_DB_URL_DATABASE: adcontrol
+      KC_DB_PASSWORD: secret
+      KC_METRICS_ENABLED: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   pgdata:
