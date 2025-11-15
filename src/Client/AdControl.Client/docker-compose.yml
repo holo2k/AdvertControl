@@ -19,19 +19,19 @@ services:
     env_file:
       - .env
 
-  nginx:
-    container_name: nginx
-    build:
-      context: .
-      dockerfile: ./Dockerfile.nginx
-    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/nginx:latest
-    ports:
-      - "443:443"
-    command: ["sh", "-c", "nginx -g 'daemon off;'"]
-    volumes:
-      - /nginx/ssl:/etc/nginx/ssl
-      - /etc/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - client
-    networks:
-      - adcontrol-network
+ # nginx:
+ #   container_name: nginx
+ #   build:
+ #     context: .
+ #    dockerfile: ./Dockerfile.nginx
+ #   image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/nginx:latest
+ #   ports:
+ #     - "443:443"
+ #   command: ["sh", "-c", "nginx -g 'daemon off;'"]
+ #   volumes:
+ #     - /nginx/ssl:/etc/nginx/ssl
+ #     - /etc/letsencrypt:/etc/letsencrypt
+ #   depends_on:
+ #     - client
+ #   networks:
+ #     - adcontrol-network
