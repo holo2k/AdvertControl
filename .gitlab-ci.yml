@@ -1,52 +1,149 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/development/cicd/templates/
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-
-stages:          # List of stages for jobs, and their order of execution
+# .gitlab-ci.yml
+stages:
   - build
   - test
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
+variables:
+  IMAGE_REGISTRY: $CI_REGISTRY_IMAGE
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  HOST: 84.201.145.34
+  USER: sobaka
+  FINGERPRINT: 84.201.145.34 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJh0zWBG8HEIJAjaH+VkX/1JvCCIa1VyFF8U4xERPC17
+  SSH_KEY: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpQIBAAKCAQEA6TOzRKaVsm/NVJD9s57o6OhEK3k6CtMQkLTTn2XzH6VtEAQ8tkOcquwB
+    Zlibi/Jj14G5pm/wn217vUI1Bu28ePmsw1U3yIgvF2zVrT0uecebJaSqaBwSyHgOgyaY5Fw/
+    DbzWhHv+LSB9UfKR3Ro8/Y9JG9YrtAfu70AD0gm9wEUoooRSJpi4Djh8Daay2Ars6wxe0QS1
+    mS1w06GQyzF1VccMh5OmrU7HKKo3bt/vuuU1za9+J8BKxRzu6++oY/fmH5jDg/Ts2O3Xntse
+    xa+xmUPfY5QaIGLcAwuWsOquwCAFbaO1mjdWBvQlbf9Oq5dMqiwITVpm4SpoVyAzeciyDwID
+    AQABAoIBADdwTwHXCGdvJMUh4u48rOoRrYMYQrAoFRwRoO2X8wBm91KDb1t1H12S1ZJbJj9S
+    1GF7OYNTwURlZrFLeAe5pMCtumCFdcl6dpd/DB0vGklhJoUAbHJrmhuGTwzmtBo1w9ekOOst
+    /vMDckd0/zAs+Kre0WaIt8MIz8iY00+veSin1ATSH2DN/FpQgK5TJ8b0zFe0UuqAjFx6L/Dp
+    yAId45mZo/qK5ARJrx2YrtK5orD+IcI2AaE9uli3Yn29w1RWg1KqAu+tUq+ajJBbLW6sxBQi
+    TxyPf97hWlY1wyz6rFnfT+li/SuKo7xWWDreNPZogy3tqg06JNyWj7AJ4cGsnAECgYEA/zTe
+    5lXg9DI3HYHQcFe02dLTg31FdesJPu2Y2NdwCtM8HsfW6wevqorkyyWapJK9M0LhtksaqtsN
+    wQ4690O4AFyhWCfHVpEbEkdfRRFZlTbbjXZTOUBOUY5uITOWtYj8qGHQUHeYbvNu6EajUnrg
+    xQoHuAvj/mXzci3suWfhk4ECgYEA6e1Qsq9OlemYr3ksdPGSSlx/7a8MXPoT9DKCjuAjYl5O
+    w521yi+NDBC6X87h9ZrmLHgkRx5RLKhfDGSzjpXu7fU5cm4/jpNSRnG2YdtXUH1hoOGkk5vn
+    K58Bmfze1ETQhTFferefgYwobOqF/IJA/KRmbve3Lc84maSKqjApzY8CgYEA4o3J7sqAJ+hI
+    G065fnGt380T7d+QgSzEiXOdQ6qFEWcSMPUQ6pZpMMmacGkSjlSh11bhTtX/d3t9C0wZtpYM
+    S23v4XV2tXedg62Oep77WsZXQ46uNN3MaQQ66giFGuTf/o7OwhBZZu1+IH9Mz5S74s+TqKQN
+    ozJYWp1AUBtTGoECgYEAy+w4O/x86ky/8MAWVD++wppOXzoI8giDWo6pp7mWvwrtaLPUJNQ9
+    BfaTMjAcZMnKu5tkLKcuJlsEuL4UlUj5B3GNycZ4G2csAwLf9gCK5jzW3bO2j4MKC8nKUJ3S
+    9oKisGmxDT6DiyBOoVv0v4Ig+typ+zRw+Ds74RxCUUg5ONsCgYEAqZLgoQnQ3sz8Z1eBbzJH
+    FZXRSBvCa/p+YQEmCpzmOZkdy2j/gfX/XmuVTFaj0qxIbcf0qC5dYbDFxpFtdieyD6lKXzZb
+    JdLctsoihdjobwbapcEVBWtvknpvfVjq9ij57DKo3CeOQtsgeWWfwZc4JsDcu2YtLW8gvJkm
+    Ch5jtnk=
+    -----END RSA PRIVATE KEY-----
+
+# -----------------------
+# Build backend images
+# -----------------------
+build-adcontrol-auth:
   stage: build
+  image: docker:20.10.16
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
   script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
-
-unit-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
-
-lint-test-job:   # This job also runs in the test stage.
-  stage: test    # It can run at the same time as unit-test-job (in parallel).
-  script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
-
-deploy-job:
-  stage: deploy
-  script:
-    - git config --global user.name "younggogy"
-    - git config --global user.email "younggogy@gmail.com"
-    - git remote set-url origin https://younggogy:glpat-hklI4j_ngzZgORBgaRRH-G86MQp1Omh3CA.01.0y1uyyona@gitlab.com/younggogy/advertising-screen-management-system.git
-    - git push origin main
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-auth:latest -f Server/AdControl.Auth/Dockerfile Server
+    - docker push $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-auth:latest
   only:
     - main
+
+build-adcontrol-web:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t $IMAGE_REGISTRY/adcontrol-web:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-web:latest -f Server/AdControl.Web/AdControl.Web/Dockerfile Server/AdControl.Web
+    - docker push $IMAGE_REGISTRY/adcontrol-web:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-web:latest
+  only:
+    - main
+
+build-adcontrol-gateway:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t $IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-gateway:latest -f Server/AdControl.Gateway/AdControl.Gateway/Dockerfile Server/AdControl.Gateway
+    - docker push $IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-gateway:latest
+  only:
+    - main
+
+build-adcontrol-avalonia-logic:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t $IMAGE_REGISTRY/adcontrol-avalonia-logic:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-avalonia-logic:latest -f Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Dockerfile Server/AdControl.Avalonia.Logic
+    - docker push $IMAGE_REGISTRY/adcontrol-avalonia-logic:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-avalonia-logic:latest
+  only:
+    - main
+
+# -----------------------
+# Test stage (placeholder)
+# -----------------------
+unit-test-job:
+  stage: test
+  script:
+    - echo "Unit tests placeholder"
+  only:
+    - main
+
+# -----------------------
+# Deploy: docker-compose + init-script
+# -----------------------
+deploy-job:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync bash
+    - mkdir -p ~/.ssh
+    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
+  script:
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" docker-compose.yml init-script.sh "$USER@$HOST:$WORK_DIR/"
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
+        set -euo pipefail
+        cd '$WORK_DIR'
+        echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+        docker compose pull
+        docker compose up -d
+        # Ждем readiness Postgres
+        echo 'Waiting for Postgres...'
+        until docker exec postgres pg_isready -U aduser -d adcontrol >/dev/null 2>&1; do sleep 1; done
+        # Запускаем init-script для FDW и прочего
+        docker cp init-script.sh postgres:/tmp/init-script.sh
+        docker exec -u postgres postgres psql -f /tmp/init-script.sh || true
+        echo 'Deploy finished'
+      "
+  only:
+    - main
+  when: on_success
