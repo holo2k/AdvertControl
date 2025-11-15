@@ -112,7 +112,7 @@ deploy-job:
     - chmod 600 ~/.ssh/id_rsa
     - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
   script:
-    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" Server/docker/docker-compose.yml "$USER@$HOST:$WORK_DIR/"
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" docker-compose.yml "$USER@$HOST:$WORK_DIR/"
     - |
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
