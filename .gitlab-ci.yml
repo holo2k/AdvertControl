@@ -18,20 +18,6 @@ build-login:
   only:
     - main
 
-build-protos:
-  stage: build
-  image: mcr.microsoft.com/dotnet/sdk:7.0
-  script:
-    - echo "Building gRPC Protos..."
-    - cd src/Server/AdControl.Protos
-    - dotnet build
-  artifacts:
-    paths:
-      - src/Server/AdControl.Protos/bin/
-      - src/Server/AdControl.Protos/obj/
-  only:
-    - main
-
 # -----------------------
 # Build backend images
 # -----------------------
@@ -41,11 +27,7 @@ build-adcontrol-auth:
   script:
     - echo "Logging into GitLab Container Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build \
-      -t $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA \
-      -t $IMAGE_REGISTRY/adcontrol-auth:latest \
-      -f src/Server/AdControl.Auth/Dockerfile \
-      src
+    - docker build -t $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA -t $IMAGE_REGISTRY/adcontrol-auth:latest -f src/Server/AdControl.Auth/Dockerfile .
     - docker push $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA
     - docker push $IMAGE_REGISTRY/adcontrol-auth:latest
   only:
