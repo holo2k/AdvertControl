@@ -116,11 +116,12 @@ deploy-backend-job:
     - chmod 600 ~/.ssh/id_rsa
     - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
   script:
-    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/docker-compose.yml "$USER@$HOST:docker/"
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/docker-compose.yml "$USER@$HOST:docker/backend"
     - |
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
         cd docker
+        cd backend
 
         echo 'Logging into GitLab Container Registry...'
         echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
@@ -164,11 +165,12 @@ deploy-frontend-job:
     - chmod 600 ~/.ssh/id_rsa
     - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
   script:
-    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/Client/AdControl.Client/docker-compose.yml "$USER@$HOST:docker/"
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/Client/AdControl.Client/docker-compose.yml "$USER@$HOST:docker/frontend"
     - |
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
         cd docker
+        cd backend
 
         echo 'Logging into GitLab Container Registry...'
         echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
