@@ -14,7 +14,7 @@ build-login:
   stage: build
   image: docker:20.10.16
   script:
-    - echo "$PAT" | docker login $REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
   only:
     - main
 
