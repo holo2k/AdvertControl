@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
@@ -31,28 +31,33 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         InitializeComponent();
 
-        DataContext = this;
-        SetState(ScreenState.NotPaired);
-
         _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
         _polling = App.Services?.GetRequiredService<PollingService>()
                    ?? throw new InvalidOperationException("PollingService not found");
 
         var cfg = App.Services?.GetService<IConfiguration>();
         _screenId = cfg?["Screen:Id"] ?? Environment.GetEnvironmentVariable("SCREEN_ID") ?? string.Empty;
+        _intervalSeconds = int.TryParse(cfg?["Polling:IntervalSeconds"], out var s) ? s : 5;
+
+        DataContext = this;
+        SetState(ScreenState.NotPaired);
 
         if (!string.IsNullOrWhiteSpace(_screenId))
-            _ = CheckScreenExistAndAdjustAsync(_screenId);
-
-        _intervalSeconds = int.TryParse(cfg?["Polling:IntervalSeconds"], out var s) ? s : 5;
+        {
+            _ = StartAsync(_cts.Token);
+        }
+        else
+        {
+            _ = StartPairingLoopAsync(_cts.Token);
+        }
 
         StatusText.Text = string.IsNullOrWhiteSpace(_screenId)
             ? "ID экрана не установлено. Используйте привязку."
             : $"ID={_screenId}";
 
-        _ = StartAsync(_cts.Token);
         ImageControl.IsVisible = true;
     }
+
 
     public ObservableCollection<ConfigItemDto> Items { get; } = new();
 
@@ -68,6 +73,59 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var loopTask = Task.Run(() => StartLoopAsync(token), token);
         await Task.WhenAll(showTask, loopTask);
     }
+    
+    private async Task StartPairingLoopAsync(CancellationToken token)
+    {
+        SetState(ScreenState.Pairing);
+
+        while (!token.IsCancellationRequested)
+        {
+            var code = new Random().Next(0, 1000000).ToString("D6");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                PairCodeText.Text = code;
+                StatusText.Text = "Введите код на сайте";
+            });
+
+            try
+            {
+                var tempId = Guid.NewGuid().ToString("N");
+                var started = await _polling.StartPairAsync(tempId, code, 5, "auto");
+                if (started)
+                {
+                    var timeout = TimeSpan.FromMinutes(5);
+                    var sw = Stopwatch.StartNew();
+
+                    while (sw.Elapsed < timeout && !token.IsCancellationRequested)
+                    {
+                        var (assigned, assignedScreenId) = await _polling.CheckPairStatusAsync(tempId);
+                        if (assigned)
+                        {
+                            _screenId = assignedScreenId ?? string.Empty;
+                            await SaveScreenIdToAppSettingsAsync(_screenId);
+                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                StatusText.Text = $"Экран привязан. ID={_screenId}";
+                                SetState(ScreenState.Paired);
+                            });
+                            _ = StartAsync(token);
+                            return;
+                        }
+
+                        await Task.Delay(2000, token);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                    StatusText.Text = $"Ошибка привязки: {ex.Message}");
+            }
+
+            await Task.Delay(TimeSpan.FromMinutes(5), token); // обновляем код каждые 5 минут
+        }
+    }
+
 
     private async Task CheckScreenExistAndAdjustAsync(string screenId)
     {
@@ -88,7 +146,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         else
         {
             await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.Paired));
-            await Dispatcher.UIThread.InvokeAsync(() => CollapseHeader(true, true));
         }
     }
 
@@ -106,10 +163,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void SetState(ScreenState state)
     {
         State = state;
-        StartPairButton.IsVisible = state == ScreenState.NotPaired;
-        UnpairButton.IsVisible = state == ScreenState.Paired;
-        PairCodeText.IsVisible = state == ScreenState.Pairing;
-        ItemsList.IsVisible = state == ScreenState.Paired;
+        switch (state)
+        {
+            case ScreenState.Paired:
+                PairCodeText.IsVisible = false;
+                break;
+            case ScreenState.NotPaired:
+            case ScreenState.Pairing:
+                PairCodeText.IsVisible = true;
+                break;
+        }
     }
 
     private async Task<List<ExpandoObject>?> GetDynamicListFromJson(string json)
@@ -159,6 +222,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 }
 
                 await PollOnce(token);
+                if (DateTime.UtcNow.Minute % 5 == 0)
+                {
+                    await CheckScreenExistAndAdjustAsync(_screenId);
+                }
                 await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), token);
             }
         }
@@ -268,27 +335,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         base.OnClosed(e);
     }
-
-    private async void StartPairButton_Click(object? sender, RoutedEventArgs e)
-    {
-        _cts.Cancel();
-        _cts = new CancellationTokenSource();
-        await StartPairingAsync();
-    }
-
-    private async void UnpairButton_Click(object? sender, RoutedEventArgs e)
-    {
-        _cts.Cancel();
-        _knownVersion = 0;
-        _screenId = string.Empty;
-        Items.Clear();
-        StatusText.Text = "Экран не привязан.";
-        VideoViewControl.IsVisible = false;
-        ImageControl.IsVisible = false;
-        JsonTable.IsVisible = false;
-        await DeleteScreenId();
-        await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
-    }
+    
+    
 
     public async Task StartPairingAsync(int ttlMinutes = 10, string? info = null)
     {
@@ -298,8 +346,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var tempId = Guid.NewGuid().ToString("N");
         var code = new Random().Next(0, 1000000).ToString("D6");
 
-        PairCodeText.Content = code;
-        await Dispatcher.UIThread.InvokeAsync(() => HeaderExpandedArea.IsVisible = true);
+        PairCodeText.Text = code;
         bool started;
         try
         {
@@ -332,7 +379,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     _screenId = assignedScreenId ?? string.Empty;
                     StatusText.Text = $"Связано. ID Экрана = {_screenId}";
                     await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.Paired));
-                    await Dispatcher.UIThread.InvokeAsync(() => CollapseHeader(true, true));
 
                     _ = StartLoopAsync(_cts.Token);
                     await SaveScreenIdToAppSettingsAsync(_screenId);
@@ -381,58 +427,5 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // Показываем ошибку в UI, но не ломаем поток привязки
             await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Ошибка сохранения ID: {ex.Message}");
         }
-    }
-
-    private void HeaderToggle_Click(object? sender, RoutedEventArgs e)
-    {
-        // Toggle раскрытия/свёртывания шапки.
-        var toggled = HeaderToggle.IsChecked ?? false;
-        CollapseHeader(!toggled, false);
-    }
-
-    private void CollapseHeader(bool collapse, bool hideToggle)
-    {
-        var showHeader = !collapse;
-        HeaderContent.IsVisible = showHeader;
-        HeaderExpandedArea.IsVisible = showHeader;
-
-        HeaderToggle.IsChecked = showHeader;
-        HeaderToggle.IsVisible = true;
-
-        // Скрыть видео, если Header показан
-        if (ImageControl.IsVisible || JsonTable.IsVisible)
-            VideoViewControl.IsVisible = false;
-        else
-            VideoViewControl.IsVisible = !showHeader;
-    }
-
-
-    private async void ExitButton_Click(object? sender, RoutedEventArgs e)
-    {
-        var box = MessageBoxManager
-            .GetMessageBoxStandard("Предупреждение", "Вы уверены что хотите закрыть приложение?",
-                ButtonEnum.YesNo);
-
-        var result = await box.ShowAsync();
-
-        if (result == ButtonResult.Yes)
-            Close();
-    }
-
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape)
-            Dispatcher.UIThread.Post(() => { CollapseHeader(HeaderContent.IsVisible, false); });
-        base.OnKeyDown(e);
-    }
-
-    private void HeaderBar_OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        HeaderToggle.Opacity = 1;
-    }
-
-    private void HeaderBar_OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        HeaderToggle.Opacity = 0;
     }
 }
