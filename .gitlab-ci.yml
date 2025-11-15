@@ -1,9 +1,9 @@
 stages:
   - login
   - build-backend
-  - build-frontend
-  - test
   - deploy-backend
+  - test
+  - build-frontend
   - deploy-frontend
 
 variables:
@@ -102,25 +102,10 @@ build-adcontrol-avalonia-logic:
   only:
     - main
 
+# -----------------------
+# Deploy backend stage (pull images & run on server)
+# -----------------------
 
-# -----------------------
-# Build frontend images
-# -----------------------
-build-frontend:
-  stage: build-frontend
-  image: docker:20.10.16
-  script:
-    - echo "Logging into GitLab Container Registry..."
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build -t "$IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/frontend:latest" -f src/Client/AdControl.Client/Dockerfile .
-    - docker push $IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA
-    - docker push $IMAGE_REGISTRY/frontend:latest
-  only:
-    - main
-
-# -----------------------
-# Deploy stage (pull images & run on server)
-# -----------------------
 deploy-backend-job:
   stage: deploy-backend
   image: alpine:latest
@@ -150,6 +135,25 @@ deploy-backend-job:
     - main
   when: on_success
 
+# -----------------------
+# Build frontend images
+# -----------------------
+build-frontend:
+  stage: build-frontend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/frontend:latest" -f src/Client/AdControl.Client/Dockerfile .
+    - docker push $IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/frontend:latest
+  only:
+    - main
+
+# -----------------------
+# Deploy frontend stage (pull images & run on server)
+# -----------------------
+
 deploy-frontend-job:
   stage: deploy-frontend
   image: alpine:latest
@@ -174,6 +178,9 @@ deploy-frontend-job:
         docker compose -f docker-compose.frontend.yml up -d
 
         echo 'Frontend deploy finished'
+        echo 'Nginx restarting...'
+        sudo systemctl restart nginx
+        echo 'Nginx restarted!'
       "
   only:
     - main
