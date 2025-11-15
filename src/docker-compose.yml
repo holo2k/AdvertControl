@@ -8,7 +8,7 @@ services:
     container_name: postgres
     image: postgres:15
     environment:
-      POSTGRES_DB: a dcontrol
+      POSTGRES_DB: adcontrol
       POSTGRES_USER: aduser
       POSTGRES_PASSWORD: secret
     volumes:
@@ -72,7 +72,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - /etc/letsencrypt/live/advertcontrol.ru/cert.pfx:/https/cert.pfx:ro
+      - ~/certs/cert.pfx:/https/cert.pfx:ro
     networks:
       - adcontrol-network
 
@@ -118,7 +118,7 @@ services:
       adcontrol-web:
         condition: service_started
     volumes:
-      - /etc/letsencrypt/live/advertcontrol.ru/cert.pfx:/https/cert.pfx:ro
+      - ~/certs/cert.pfx:/https/cert.pfx:ro
     networks:
       - adcontrol-network
 
