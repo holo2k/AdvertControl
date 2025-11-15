@@ -99,10 +99,22 @@ build-adcontrol-avalonia-logic:
   only:
     - main
 
+build-frontend:
+  stage: build
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/frontend:latest" -f src/Client/AdControl.Client/Dockerfile .
+    - docker push $IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/frontend:latest
+  only:
+    - main
+
 # -----------------------
 # Deploy stage (pull images & run on server)
 # -----------------------
-deploy-job:
+deploy-backend-job:
   stage: deploy
   image: alpine:latest
   before_script:
@@ -126,6 +138,35 @@ deploy-job:
         docker compose up -d
 
         echo 'Backend deploy finished'
+      "
+  only:
+    - main
+  when: on_success
+
+deploy-frontend-job:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync bash
+    - mkdir -p ~/.ssh
+    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
+  script:
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/Client/AdControl.Client/docker-compose.yml "$USER@$HOST:docker/"
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
+        set -euo pipefail
+        cd docker
+
+        echo 'Logging into GitLab Container Registry...'
+        echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+        echo 'Pulling images and deploying...'
+        docker-compose -f docker-compose.frontend.yml pull
+        docker compose -f docker-compose.frontend.yml up -d
+
+        echo 'Frontend deploy finished'
       "
   only:
     - main
