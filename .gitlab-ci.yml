@@ -163,7 +163,7 @@ deploy-frontend-job:
         echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
 
         echo 'Pulling images and deploying...'
-        docker-compose -f docker-compose.frontend.yml pull
+        docker compose -f docker-compose.frontend.yml pull
         docker compose -f docker-compose.frontend.yml up -d
 
         echo 'Frontend deploy finished'
