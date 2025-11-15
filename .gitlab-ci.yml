@@ -51,7 +51,7 @@ build-adcontrol-gateway:
   script:
     - echo "Logging into GitLab Container Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build -t "$IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-gateway:latest" -f src/Server/AdControl.Gateway/Dockerfile src
+    - docker build -t "$IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-gateway:latest" -f src/Server/AdControl.Gateway/AdControl.Gateway/Dockerfile src
     - docker push $IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA
     - docker push $IMAGE_REGISTRY/adcontrol-gateway:latest
   only:
