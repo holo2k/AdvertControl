@@ -49,7 +49,7 @@ public class ConfigController : ControllerBase
                     InlineData = it.InlineData ?? "",
                     Checksum = it.Checksum ?? "",
                     Size = it.Size,
-                    DurationSeconds = it.DurationSeconds,
+                    DurationSeconds = 5,
                     Order = it.Order
                 };
                 req.Items.Add(ci);
@@ -92,6 +92,35 @@ public class ConfigController : ControllerBase
         var resp = await _screenClient.AssignConfigToScreenAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
         if (!string.IsNullOrEmpty(resp.Error)) return StatusCode(500, new { error = resp.Error });
         return Ok(new { id = resp.Id, status = resp.Status });
+    }
+
+    [HttpPost("{id}/add-items")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddItems(string id, [FromBody] CreateConfigDto dto)
+    {
+        var items = dto.Items.Select(it => new ConfigItem
+        {
+            Id = it.Id,
+            ConfigId = id, 
+            Type = Enum.TryParse<ItemType>(it.Type, true, out var t)
+                ? t
+                : ItemType.Image,
+            Url = it.Url,
+            InlineData = it.InlineData,
+            Checksum = it.Checksum ?? "",
+            Size = it.Size,
+            DurationSeconds = it.DurationSeconds,
+            Order = it.Order
+        }).ToList();
+        var request = new AddItemsRequest
+        {
+            Id = id,
+            Items = { items }
+        };
+        var response = await _screenClient.AddConfigItemsAsync(request);
+        return Ok(response);
     }
 
     private Metadata BuildAuthMetadata(HttpContext http)

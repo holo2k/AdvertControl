@@ -13,4 +13,6 @@ public interface IScreenService
         CancellationToken ct = default);
 
     Task UpdateLastHeartBeatAsync(Guid screenId, CancellationToken ct = default);
+    
+    Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default);
 }

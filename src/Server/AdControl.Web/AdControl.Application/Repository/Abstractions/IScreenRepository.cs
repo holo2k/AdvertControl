@@ -9,4 +9,5 @@ public interface IScreenRepository
     Task<Screen> CreateAsync(Screen screen, CancellationToken ct = default);
     Task UpdateAsync(Screen screen, CancellationToken ct = default);
     Task UpdateLastHeartBeatAsync(Guid screenId, CancellationToken ct = default);
+    Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default);
 }

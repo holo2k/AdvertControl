@@ -42,4 +42,11 @@ public class ConfigService : IConfigService
 
         return cfg;
     }
+
+    public async Task<Config?> AddItems(Guid configId, List<ConfigItem> items, CancellationToken ct = default)
+    {
+        var cfg = await GetAsync(configId, ct);
+        if (cfg is null) throw new NullReferenceException("Config not found");
+        return await _repo.AddItems(configId, items, ct);
+    }
 }

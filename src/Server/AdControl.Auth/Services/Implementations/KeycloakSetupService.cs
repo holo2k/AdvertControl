@@ -253,12 +253,16 @@ public class KeycloakSetupService : IKeycloakSetupService
                 username,
                 enabled = true,
                 emailVerified = true,
-                credentials = new[] { new { type = "password", value = password, temporary = false } },
-                email = "",
-                firstName = "",
-                lastName = "",
-                phoneNumber = ""
+                credentials = new[]
+                {
+                    new { type = "password", value = password, temporary = false }
+                },
+                attributes = new
+                {
+                    phoneNumber = new[] { "" }
+                }
             };
+
             using var createUserReq =
                 new HttpRequestMessage(HttpMethod.Post, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users")
                 {

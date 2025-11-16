@@ -50,27 +50,36 @@ public class PlayerService : IDisposable
 
     public async Task ShowVideoAsync(string fileName, int durationSeconds, CancellationToken token)
     {
-        var url = GatewayBaseUrl + fileName;
+        var encodedFileName = Uri.EscapeDataString(fileName); 
+        var url = GatewayBaseUrl + encodedFileName;
+
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             ShowOnly(_videoView);
-            if (_videoView.MediaPlayer == null)
+
+            if (_videoView.MediaPlayer != _mediaPlayer)
                 _videoView.MediaPlayer = _mediaPlayer;
 
             _mediaPlayer.Stop();
         });
 
-        using var media = new Media(_libVLC, url, FromType.FromLocation);
-        _mediaPlayer.Play(media);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            using var media = new Media(_libVLC, url, FromType.FromLocation);
+            _mediaPlayer.Play(media);
+        });
 
         await Task.Delay(TimeSpan.FromSeconds(durationSeconds), token);
 
-        await Dispatcher.UIThread.InvokeAsync(() => _mediaPlayer.Pause());
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _mediaPlayer.Stop();
+        });
     }
+
 
     public async Task ShowImageAsync(string fileName, int durationSeconds, CancellationToken token)
     {
-        durationSeconds = 2;
         await Dispatcher.UIThread.InvokeAsync(() => ShowOnly(_imageControl));
         var url = GatewayBaseUrl + fileName;
         using var http = new HttpClient();
@@ -79,7 +88,7 @@ public class PlayerService : IDisposable
         var imageBytes = await response.Content.ReadAsByteArrayAsync();
 
 
-        // Не закрываем MemoryStream сразу
+        // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ MemoryStream пїЅпїЅпїЅпїЅпїЅ
         var ms = new MemoryStream(imageBytes);
 
         await Dispatcher.UIThread.InvokeAsync(() => { _imageControl.Source = new Bitmap(ms); });

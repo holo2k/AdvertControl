@@ -67,4 +67,11 @@ public class ConfigRepository : IConfigRepository
         _db.ScreenConfigs.Add(sc);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<Config?> AddItems(Guid configId, List<ConfigItem> items, CancellationToken ct = default)
+    {
+        _db.ConfigItems.AddRange(items);
+        await _db.SaveChangesAsync(ct);
+        return await GetAsync(configId, ct);
+    }
 }

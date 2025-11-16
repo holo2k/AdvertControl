@@ -46,4 +46,11 @@ public class ScreenRepository : IScreenRepository
         if (screen is not null)
             screen.LastHeartbeatAt = DateTime.UtcNow;
     }
+
+    public async Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default)
+    {
+        var screens = _db.Screens.Where(x=>x.UserId == userId);
+        return screens;
+    }
+
 }

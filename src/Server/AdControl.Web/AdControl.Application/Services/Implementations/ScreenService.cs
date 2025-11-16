@@ -48,4 +48,9 @@ public class ScreenService : IScreenService
     {
         await _repo.UpdateLastHeartBeatAsync(screenId, ct);
     }
+
+    public async Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default)
+    {
+        return await _repo.GetListByUserIdAsync(userId, ct);
+    }
 }
