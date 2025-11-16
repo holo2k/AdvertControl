@@ -1,0 +1,47 @@
+version: "3.8"
+
+networks:
+  adcontrol-network:
+    driver: bridge
+    external: true
+    name: adcontrol-network
+
+services:
+  # Сервис-сборщик: собирает и копирует результат в ./dist на хосте
+  builder:
+    image: node:22.15.0
+    working_dir: /app
+    volumes:
+      - ./:/app:cached
+      - ./dist:/dist
+    environment:
+      - NODE_ENV=production
+    command: >
+      sh -c "npm ci --prefer-offline --no-audit --progress=false &&
+             npx vite build &&
+             rm -rf /dist/* || true &&
+             cp -r dist/* /dist/ &&
+             echo 'Build finished -> /dist on host'"
+    restart: "no"
+    networks:
+      - adcontrol-network
+
+  # Preview / runtime сервис: собирается и получает тег image (можно пушить)
+  preview:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/frontend:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - builder
+    env_file:
+      - .env
+    networks:
+      - adcontrol-network
+    # можно добавить restart: unless-stopped (по желанию)
+
+# (опционально) volumes:  # не обязательно здесь, ./dist — bind-mount
+#  frontend-dist:
+#    driver: local
