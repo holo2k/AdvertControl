@@ -220,7 +220,6 @@ public class KeycloakSetupService : IKeycloakSetupService
         using var req = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new FormUrlEncodedContent(form)
-            // Убираем Authorization
         };
 
         var resp = await _httpClient.SendAsync(req);
@@ -254,8 +253,16 @@ public class KeycloakSetupService : IKeycloakSetupService
                 username,
                 enabled = true,
                 emailVerified = true,
-                credentials = new[] { new { type = "password", value = password, temporary = false } }
+                credentials = new[]
+                {
+                    new { type = "password", value = password, temporary = false }
+                },
+                attributes = new
+                {
+                    phoneNumber = new[] { "" }
+                }
             };
+
             using var createUserReq =
                 new HttpRequestMessage(HttpMethod.Post, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users")
                 {
@@ -277,6 +284,39 @@ public class KeycloakSetupService : IKeycloakSetupService
 
         await AssignRolesAsync(userId, roles, masterToken);
     }
+
+    public async Task UpdateUserAsync(string userId, string? email = null, string? firstName = null,
+        string? lastName = null, string? phoneNumber = null)
+    {
+        var masterToken = await AcquireMasterTokenAsync();
+
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("UserId is required", nameof(userId));
+
+        var updateObj = new
+        {
+            email,
+            firstName,
+            lastName,
+            enabled = true,
+            emailVerified = true,
+            attributes = new
+            {
+                phoneNumber = phoneNumber is not null ? new[] { phoneNumber } : Array.Empty<string>()
+            }
+        };
+
+        var url = $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users/{userId}";
+        using var req = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(updateObj), Encoding.UTF8, "application/json")
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+
+        var resp = await _httpClient.SendAsync(req);
+        resp.EnsureSuccessStatusCode();
+    }
+
 
     private async Task AssignRolesAsync(string userId, string[] roles, string masterToken)
     {

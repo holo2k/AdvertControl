@@ -13,11 +13,14 @@ public class ScreenController : ControllerBase
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly ScreenService.ScreenServiceClient _screenClient;
+    private readonly AuthService.AuthServiceClient _authServiceClient;
 
-    public ScreenController(ScreenService.ScreenServiceClient screenClient, IConnectionMultiplexer redis)
+
+    public ScreenController(ScreenService.ScreenServiceClient screenClient, IConnectionMultiplexer redis, AuthService.AuthServiceClient authServiceClient)
     {
         _screenClient = screenClient;
         _redis = redis;
+        _authServiceClient = authServiceClient;
     }
 
     /// <summary>
@@ -147,4 +150,23 @@ public class ScreenController : ControllerBase
             metadata.Add("Authorization", auth.ToString());
         return metadata;
     }
+
+    [HttpGet("get-history")]
+    [Authorize]
+    public async Task<IActionResult> GetHistory()
+    {
+        var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+        var currentUserRequest = new UserIdRequest
+        {
+            Token = token
+        };
+        
+        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var historyRequest = new ListUserScreensRequest
+        {
+            UserId = currentUser.Id,
+        };
+        var screenListByUserId = await _screenClient.GetListUserScreensAsync(historyRequest);
+        return Ok(screenListByUserId);
+    } 
 }

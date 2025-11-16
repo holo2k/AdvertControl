@@ -27,6 +27,8 @@ public class GrpcAvaloniaService : AvaloniaLogicService.AvaloniaLogicServiceBase
             var screen = await _screenService.GetAsync(screenId, context.CancellationToken);
             if (screen == null)
                 return new IsScreenExistResponse { IsExist = false };
+
+            await _screenService.UpdateLastHeartBeatAsync(screenId, context.CancellationToken);
             return new IsScreenExistResponse { IsExist = true };
         }
         catch (Exception ex)

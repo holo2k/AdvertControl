@@ -1,0 +1,189 @@
+stages:
+  - login
+  - build-backend
+  - deploy-backend
+  - test
+  - build-frontend
+  - deploy-frontend
+
+variables:
+  IMAGE_REGISTRY: $CI_REGISTRY_IMAGE
+  DOCKER_TLS_CERTDIR: ""  # Не нужно для локального Docker
+  HOST: 84.201.145.34
+  USER: sobaka
+  FINGERPRINT: 84.201.145.34 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJh0zWBG8HEIJAjaH+VkX/1JvCCIa1VyFF8U4xERPC17
+  SSH_KEY: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpQIBAAKCAQEA6TOzRKaVsm/NVJD9s57o6OhEK3k6CtMQkLTTn2XzH6VtEAQ8tkOcquwB
+    Zlibi/Jj14G5pm/wn217vUI1Bu28ePmsw1U3yIgvF2zVrT0uecebJaSqaBwSyHgOgyaY5Fw/
+    DbzWhHv+LSB9UfKR3Ro8/Y9JG9YrtAfu70AD0gm9wEUoooRSJpi4Djh8Daay2Ars6wxe0QS1
+    mS1w06GQyzF1VccMh5OmrU7HKKo3bt/vuuU1za9+J8BKxRzu6++oY/fmH5jDg/Ts2O3Xntse
+    xa+xmUPfY5QaIGLcAwuWsOquwCAFbaO1mjdWBvQlbf9Oq5dMqiwITVpm4SpoVyAzeciyDwID
+    AQABAoIBADdwTwHXCGdvJMUh4u48rOoRrYMYQrAoFRwRoO2X8wBm91KDb1t1H12S1ZJbJj9S
+    1GF7OYNTwURlZrFLeAe5pMCtumCFdcl6dpd/DB0vGklhJoUAbHJrmhuGTwzmtBo1w9ekOOst
+    /vMDckd0/zAs+Kre0WaIt8MIz8iY00+veSin1ATSH2DN/FpQgK5TJ8b0zFe0UuqAjFx6L/Dp
+    yAId45mZo/qK5ARJrx2YrtK5orD+IcI2AaE9uli3Yn29w1RWg1KqAu+tUq+ajJBbLW6sxBQi
+    TxyPf97hWlY1wyz6rFnfT+li/SuKo7xWWDreNPZogy3tqg06JNyWj7AJ4cGsnAECgYEA/zTe
+    5lXg9DI3HYHQcFe02dLTg31FdesJPu2Y2NdwCtM8HsfW6wevqorkyyWapJK9M0LhtksaqtsN
+    wQ4690O4AFyhWCfHVpEbEkdfRRFZlTbbjXZTOUBOUY5uITOWtYj8qGHQUHeYbvNu6EajUnrg
+    xQoHuAvj/mXzci3suWfhk4ECgYEA6e1Qsq9OlemYr3ksdPGSSlx/7a8MXPoT9DKCjuAjYl5O
+    w521yi+NDBC6X87h9ZrmLHgkRx5RLKhfDGSzjpXu7fU5cm4/jpNSRnG2YdtXUH1hoOGkk5vn
+    K58Bmfze1ETQhTFferefgYwobOqF/IJA/KRmbve3Lc84maSKqjApzY8CgYEA4o3J7sqAJ+hI
+    G065fnGt380T7d+QgSzEiXOdQ6qFEWcSMPUQ6pZpMMmacGkSjlSh11bhTtX/d3t9C0wZtpYM
+    S23v4XV2tXedg62Oep77WsZXQ46uNN3MaQQ66giFGuTf/o7OwhBZZu1+IH9Mz5S74s+TqKQN
+    ozJYWp1AUBtTGoECgYEAy+w4O/x86ky/8MAWVD++wppOXzoI8giDWo6pp7mWvwrtaLPUJNQ9
+    BfaTMjAcZMnKu5tkLKcuJlsEuL4UlUj5B3GNycZ4G2csAwLf9gCK5jzW3bO2j4MKC8nKUJ3S
+    9oKisGmxDT6DiyBOoVv0v4Ig+typ+zRw+Ds74RxCUUg5ONsCgYEAqZLgoQnQ3sz8Z1eBbzJH
+    FZXRSBvCa/p+YQEmCpzmOZkdy2j/gfX/XmuVTFaj0qxIbcf0qC5dYbDFxpFtdieyD6lKXzZb
+    JdLctsoihdjobwbapcEVBWtvknpvfVjq9ij57DKo3CeOQtsgeWWfwZc4JsDcu2YtLW8gvJkm
+    Ch5jtnk=
+    -----END RSA PRIVATE KEY-----
+
+
+# -----------------------
+# Docker login job (через PAT)
+# -----------------------
+login:
+  stage: login
+  image: docker:20.10.16
+  script:
+    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  only:
+    - main
+
+# -----------------------
+# Build backend images
+# -----------------------
+build-adcontrol-auth:
+  stage: build-backend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-auth:latest" -f src/Server/AdControl.Auth/Dockerfile src
+    - docker push $IMAGE_REGISTRY/adcontrol-auth:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-auth:latest
+  only:
+    - main
+
+build-adcontrol-web:
+  stage: build-backend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/adcontrol-web:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-web:latest" -f src/Server/AdControl.Web/AdControl.Web/Dockerfile src
+    - docker push $IMAGE_REGISTRY/adcontrol-web:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-web:latest
+  only:
+    - main
+
+build-adcontrol-gateway:
+  stage: build-backend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-gateway:latest" -f src/Server/AdControl.Gateway/AdControl.Gateway/Dockerfile src
+    - docker push $IMAGE_REGISTRY/adcontrol-gateway:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-gateway:latest
+  only:
+    - main
+
+build-adcontrol-avalonia-logic:
+  stage: build-backend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/adcontrol-avalonia-logic:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/adcontrol-avalonia-logic:latest" -f src/Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Dockerfile src
+    - docker push $IMAGE_REGISTRY/adcontrol-avalonia-logic:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/adcontrol-avalonia-logic:latest
+  only:
+    - main
+
+# -----------------------
+# Deploy backend stage (pull images & run on server)
+# -----------------------
+
+deploy-backend-job:
+  stage: deploy-backend
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync bash
+    - mkdir -p ~/.ssh
+    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
+  script:
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/docker-compose.yml "$USER@$HOST:docker/backend"
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
+        set -euo pipefail
+        cd docker
+        cd backend
+
+        echo 'Logging into GitLab Container Registry...'
+        echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+        echo 'Pulling images and deploying...'
+        docker compose pull
+        docker compose up -d
+
+        echo 'Backend deploy finished'
+      "
+  only:
+    - main
+  when: on_success
+
+# -----------------------
+# Build frontend images
+# -----------------------
+build-frontend:
+  stage: build-frontend
+  image: docker:20.10.16
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t "$IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_REGISTRY/frontend:latest" -f src/Client/AdControl.Client/Dockerfile .
+    - docker push $IMAGE_REGISTRY/frontend:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_REGISTRY/frontend:latest
+  only:
+    - main
+
+# -----------------------
+# Deploy frontend stage (pull images & run on server)
+# -----------------------
+
+deploy-frontend-job:
+  stage: deploy-frontend
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync bash
+    - mkdir -p ~/.ssh
+    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
+  script:
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/Client/AdControl.Client/docker-compose.yml "$USER@$HOST:docker/frontend"
+    - |
+      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
+        set -euo pipefail
+        cd docker
+        cd frontend
+
+        echo 'Logging into GitLab Container Registry...'
+        echo '$CI_JOB_TOKEN' | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+        echo 'Pulling images and deploying...'
+        docker compose pull
+        docker compose up -d
+
+        echo 'Frontend deploy finished'
+        echo 'Nginx restarting...'
+        sudo systemctl restart nginx
+        echo 'Nginx restarted!'
+      "
+  only:
+    - main
+  when: on_success
