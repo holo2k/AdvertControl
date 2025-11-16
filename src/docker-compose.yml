@@ -60,10 +60,12 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5003
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
       - KEYCLOAK_DEFAULT_ADMIN=admin
       - KEYCLOAK_DEFAULT_PASSWORD=qwerty
+      - CERT_PATH=/https/cert.pfx
+      - CERT_PASSWORD=z 
     ports:
       - "5003:5003"
     depends_on:
@@ -72,9 +74,10 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ~/certs/cert.pfx:/https/cert.pfx:ro
+      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
     networks:
       - adcontrol-network
+    restart: always
 
   adcontrol-web:
     container_name: adcontrol-web
@@ -85,8 +88,10 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5001
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
+      - CERT_PATH=/https/cert.pfx
+      - CERT_PASSWORD=z 
     ports:
       - "5001:5001"
     depends_on:
@@ -95,9 +100,10 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ~/certs/cert.pfx:/https/cert.pfx:ro
+      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
     networks:
       - adcontrol-network
+    restart: always
 
   adcontrol-avalonia-logic:
     container_name: adcontrol-avalonia-logic
@@ -107,9 +113,11 @@ services:
       - ASPNETCORE_URLS=http://+:5002
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
       - ASPNETCORE_PORT=5002
+      - CERT_PATH=/https/cert.pfx
+      - CERT_PASSWORD=z 
     ports:
       - "5002:5002"
     depends_on:
@@ -118,9 +126,10 @@ services:
       adcontrol-web:
         condition: service_started
     volumes:
-      - ~/certs/cert.pfx:/https/cert.pfx:ro
+      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
     networks:
       - adcontrol-network
+    restart: always
 
   adcontrol-gateway:
     container_name: adcontrol-gateway
@@ -145,6 +154,7 @@ services:
         condition: service_started
     networks:
       - adcontrol-network
+    restart: always
 
   keycloak:
     container_name: keycloak
