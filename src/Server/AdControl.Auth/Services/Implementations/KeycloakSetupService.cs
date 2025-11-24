@@ -22,7 +22,7 @@ public class KeycloakSetupService : IKeycloakSetupService
         var o = options.Value;
 
         _defaultAdminUsername = o.AdminUser ?? "admin";
-        _defaultAdminPassword = o.AdminPassword ?? "qwerty";
+        _defaultAdminPassword = o.AdminPassword ?? "zxc";
         _defaultRealm = Environment.GetEnvironmentVariable("KEYCLOAK_REALM") ?? "myrealm";
         _defaultClientId = "app-client"; // клиент для всех пользователей
         _keycloakBaseUrl =
