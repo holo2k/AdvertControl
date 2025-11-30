@@ -36,7 +36,7 @@ public class GrpcMinioService : FileService.FileServiceBase
     public override async Task<GetFilesByUserIdResponse> GetFilesByUserId(GetFilesByUserIdRequest request,
         ServerCallContext context)
     {
-        var data = (await _fileService.GetUserFilesContentAsync(request.UserId)).Select(Google.Protobuf.ByteString
+        var data = (await _fileService.GetFilesByUserAsync(request.UserId)).Select(Google.Protobuf.ByteString
             .CopyFrom);
         return new GetFilesByUserIdResponse
         {

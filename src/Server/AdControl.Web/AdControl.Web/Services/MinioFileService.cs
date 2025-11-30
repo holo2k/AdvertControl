@@ -93,7 +93,7 @@ public class MinioFileService
         return files;
     }
     
-    public async Task<List<byte[]>> GetUserFilesContentAsync(string userId)
+    public async Task<List<byte[]>> GetFilesByUserAsync(string userId)
     {
         var filesContent = new List<byte[]>();
         var tcs = new TaskCompletionSource<bool>();
@@ -109,14 +109,17 @@ public class MinioFileService
             {
                 if (item.Key.Contains($"_{userId}"))
                 {
-                    using var ms = new MemoryStream();
-                    await _minioClient.GetObjectAsync(
-                        new GetObjectArgs()
-                            .WithBucket(BucketName)
-                            .WithObject(item.Key)
-                            .WithCallbackStream(stream => stream.CopyTo(ms))
-                    );
-                    filesContent.Add(ms.ToArray());
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await _minioClient.GetObjectAsync(
+                            new GetObjectArgs()
+                                .WithBucket(BucketName)
+                                .WithObject(item.Key)
+                                .WithCallbackStream(stream => stream.CopyTo(memoryStream))
+                        );
+
+                        filesContent.Add(memoryStream.ToArray());
+                    }
                 }
             },
             ex =>
@@ -131,5 +134,4 @@ public class MinioFileService
         await tcs.Task;
         return filesContent;
     }
-
 }
