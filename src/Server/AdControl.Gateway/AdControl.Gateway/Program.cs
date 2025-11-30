@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -15,73 +16,91 @@ var builder = WebApplication.CreateBuilder(args);
 
 AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-// Kestrel: ������� ������ ���� � ��������� HTTP/2
-builder.WebHost.ConfigureKestrel(options =>
-{
-    var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5000;
-    options.ListenAnyIP(port, listenOptions => { listenOptions.Protocols = HttpProtocols.Http1AndHttp2; });
-});
+ConfigureKestrel(builder);
+ConfigureServices(builder);
 
-builder.Services.AddControllers().AddJsonOptions(options =>
+var app = builder.Build();
+
+ConfigureMiddleware(app);
+
+app.MapControllers();
+app.MapGet("/", () => Results.Ok("AdControl.Gateway running"));
+
+app.Run();
+
+static void ConfigureKestrel(WebApplicationBuilder builder)
 {
-    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-});
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    builder.WebHost.ConfigureKestrel(options =>
     {
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Name = "Authorization",
-        Description = "JWT Authorization header using the Bearer scheme"
+        var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5000;
+        options.ListenAnyIP(port, listenOptions => { listenOptions.Protocols = HttpProtocols.Http1AndHttp2; });
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            new string[] { }
-        }
-    });
-});
-
-// Redis
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect(builder.Configuration.GetValue<string>("Redis:Url") ?? "localhost:6379"));
-
-// Keycloak auth
-var keycloakAuthority = builder.Configuration.GetValue<string>("Keycloak:Authority");
-
-static string Base64UrlDecode(string input)
-{
-    var padded = input.Replace('-', '+').Replace('_', '/');
-    switch (padded.Length % 4)
-    {
-        case 2:
-            padded += "==";
-            break;
-        case 3:
-            padded += "=";
-            break;
-    }
-
-    var bytes = Convert.FromBase64String(padded);
-    return Encoding.UTF8.GetString(bytes);
 }
 
+static void ConfigureServices(WebApplicationBuilder builder)
+{
+    // Controllers + JSON
+    builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
-if (!string.IsNullOrEmpty(keycloakAuthority))
+    // Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Description = "JWT Authorization header using the Bearer scheme"
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                },
+                Array.Empty<string>()
+            }
+        });
+
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
+    });
+
+    // Redis
+    var redisUrl = builder.Configuration.GetValue<string>("Redis:Url") ?? "localhost:6379";
+    builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisUrl));
+
+    // Keycloak JWT auth
+    var keycloakAuthority = builder.Configuration.GetValue<string>("Keycloak:Authority");
+    if (!string.IsNullOrEmpty(keycloakAuthority))
+        ConfigureAuthentication(builder, keycloakAuthority);
+
+    // gRPC clients
+    ConfigureGrpcClients(builder);
+
+    // MinIO
+    ConfigureMinio(builder);
+
+    // CORS
+    builder.Services.AddCors(p =>
+        p.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+}
+
+static void ConfigureAuthentication(WebApplicationBuilder builder, string authority)
 {
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
-            options.Authority = keycloakAuthority;
-            options.RequireHttpsMetadata = false; //dev
+            options.Authority = authority;
+            options.RequireHttpsMetadata = false; // dev only
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 NameClaimType = "preferred_username",
@@ -97,7 +116,6 @@ if (!string.IsNullOrEmpty(keycloakAuthority))
                     if (ctx.SecurityToken is JsonWebToken jsonJwt)
                     {
                         var payloadJson = Base64UrlDecode(jsonJwt.EncodedPayload);
-
                         using var doc = JsonDocument.Parse(payloadJson);
                         if (doc.RootElement.TryGetProperty("realm_access", out var realmAccess) &&
                             realmAccess.TryGetProperty("roles", out var rolesEl))
@@ -120,33 +138,31 @@ if (!string.IsNullOrEmpty(keycloakAuthority))
     builder.Services.AddAuthorization();
 }
 
-// gRPC clients
-builder.Services
-    .AddGrpcClient<ScreenService.ScreenServiceClient>(o =>
-        o.Address = new Uri(builder.Configuration["Grpc:ScreenService"] ?? "http://localhost:5001"))
-    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+static string Base64UrlDecode(string input)
+{
+    var padded = input.Replace('-', '+').Replace('_', '/');
+    switch (padded.Length % 4)
     {
-        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-    });
+        case 2:
+            padded += "==";
+            break;
+        case 3:
+            padded += "=";
+            break;
+    }
 
+    var bytes = Convert.FromBase64String(padded);
+    return Encoding.UTF8.GetString(bytes);
+}
 
-builder.Services.AddGrpcClient<AvaloniaLogicService.AvaloniaLogicServiceClient>(o =>
-        o.Address = new Uri(builder.Configuration["Grpc:AvaloniaLogicService"] ?? "http://localhost:5002"))
-    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-    });
-
-builder.Services
-    .AddGrpcClient<AuthService.AuthServiceClient>(o =>
-        o.Address = new Uri(builder.Configuration["Grpc:AuthService"] ?? "http://localhost:5003"))
-    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-    });
-
-AddGrpcClient<FileService.FileServiceClient>(builder, "Grpc:FileService", "https://localhost:5001");
-
+static void ConfigureGrpcClients(WebApplicationBuilder builder)
+{
+    AddGrpcClient<ScreenService.ScreenServiceClient>(builder, "Grpc:ScreenService", "http://localhost:5001");
+    AddGrpcClient<AvaloniaLogicService.AvaloniaLogicServiceClient>(builder, "Grpc:AvaloniaLogicService",
+        "http://localhost:5002");
+    AddGrpcClient<AuthService.AuthServiceClient>(builder, "Grpc:AuthService", "http://localhost:5003");
+    AddGrpcClient<FileService.FileServiceClient>(builder, "Grpc:FileService", "https://adcontrol-web:5001");
+}
 
 static void AddGrpcClient<TClient>(WebApplicationBuilder builder, string configKey, string defaultAddress)
     where TClient : class
@@ -159,42 +175,40 @@ static void AddGrpcClient<TClient>(WebApplicationBuilder builder, string configK
         });
 }
 
-
-// MinIO client
-var minioCfg = builder.Configuration.GetSection("Minio");
-var minioEndpoint = minioCfg.GetValue<string>("Endpoint");
-var minioAccess = minioCfg.GetValue<string>("AccessKey");
-var minioSecret = minioCfg.GetValue<string>("SecretKey");
-var minioSecure = minioCfg.GetValue<bool?>("Secure") ?? false;
-
-if (!string.IsNullOrEmpty(minioEndpoint))
+static void ConfigureMinio(WebApplicationBuilder builder)
 {
-    var minioClient = new MinioClient()
-        .WithEndpoint(minioEndpoint)
-        .WithCredentials(minioAccess, minioSecret);
+    var cfg = builder.Configuration.GetSection("Minio");
+    var endpoint = cfg.GetValue<string>("Endpoint");
+    if (string.IsNullOrEmpty(endpoint)) return;
 
-    if (!minioSecure) minioClient = minioClient.WithSSL(false);
-    builder.Services.AddSingleton(minioClient.Build());
-    builder.Services.Configure<MinioSettings>(minioCfg);
+    var access = cfg.GetValue<string>("AccessKey");
+    var secret = cfg.GetValue<string>("SecretKey");
+    var secure = cfg.GetValue<bool?>("Secure") ?? false;
+
+    var client = new MinioClient()
+        .WithEndpoint(endpoint)
+        .WithCredentials(access, secret);
+
+    if (!secure) client = client.WithSSL(false);
+
+    builder.Services.AddSingleton(client.Build());
+    builder.Services.Configure<MinioSettings>(cfg);
 }
 
-builder.Services.AddCors(p => p.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-
-var app = builder.Build();
-
-app.UseCors();
-if (app.Environment.IsDevelopment())
+static void ConfigureMiddleware(WebApplication app)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    app.UseCors();
 
-if (!string.IsNullOrEmpty(keycloakAuthority))
-{
-    app.UseAuthentication();
-    app.UseAuthorization();
-}
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
-app.MapControllers();
-app.MapGet("/", () => Results.Ok("AdControl.Gateway running"));
-app.Run();
+    var keycloakAuthority = app.Configuration.GetValue<string>("Keycloak:Authority");
+    if (!string.IsNullOrEmpty(keycloakAuthority))
+    {
+        app.UseAuthentication();
+        app.UseAuthorization();
+    }
+}
