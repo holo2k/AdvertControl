@@ -97,6 +97,31 @@ public class AuthController : ControllerBase
         return Ok(resp);
     }
 
+    [HttpPost("get-current-user-info")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCurrentUserInfo()
+    {
+        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var currentUserRequest = new UserIdRequest
+        {
+            Token = token
+        };
+
+        var currentUserIdResponse = await _authServiceClient.GetCurrentUserIdAsync(currentUserRequest);
+        
+        var id = currentUserIdResponse.Id;
+        
+        if (id is null)
+            return Unauthorized();
+
+        var userInfoRequest = new UserInfoRequest { Id = id };
+        var userInfoResponse = await _authServiceClient.GetUserInfoAsync(userInfoRequest);
+
+        return Ok(userInfoResponse);
+    }
+
     /// <summary>
     ///     Возвращает информацию о пользователе по его идентификатору.
     /// </summary>

@@ -1,8 +1,10 @@
+include:
+  - docker-compose.keycloak.yml
+
 networks:
   adcontrol-network:
     driver: bridge
-    name: adcontrol-network
-    
+
 services:
   postgres:
     container_name: postgres
@@ -20,8 +22,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - adcontrol-network
 
   redis:
     container_name: redis
@@ -33,8 +33,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - adcontrol-network
 
   minio:
     container_name: minio
@@ -48,25 +46,23 @@ services:
       - "9001:9001"
     volumes:
       - miniodata:/data
-    networks:
-      - adcontrol-network
 
   adcontrol-auth:
     container_name: adcontrol-auth
-    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-auth:latest
+    build:
+      context: .
+      dockerfile: ./Server/AdControl.Auth/Dockerfile
+      target: dev
     healthcheck:
       disable: true
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5003
-      - ASPNETCORE_PORT=5003
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - KEYCLOAK_DEFAULT_ADMIN=admin
       - KEYCLOAK_DEFAULT_PASSWORD=qwerty
-      - CERT_PATH=/https/cert.pfx
-      - CERT_PASSWORD=z 
     ports:
       - "5003:5003"
     depends_on:
@@ -75,25 +71,22 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
-    networks:
-      - adcontrol-network
-    restart: always
+      - ~/.aspnet/https:/https:ro
 
   adcontrol-web:
     container_name: adcontrol-web
-    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-web:latest
+    build:
+      context: .
+      dockerfile: ./Server/AdControl.Web/AdControl.Web/Dockerfile
+      target: dev
     healthcheck:
       disable: true
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
       - ASPNETCORE_URLS=https://+:5001
-      - ASPNETCORE_PORT=5001
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
-      - CERT_PATH=/https/cert.pfx
-      - CERT_PASSWORD=z 
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
     ports:
       - "5001:5001"
     depends_on:
@@ -102,24 +95,21 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
-    networks:
-      - adcontrol-network
-    restart: always
+      - ~/.aspnet/https:/https:ro
 
   adcontrol-avalonia-logic:
     container_name: adcontrol-avalonia-logic
-    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-avalonia-logic:latest
+    build:
+      context: .
+      dockerfile: Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Dockerfile
     environment:
       - Redis__Url=redis:6379
       - ASPNETCORE_URLS=http://+:5002
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=adcontrol;Username=aduser;Password=secret
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=z
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ASPNETCORE_PORT=5002
-      - CERT_PATH=/https/cert.pfx
-      - CERT_PASSWORD=z 
     ports:
       - "5002:5002"
     depends_on:
@@ -128,14 +118,13 @@ services:
       adcontrol-web:
         condition: service_started
     volumes:
-      - /home/sobaka/certs/cert.pfx:/https/cert.pfx:ro
-    networks:
-      - adcontrol-network
-    restart: always
+      - ~/.aspnet/https:/https:ro
 
   adcontrol-gateway:
     container_name: adcontrol-gateway
-    image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-gateway:latest
+    build:
+      context: .
+      dockerfile: Server/AdControl.Gateway/AdControl.Gateway/Dockerfile
     environment:
       - Grpc__ScreenService=https://adcontrol-web:5001
       - Grpc__AvaloniaLogicService=https://adcontrol-avalonia-logic:5002
@@ -145,58 +134,19 @@ services:
       - Minio__AccessKey=minioaccess
       - Minio__SecretKey=miniosecret
       - ASPNETCORE_URLS=http://+:5000
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_PORT=5000
     ports:
       - "5000:5000"
     depends_on:
+      # adcontrol-web:
+      #   condition: service_healthy
+      # adcontrol-avalonia-logic:
+      #   condition: service_healthy
       redis:
         condition: service_healthy
       minio:
         condition: service_started
-    networks:
-      - adcontrol-network
-    restart: always
-
-  keycloak:
-    container_name: keycloak
-    image: quay.io/keycloak/keycloak:21.0.1
-    command:
-      - start-dev
-      - --log-level=DEBUG
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres
-      KC_DB_USERNAME: aduser
-      KC_DB_URL_DATABASE: adcontrol
-      KC_DB_PASSWORD: secret
-      KC_METRICS_ENABLED: "true"
-
-      KC_HOSTNAME: advertcontrol.ru
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-      KC_PROXY: edge
-      KC_HTTP_ENABLED: "true"
-
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health/ready || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
-    ports:
-      - "8080:8080"
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    networks:
-      - adcontrol-network
-
 
 volumes:
   pgdata:
