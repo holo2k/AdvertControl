@@ -145,6 +145,21 @@ builder.Services
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
 
+AddGrpcClient<FileService.FileServiceClient>(builder, "Grpc:FileService", "https://localhost:5001");
+
+
+static void AddGrpcClient<TClient>(WebApplicationBuilder builder, string configKey, string defaultAddress)
+    where TClient : class
+{
+    builder.Services.AddGrpcClient<TClient>(o =>
+            o.Address = new Uri(builder.Configuration[configKey] ?? defaultAddress))
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        });
+}
+
+
 // MinIO client
 var minioCfg = builder.Configuration.GetSection("Minio");
 var minioEndpoint = minioCfg.GetValue<string>("Endpoint");
