@@ -24,12 +24,15 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
 {
     builder.WebHost.ConfigureKestrel(options =>
     {
-        var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5001;
-        var certPath = Environment.GetEnvironmentVariable("CERT_PATH") ?? "/app/certs/cert.pfx";
-        var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD") ?? "YourPwd";
+        var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5003;
+        var certPath = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__Path");
+        var certPassword = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__Password");
+
         options.ListenAnyIP(port, listenOptions =>
         {
-            listenOptions.UseHttps(certPath, certPassword);
+            if (!string.IsNullOrEmpty(certPath) && !string.IsNullOrEmpty(certPassword))
+                listenOptions.UseHttps(certPath, certPassword);
+
             listenOptions.Protocols = HttpProtocols.Http2;
         });
     });
