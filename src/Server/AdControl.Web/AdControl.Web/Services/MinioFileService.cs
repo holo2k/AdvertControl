@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Minio;
+using Minio.ApiEndpoints;
 using Minio.DataModel.Args;
 
 namespace AdControl.Gateway.Application.Minio;
@@ -59,4 +60,76 @@ public class MinioFileService
         );
         return ms.ToArray();
     }
+    
+    public async Task<List<string>> GetFilesNameByUserAsync(string userId)
+    {
+        var files = new List<string>();
+        var tcs = new TaskCompletionSource<bool>();
+
+        var observable = _minioClient.ListObjectsAsync(
+            new ListObjectsArgs()
+                .WithBucket(BucketName)
+                .WithRecursive(true)
+        );
+
+        observable.Subscribe(
+            item =>
+            {
+                if (item.Key.Contains($"_{userId}"))
+                {
+                    files.Add(item.Key);
+                }
+            },
+            ex =>
+            {
+                tcs.SetException(ex);
+            },
+            () =>
+            {
+                tcs.SetResult(true);
+            });
+
+        await tcs.Task;
+        return files;
+    }
+    
+    public async Task<List<byte[]>> GetUserFilesContentAsync(string userId)
+    {
+        var filesContent = new List<byte[]>();
+        var tcs = new TaskCompletionSource<bool>();
+
+        var observable = _minioClient.ListObjectsAsync(
+            new ListObjectsArgs()
+                .WithBucket(BucketName)
+                .WithRecursive(true)
+        );
+
+        observable.Subscribe(
+            async item =>
+            {
+                if (item.Key.Contains($"_{userId}"))
+                {
+                    using var ms = new MemoryStream();
+                    await _minioClient.GetObjectAsync(
+                        new GetObjectArgs()
+                            .WithBucket(BucketName)
+                            .WithObject(item.Key)
+                            .WithCallbackStream(stream => stream.CopyTo(ms))
+                    );
+                    filesContent.Add(ms.ToArray());
+                }
+            },
+            ex =>
+            {
+                tcs.SetException(ex);
+            },
+            () =>
+            {
+                tcs.SetResult(true);
+            });
+
+        await tcs.Task;
+        return filesContent;
+    }
+
 }

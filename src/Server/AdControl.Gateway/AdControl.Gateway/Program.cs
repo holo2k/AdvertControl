@@ -145,7 +145,7 @@ builder.Services
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
 
-AddGrpcClient<FileService.FileServiceClient>(builder, "Grpc:FileService", "https://adcontrol-web:5001");
+AddGrpcClient<FileService.FileServiceClient>(builder, "Grpc:FileService", "https://localhost:5001");
 
 
 static void AddGrpcClient<TClient>(WebApplicationBuilder builder, string configKey, string defaultAddress)

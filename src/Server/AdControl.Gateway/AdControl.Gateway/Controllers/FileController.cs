@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using AdControl.Protos;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Authorization;
@@ -10,17 +11,15 @@ namespace AdControl.Gateway.Controllers;
 public class FileController : ControllerBase
 {
     private readonly FileService.FileServiceClient _fileServiceClient;
+    private readonly AuthService.AuthServiceClient _authServiceClient;
 
-    public FileController(FileService.FileServiceClient fileServiceClient)
+    public FileController(FileService.FileServiceClient fileServiceClient,
+        AuthService.AuthServiceClient authServiceClient)
     {
         _fileServiceClient = fileServiceClient;
+        _authServiceClient = authServiceClient;
     }
 
-    /// <summary>
-    ///     Загружает файл на сервер.
-    /// </summary>
-    /// <param name="file">Файл для загрузки.</param>
-    /// <returns>Результат загрузки файла.</returns>
     [HttpPost("upload")]
     [Authorize]
     [ProducesResponseType(typeof(UploadFileResponse), StatusCodes.Status200OK)]
@@ -28,11 +27,22 @@ public class FileController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Upload(IFormFile file)
     {
+        if (file == null || file.Length == 0)
+            return BadRequest("File is empty.");
+
+        var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        var currentUserRequest = new UserIdRequest { Token = token };
+        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var userId = currentUser.Id;
+
         using var ms = new MemoryStream();
         await file.CopyToAsync(ms);
+
         var extension = Path.GetExtension(file.FileName);
         var safeFileName = Path.GetFileNameWithoutExtension(file.FileName);
-        var newFileName = $"{safeFileName}-{Guid.NewGuid()}{extension}";
+
+        var newFileName = $"{safeFileName}_{userId}{extension}";
 
         var request = new UploadFileRequest
         {
@@ -44,10 +54,79 @@ public class FileController : ControllerBase
         return Ok(resp);
     }
 
+    [HttpGet("get-current-user-files-name")]
+    [Authorize]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCurrentUserFilesName()
+    {
+        var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        var currentUserRequest = new UserIdRequest { Token = token };
+        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var userId = currentUser.Id;
+        if (userId is null) throw new UnauthorizedAccessException();
+        var request = new GetFilesNameByUserIdRequest
+        {
+            UserId = userId
+        };
+        var files = await _fileServiceClient.GetFilesNameByUserIdAsync(request);
+        return Ok(files);
+    }
+
+    [HttpGet("get-current-user-files")]
+    [Authorize]
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurrentUserFiles()
+    {
+        var tokenHeader = Request.Headers.Authorization.ToString();
+        if (string.IsNullOrWhiteSpace(tokenHeader)) return Unauthorized();
+        var token = tokenHeader.Replace("Bearer ", "");
+
+        var currentUserRequest = new UserIdRequest { Token = token };
+        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var userId = currentUser?.Id;
+        if (userId is null) return Unauthorized();
+
+        var namesRequest = new GetFilesNameByUserIdRequest
+        {
+            UserId = userId
+        };
+        var fileNamesResponse = await _fileServiceClient.GetFilesNameByUserIdAsync(namesRequest);
+        var fileNames = fileNamesResponse.FilesName.ToList();
+        if (fileNames.Count == 0) throw new UnauthorizedAccessException();
+
+        var filesRequest = new GetFilesByUserIdRequest { UserId = userId };
+        var filesResponse = await _fileServiceClient.GetFilesByUserIdAsync(filesRequest);
+        var files = filesResponse?.Files?.Select(x => x.ToByteArray()).ToList();
+        if (files == null || files.Count == 0) return NotFound();
+
+        var memoryStream = new MemoryStream();
+        using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            for (var i = 0; i < files.Count; i++)
+            {
+                var entryName = (i < fileNames.Count && !string.IsNullOrWhiteSpace(fileNames[i]))
+                    ? fileNames[i]
+                    : $"file_{i + 1}.bin"; 
+
+                var entry = archive.CreateEntry(entryName, CompressionLevel.Fastest);
+                await using var entryStream = entry.Open();
+                await entryStream.WriteAsync(files[i].AsMemory(0, files[i].Length));
+            }
+        }
+
+        memoryStream.Position = 0;
+        return File(memoryStream, "application/zip", "all-files.zip");
+    }
+
+
     /// <summary>
-    ///     Возвращает файл по имени.
+    ///     пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
     /// </summary>
-    /// <param name="fileName">Имя файла.</param>
+    /// <param name="fileName">пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.</param>
     [HttpGet("{fileName}")]
     [Authorize]
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
@@ -61,9 +140,9 @@ public class FileController : ControllerBase
     }
 
     /// <summary>
-    ///     Возвращает файл по URL.
+    ///     пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ URL.
     /// </summary>
-    /// <param name="url">URL файла.</param>
+    /// <param name="url">URL пїЅпїЅпїЅпїЅпїЅ.</param>
     [HttpGet("by-url/{*url}")]
     //[Authorize]
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]

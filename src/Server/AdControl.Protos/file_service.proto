@@ -7,6 +7,22 @@ message UploadFileRequest {
   bytes fileData = 2;
 }
 
+message GetFilesNameByUserIdRequest{
+  string userId = 1;
+}
+
+message GetFilesNameByUserIdResponse{
+  repeated string filesName = 1;
+}
+
+message GetFilesByUserIdRequest{
+  string userId = 1;
+}
+
+message GetFilesByUserIdResponse{
+  repeated bytes files = 1;
+}
+
 message UploadFileResponse {
   string fileUrl = 1;
 }
@@ -22,4 +38,6 @@ message GetFileResponse {
 service FileService {
   rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
   rpc GetFile(GetFileRequest) returns (GetFileResponse);
+  rpc GetFilesNameByUserId(GetFilesNameByUserIdRequest) returns (GetFilesNameByUserIdResponse);
+  rpc GetFilesByUserId(GetFilesByUserIdRequest) returns (GetFilesByUserIdResponse);
 }

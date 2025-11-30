@@ -22,4 +22,25 @@ public class GrpcMinioService : FileService.FileServiceBase
         var data = await _fileService.GetFileAsync(request.FileName);
         return new GetFileResponse { FileData = Google.Protobuf.ByteString.CopyFrom(data) };
     }
+
+    public override async Task<GetFilesNameByUserIdResponse> GetFilesNameByUserId(GetFilesNameByUserIdRequest request,
+        ServerCallContext context)
+    {
+        var data = await _fileService.GetFilesNameByUserAsync(request.UserId);
+        return new GetFilesNameByUserIdResponse
+        {
+            FilesName = { data }
+        };
+    }
+
+    public override async Task<GetFilesByUserIdResponse> GetFilesByUserId(GetFilesByUserIdRequest request,
+        ServerCallContext context)
+    {
+        var data = (await _fileService.GetUserFilesContentAsync(request.UserId)).Select(Google.Protobuf.ByteString
+            .CopyFrom);
+        return new GetFilesByUserIdResponse
+        {
+            Files = { data }
+        };
+    }
 }
