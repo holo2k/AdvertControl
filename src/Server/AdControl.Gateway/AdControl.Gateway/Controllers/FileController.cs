@@ -63,7 +63,7 @@ public class FileController : ControllerBase
         var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
 
         var currentUserRequest = new UserIdRequest { Token = token };
-        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var currentUser = await _authServiceClient.GetCurrentUserIdAsync(currentUserRequest);
         var userId = currentUser.Id;
         if (userId is null) throw new UnauthorizedAccessException();
         var request = new GetFilesNameByUserIdRequest
@@ -86,9 +86,9 @@ public class FileController : ControllerBase
         var token = tokenHeader.Replace("Bearer ", "");
 
         var currentUserRequest = new UserIdRequest { Token = token };
-        var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+        var currentUser = await _authServiceClient.GetCurrentUserIdAsync(currentUserRequest);
         var userId = currentUser?.Id;
-        if (userId is null) return Unauthorized();
+        if (userId is null || userId == "") return Unauthorized();
 
         var namesRequest = new GetFilesNameByUserIdRequest
         {

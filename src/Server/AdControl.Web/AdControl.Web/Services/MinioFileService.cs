@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.ApiEndpoints;
@@ -98,37 +99,28 @@ public class MinioFileService
         var filesContent = new List<byte[]>();
         var tcs = new TaskCompletionSource<bool>();
 
-        var observable = _minioClient.ListObjectsAsync(
+        var observable = _minioClient.ListObjectsEnumAsync(
             new ListObjectsArgs()
                 .WithBucket(BucketName)
                 .WithRecursive(true)
-        );
+        ).ToBlockingEnumerable();
 
-        observable.Subscribe(
-            async item =>
-            {
-                if (item.Key.Contains($"_{userId}"))
-                {
-                    using var ms = new MemoryStream();
-                    await _minioClient.GetObjectAsync(
-                        new GetObjectArgs()
-                            .WithBucket(BucketName)
-                            .WithObject(item.Key)
-                            .WithCallbackStream(stream => stream.CopyTo(ms))
-                    );
-                    filesContent.Add(ms.ToArray());
-                }
-            },
-            ex =>
-            {
-                tcs.SetException(ex);
-            },
-            () =>
-            {
-                tcs.SetResult(true);
-            });
+        foreach (var item in observable)
+        {
+            if (!item.Key.EndsWith($"{userId}"))
+                continue;
 
-        await tcs.Task;
+            using var ms = new MemoryStream();
+            await _minioClient.GetObjectAsync(
+                new GetObjectArgs()
+                    .WithBucket(BucketName)
+                    .WithObject(item.Key)
+                    .WithCallbackStream(stream => stream.CopyTo(ms))
+            );
+
+            filesContent.Add(ms.ToArray());
+        }
+
         return filesContent;
     }
 
