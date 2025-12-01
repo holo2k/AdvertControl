@@ -139,6 +139,18 @@ public class ConfigController : ControllerBase
         var response = await _screenClient.AddConfigItemsAsync(request);
         return Ok(response);
     }
+    
+    [HttpDelete("{id}/remove-items")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveItem(string id, [FromBody] string itemId)
+    {
+        var req = new GetConfigRequest { Id = id };
+        var response = await _screenClient.GetConfigAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
+        var items = response.Config.Items;
+        return Ok(items.Remove(items.FirstOrDefault(i => i.Id == itemId)));
+    }
 
     private Metadata BuildAuthMetadata(HttpContext http)
     {
