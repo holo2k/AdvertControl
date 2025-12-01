@@ -49,4 +49,9 @@ public class ConfigService : IConfigService
         if (cfg is null) throw new NullReferenceException("Config not found");
         return await _repo.AddItems(configId, items, ct);
     }
+
+    public async Task<IEnumerable<Config?>> GetUserConfigs(Guid userId, CancellationToken ct = default)
+    {
+        return await _repo.GetUserConfigs(userId, ct);
+    }
 }
