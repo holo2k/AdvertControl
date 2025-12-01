@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-    baseURL: "https://advertcontrol.ru/api",
+    baseURL: "/api",
     headers: { "Content-Type": "application/json" },
 });
 

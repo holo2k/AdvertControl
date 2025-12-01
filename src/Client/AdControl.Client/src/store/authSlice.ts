@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "../api/apiClient";
+import { clearProfile } from "./profileSlice";
+import {store} from "./store.ts";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -9,6 +11,7 @@ export const loginUser = createAsyncThunk(
             const { token, user } = response.data;
 
             localStorage.setItem("token", token);
+            store.dispatch(clearProfile());
             return { token, user };
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Ошибка входа");

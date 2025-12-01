@@ -5,10 +5,7 @@ export const fetchProfile = createAsyncThunk(
     "profile/fetchProfile",
     async (_, { rejectWithValue }) => {
         try {
-            const idResponse = await apiClient.post("/auth/get-current-user-id", {});
-            const userId = idResponse.data?.id;
-
-            const userResponse = await apiClient.post(`/auth/get-user-info-by/${userId}`, {});
+            const userResponse = await apiClient.post(`/auth/get-current-user-info`);
             return userResponse.data;
 
         } catch (error: any) {
@@ -22,10 +19,16 @@ const profileSlice = createSlice({
     name: "profile",
     initialState: {
         data: null,
-        loading: false,
+        loading: true,
         error: null,
     },
-    reducers: {},
+    reducers: {
+            clearProfile(state) {
+                state.data = null;
+                state.error = null;
+                state.loading = false;
+            }
+        },
     extraReducers: (builder) => {
         builder
             .addCase(fetchProfile.pending, (state) => {
@@ -45,3 +48,4 @@ const profileSlice = createSlice({
 });
 
 export default profileSlice.reducer;
+export const { clearProfile } = profileSlice.actions;

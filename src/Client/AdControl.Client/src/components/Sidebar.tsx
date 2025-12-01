@@ -21,8 +21,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   return (
       <aside
           className={cn(
-              "fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 transition-all duration-300 z-10",
-              collapsed ? "w-16" : "w-64"
+              "fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 transition-all duration-300",
+              collapsed ? "w-16 z-10" : "w-64 z-50"
           )}
       >
         <div className="flex flex-col h-full">

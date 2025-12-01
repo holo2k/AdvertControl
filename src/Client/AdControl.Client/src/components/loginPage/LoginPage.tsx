@@ -8,20 +8,22 @@ export const LoginPage: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // можно просто обращаться без типов
-    const { loading, error, token } = useSelector((state: any) => state.auth);
+    const { loading, error} = useSelector((state: any) => state.auth);
 
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const resultAction: any = await dispatch(loginUser({ username, password }));
 
-        // если логин успешен — редирект
         if (resultAction.meta.requestStatus === "fulfilled") {
-            navigate("/");
+            setIsSuccess(true);
+            setTimeout(() => {
+                navigate("/");
+            }, 1000);
         }
     };
 
@@ -83,6 +85,7 @@ export const LoginPage: React.FC = () => {
                         </button>
 
                         {error && <p className="login-error">{String(error)}</p>}
+                        {isSuccess && <p className="login-success">Успешный вход!</p>}
                     </form>
                 </div>
             </main>
