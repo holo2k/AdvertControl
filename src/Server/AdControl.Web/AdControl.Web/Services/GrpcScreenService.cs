@@ -5,6 +5,7 @@ using System.Security.Claims;
 using AdControl.Application.Services.Abstractions;
 using AdControl.Protos;
 using Grpc.Core;
+using Minio.Exceptions;
 using ConfigItem = AdControl.Domain.Models.ConfigItem;
 
 namespace AdControl.Web.Services;
@@ -260,6 +261,60 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         }
 
         return response;
+    }
+
+    public override async Task<UpdateScreenFieldsResponse> UpdateScreenFields(UpdateScreenFieldsRequest request,
+        ServerCallContext context)
+    {
+        var userIdString = GetUserIdFromMetadata(context);
+        Guid? userId = null;
+        if (Guid.TryParse(userIdString, out var g))
+            userId = g;
+        else throw new UnauthorizedAccessException();
+        try
+        {
+            var guidId = Guid.Parse(request.Id);
+            var screen = await _screens.GetAsync(guidId);
+            if (screen == null) throw new ArgumentException("screen not found");
+            
+            var name = request.Name;
+            var resolution = request.Resolution;
+            var location = request.Location;
+            if (name is not null && !string.IsNullOrEmpty(name))
+            {
+                screen.Name = name;
+            }
+            if (resolution is not null && !string.IsNullOrEmpty(resolution))
+            {
+                screen.Resolution = resolution;
+            }
+            if (location is not null && !string.IsNullOrEmpty(location))
+            {
+                screen.Location = location;
+            }
+            var newScreen = await _screens.UpdateAsync(screen);
+            return new UpdateScreenFieldsResponse
+            {
+                Screen = new Screen
+                {
+                    Id = newScreen.Id.ToString(),
+                    UserId = newScreen.UserId?.ToString() ?? "",
+                    Name = newScreen.Name,
+                    Resolution = newScreen.Resolution,
+                    Location = newScreen.Location,
+                    LastHeartbeatAt = newScreen.LastHeartbeatAt.HasValue ? DateTimeToUnixMs(newScreen.LastHeartbeatAt.Value) : 0,
+                    PairedAt = newScreen.PairedAt.HasValue ? DateTimeToUnixMs(newScreen.PairedAt.Value) : 0,
+                    CreatedAt = DateTimeToUnixMs(newScreen.CreatedAt),
+                    UpdatedAt = DateTimeToUnixMs(newScreen.UpdatedAt)
+                },
+            };
+        }
+        
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "UpdateScreenFields failed");
+            return new UpdateScreenFieldsResponse();
+        }
     }
 
     public override async Task<RemoveItemResponse> RemoveConfigItem(RemoveItemRequest request, ServerCallContext context)

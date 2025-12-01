@@ -100,6 +100,18 @@ public class ScreenController : ControllerBase
         return StatusCode(501, "Delete not implemented in proto");
     }
 
+    [HttpPost("update")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update([FromBody] UpdateScreenFieldsRequest request)
+    {
+        var response = await _screenClient.UpdateScreenFieldsAsync(request);
+        return Ok(response);
+    }
+
     /// <summary>
     ///     Подтверждает код привязки экрана и создаёт экран в ScreenService.
     /// </summary>

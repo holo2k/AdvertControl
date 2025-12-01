@@ -53,4 +53,10 @@ public class ScreenService : IScreenService
     {
         return await _repo.GetListByUserIdAsync(userId, ct);
     }
+
+    public async Task<Screen> UpdateAsync(Screen screen, CancellationToken ct = default)
+    {
+        await _repo.UpdateAsync(screen, ct);
+        return screen;
+    }
 }
