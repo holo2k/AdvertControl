@@ -281,7 +281,7 @@ public class KeycloakSetupService : IKeycloakSetupService
         {
             var userObj = new
             {
-                request.Email,
+                username = request.Email,
                 enabled = true,
                 emailVerified = true,
 
