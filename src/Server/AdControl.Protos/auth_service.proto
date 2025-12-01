@@ -4,7 +4,7 @@ option csharp_namespace = "AdControl.Protos";
 
 message LoginRequest { string email = 1; string password = 2;}
 message LoginResponse {string token = 1;}
-message RegisterRequest {string email = 1; string password = 2; string repeatPassword = 3; repeated string roles = 4;}
+message RegisterRequest {string email = 1; string password = 2; string repeatPassword = 3; repeated string roles = 4; string name = 5; string secondName = 6; string phone = 7; }
 message RegisterResponse{string token = 1;}
 message LogoutRequest{string token = 1;}
 message LogoutResponse{bool success = 1;}

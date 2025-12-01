@@ -1,8 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Data;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using AdControl.Auth.Models;
+using AdControl.Core.Constants;
+using AdControl.Protos;
 using Microsoft.Extensions.Options;
 
 namespace AdControl.Auth;
@@ -175,14 +179,39 @@ public class KeycloakSetupService : IKeycloakSetupService
         }
 
         // 4. Создать дефолтного админа и назначить роль Admin
-        await CreateUserIfNotExistsAsync(_defaultAdminUsername, _defaultAdminPassword, new[] { "Admin" }, masterToken);
+        var request = new CreateUserRequest()
+        {
+            Email = _defaultAdminUsername,
+            Password =  _defaultAdminPassword,
+            Roles = new[] { RolesConstants.Admin },
+            Name = "Admin",
+            SecondName = "",
+            MasterToken = masterToken,
+            Phone = "",
+        };
+
+        await CreateUserIfNotExistsAsync(request);
     }
 
-    public async Task CreateUserAsync(string username, string password, string[] roles, string? realmName = null)
+    public async Task CreateUserAsync(RegisterRequest req, string? realmName = null)
     {
         await EnsureSetupAsync();
+
         var masterToken = await AcquireMasterTokenAsync();
-        await CreateUserIfNotExistsAsync(username, password, roles.Length > 0 ? roles : new[] { "User" }, masterToken);
+        var roles = req.Roles.ToArray();
+
+        var request = new CreateUserRequest()
+        {
+            Email = req.Email,
+            Password = req.Password,
+            Roles = roles.Length > 0 ? roles : new[] { RolesConstants.User },
+            Name = req.Name,
+            SecondName = req.SecondName,
+            MasterToken = masterToken,
+            Phone = req.Phone,
+        };
+
+        await CreateUserIfNotExistsAsync(request);
     }
 
     public async Task<bool> LogoutAsync(string accessToken)
@@ -234,12 +263,12 @@ public class KeycloakSetupService : IKeycloakSetupService
     }
 
 
-    private async Task CreateUserIfNotExistsAsync(string username, string password, string[] roles, string masterToken)
+    private async Task CreateUserIfNotExistsAsync(CreateUserRequest request)
     {
         var usersUrl =
-            $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users?username={Uri.EscapeDataString(username)}";
+            $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users?username={Uri.EscapeDataString(request.Email)}";
         using var getUserReq = new HttpRequestMessage(HttpMethod.Get, usersUrl);
-        getUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+        getUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.MasterToken);
         var getUserResp = await _httpClient.SendAsync(getUserReq);
         getUserResp.EnsureSuccessStatusCode();
         var users = JsonSerializer.Deserialize<List<JsonElement>>(await getUserResp.Content.ReadAsStringAsync())!;
@@ -253,16 +282,21 @@ public class KeycloakSetupService : IKeycloakSetupService
         {
             var userObj = new
             {
-                username,
+                request.Email,
                 enabled = true,
                 emailVerified = true,
+
+                firstName = request.Name,
+                lastName = request.SecondName,
+
                 credentials = new[]
                 {
-                    new { type = "password", value = password, temporary = false }
+                    new { type = "password", value = request.Password, temporary = false }
                 },
+
                 attributes = new
                 {
-                    phoneNumber = new[] { "" }
+                    phoneNumber = new[] { request.Phone }
                 }
             };
 
@@ -271,13 +305,13 @@ public class KeycloakSetupService : IKeycloakSetupService
                 {
                     Content = new StringContent(JsonSerializer.Serialize(userObj), Encoding.UTF8, "application/json")
                 };
-            createUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+            createUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.MasterToken);
             var createUserResp = await _httpClient.SendAsync(createUserReq);
             createUserResp.EnsureSuccessStatusCode();
 
             // получить id созданного пользователя
             using var getNewUserReq = new HttpRequestMessage(HttpMethod.Get, usersUrl);
-            getNewUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+            getNewUserReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.MasterToken);
             var newUserResp = await _httpClient.SendAsync(getNewUserReq);
             newUserResp.EnsureSuccessStatusCode();
             var newUsers =
@@ -285,7 +319,7 @@ public class KeycloakSetupService : IKeycloakSetupService
             userId = newUsers[0].GetProperty("id").GetString()!;
         }
 
-        await AssignRolesAsync(userId, roles, masterToken);
+        await AssignRolesAsync(userId, request.Roles, request.MasterToken);
     }
 
     public async Task UpdateUserAsync(string userId, string? email = null, string? firstName = null,

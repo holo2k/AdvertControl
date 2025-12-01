@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text.Json;
 using AdControl.Protos;
 using Grpc.Core;
 
@@ -15,12 +17,10 @@ public class AuthService : Protos.AuthService.AuthServiceBase
 
     public override async Task<RegisterResponse> Register(RegisterRequest registerRequest, ServerCallContext context)
     {
-        var username = registerRequest.Email;
-        var password = registerRequest.Password;
         var realmName = "myrealm";
 
-        await _keycloakSetupService.CreateUserAsync(username, password, registerRequest.Roles.ToArray(), realmName);
-        var jwtToken = await _keycloakSetupService.GetJwtTokenAsync(username, password, realmName);
+        await _keycloakSetupService.CreateUserAsync(registerRequest, realmName);
+        var jwtToken = await _keycloakSetupService.GetJwtTokenAsync(registerRequest.Email, registerRequest.Password, realmName);
         return new RegisterResponse
         {
             Token = jwtToken
@@ -66,6 +66,11 @@ public class AuthService : Protos.AuthService.AuthServiceBase
     {
         try
         {
+            var userIdString = GetUserIdFromMetadata(context);
+
+            if (userIdString != request.Id)
+                throw new UnauthorizedAccessException();
+
             await _keycloakSetupService.UpdateUserAsync(request.Id, request.Email, request.FirstName,
                 request.LastName, request.PhoneNumber);
         }
@@ -117,5 +122,28 @@ public class AuthService : Protos.AuthService.AuthServiceBase
         resp.Roles.AddRange(roles);
 
         return resp;
+    }
+
+    private static string? GetUserIdFromMetadata(ServerCallContext context)
+    {
+        var authEntry =
+            context.RequestHeaders.FirstOrDefault(h => h.Key == "authorization" || h.Key == "authorization-bin");
+        if (authEntry == null)
+            return null;
+
+        var auth = authEntry.Value;
+        if (string.IsNullOrEmpty(auth))
+            return null;
+
+        // "Bearer <token>"
+        var token = auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? auth.Substring(7) : auth;
+
+        var handler = new JwtSecurityTokenHandler();
+        if (!handler.CanReadToken(token))
+            return null;
+        var jwt = handler.ReadJwtToken(token);
+
+        var sub = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+        return sub;
     }
 }

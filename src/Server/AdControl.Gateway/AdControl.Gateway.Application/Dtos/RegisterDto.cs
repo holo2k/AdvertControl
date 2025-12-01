@@ -8,7 +8,22 @@ public class RegisterDto
     /// <summary>
     ///     Логин или email пользователя.
     /// </summary>
-    public string Username { get; set; }
+    public string Email { get; set; }
+
+    /// <summary>
+    /// Имя пользователя
+    /// </summary>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Фамилия пользователя
+    /// </summary>
+    public string SecondName { get; set; }
+
+    /// <summary>
+    /// Телефон пользователя
+    /// </summary>
+    public string Phone { get; set; }
 
     /// <summary>
     ///     Пароль пользователя.

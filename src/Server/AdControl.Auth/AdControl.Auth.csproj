@@ -12,10 +12,11 @@
         <PackageReference Include="DotNetEnv" Version="3.1.1" />
         <PackageReference Include="Grpc.AspNetCore.Server" Version="2.71.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.9" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AdControl.Core\AdControl.Core.csproj" />
       <ProjectReference Include="..\AdControl.Protos\AdControl.Protos.csproj" />
     </ItemGroup>
 
