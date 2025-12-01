@@ -78,7 +78,7 @@ export const createScreen = createAsyncThunk(
         if (!token) return rejectWithValue("Нет токена авторизации");
 
         try {
-            const response = await apiClient.post("/screen", screenData);
+            const response = await apiClient.post("/screen/pair/confirm", screenData);
             return response.data;
         } catch (error: any) {
             return rejectWithValue(
@@ -132,16 +132,14 @@ const screensSlice = createSlice({
                 state.createStatus = "loading";
                 state.createError = null;
             })
-            .addCase(createScreen.fulfilled, (state, action) => {
+            .addCase(createScreen.fulfilled, (state) => {
                 state.createStatus = "succeeded";
-                // Добавляем новый экран в начало списка
-                state.items.unshift(action.payload);
-                state.total += 1;
+                state.createError = null;
             })
             .addCase(createScreen.rejected, (state, action) => {
                 state.createStatus = "failed";
                 state.createError = action.payload as string;
-            });
+            })
     },
 });
 

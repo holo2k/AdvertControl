@@ -5,7 +5,7 @@ import {Outlet} from "react-router-dom";
 
 
 export const MainLayout = () => {
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -15,9 +15,9 @@ export const MainLayout = () => {
                 onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
             <main
-                className="pt-16 transition-all duration-300"
+                className="pt-16 transition-all duration-300 z-0"
                 style={{
-                    marginLeft: sidebarCollapsed ? "4rem" : "16rem",
+                    marginLeft: "4rem",
                 }}
             >
                 <div className="p-8"><Outlet /></div>

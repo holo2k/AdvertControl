@@ -1,4 +1,4 @@
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../store/profileSlice.ts";
 import { logoutUser } from "../store/authSlice";
 import { useNavigate } from "react-router-dom";
+import ContentLoader from "react-content-loader";
 
 export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
   const dispatch = useDispatch();
@@ -25,6 +26,7 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
 
   useEffect(() => {
     if (token) {
+      // @ts-expect-error фикс линтера
       dispatch(fetchProfile());
     }
   }, [dispatch, token]);
@@ -41,9 +43,24 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
   };
 
   const handleLogout = () => {
+    // @ts-expect-error фикс линтера
     dispatch(logoutUser());
     setTimeout(() => navigate("/login"), 50);
   };
+
+  // ContentLoader для имени пользователя
+  const UsernameLoader = () => (
+      <ContentLoader
+          speed={2}
+          width={120}
+          height={20}
+          viewBox="0 0 120 20"
+          backgroundColor="#f3f3f3"
+          foregroundColor="#ecebeb"
+      >
+        <rect x="0" y="0" rx="4" ry="4" width="80" height="12" />
+      </ContentLoader>
+  );
 
   return (
       <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-10">
@@ -77,12 +94,25 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src="" />
                           <AvatarFallback className="bg-blue-100 text-blue-700">
-                            {initials}
+                            {loading ? (
+                                <ContentLoader
+                                    speed={2}
+                                    width={32}
+                                    height={32}
+                                    viewBox="0 0 32 32"
+                                    backgroundColor="#f3f3f3"
+                                    foregroundColor="#ecebeb"
+                                >
+                                  <circle cx="16" cy="16" r="16" />
+                                </ContentLoader>
+                            ) : (
+                                initials
+                            )}
                           </AvatarFallback>
                         </Avatar>
 
                         {loading ? (
-                            <span className="text-gray-500">Загрузка...</span>
+                            <UsernameLoader />
                         ) : error ? (
                             <span className="text-red-500">Ошибка</span>
                         ) : (
@@ -98,7 +128,9 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>Профиль</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/profile")}>
+                        Профиль
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Настройки</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

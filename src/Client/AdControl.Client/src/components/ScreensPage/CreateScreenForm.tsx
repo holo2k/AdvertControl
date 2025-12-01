@@ -15,6 +15,7 @@ interface CreateScreenFormProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (screenData: {
+        code: number;
         name: string;
         resolution: string;
         location: string;
@@ -31,11 +32,13 @@ export function CreateScreenForm({
                                      error = null
                                  }: CreateScreenFormProps) {
     const [formData, setFormData] = useState({
+        code: null,
         name: "",
         resolution: "",
         location: "",
     });
     const [formErrors, setFormErrors] = useState({
+        code: null,
         name: "",
         resolution: "",
         location: "",
@@ -44,18 +47,23 @@ export function CreateScreenForm({
     // Сбрасываем форму при открытии/закрытии диалога
     useEffect(() => {
         if (isOpen) {
-            setFormData({ name: "", resolution: "", location: "" });
-            setFormErrors({ name: "", resolution: "", location: "" });
+            setFormData({ name: "", resolution: "", location: "", code: null });
+            setFormErrors({ name: "", resolution: "", location: "", code: null });
         }
     }, [isOpen]);
 
     // Валидация формы
     const validateForm = () => {
         const errors = {
+            code: "",
             name: "",
             resolution: "",
             location: "",
         };
+
+        if (!formData.code) {
+            errors.code = "Код привязки обязателен";
+        }
 
         if (!formData.name.trim()) {
             errors.name = "Название обязательно";
@@ -70,7 +78,7 @@ export function CreateScreenForm({
         }
 
         setFormErrors(errors);
-        return !errors.name && !errors.resolution && !errors.location;
+        return !errors.name && !errors.resolution && !errors.location && !errors.code;
     };
 
     const handleSubmit = () => {
@@ -103,6 +111,20 @@ export function CreateScreenForm({
 
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
+                        <Label htmlFor="screen-name">Код привязки *</Label>
+                        <Input
+                            id="screen-name"
+                            placeholder="Введите код привязки"
+                            value={formData.code}
+                            onChange={(e) => handleChange("name", e.target.value)}
+                            className={formErrors.code ? "border-red-500" : ""}
+                            disabled={isSubmitting}
+                        />
+                        {formErrors.code && (
+                            <p className="text-sm text-red-600">{formErrors.code}</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="screen-name">Название *</Label>
                         <Input
                             id="screen-name"
@@ -113,7 +135,7 @@ export function CreateScreenForm({
                             disabled={isSubmitting}
                         />
                         {formErrors.name && (
-                            <p className="text-sm text-red-500">{formErrors.name}</p>
+                            <p className="text-sm text-red-600">{formErrors.name}</p>
                         )}
                     </div>
 
@@ -128,7 +150,7 @@ export function CreateScreenForm({
                             disabled={isSubmitting}
                         />
                         {formErrors.resolution && (
-                            <p className="text-sm text-red-500">{formErrors.resolution}</p>
+                            <p className="text-sm text-red-600">{formErrors.resolution}</p>
                         )}
                     </div>
 
@@ -143,14 +165,14 @@ export function CreateScreenForm({
                             disabled={isSubmitting}
                         />
                         {formErrors.location && (
-                            <p className="text-sm text-red-500">{formErrors.location}</p>
+                            <p className="text-sm text-red-600">{formErrors.location}</p>
                         )}
                     </div>
 
                     {/* Отображение ошибки сервера */}
                     {error && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                            <p className="text-sm text-red-600">{error}</p>
+                            <p className="text-sm text-red-800">{error}</p>
                         </div>
                     )}
                 </div>

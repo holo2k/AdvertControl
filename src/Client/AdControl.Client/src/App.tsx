@@ -8,7 +8,8 @@ import { MainLayout } from "./components/layouts/MainLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UnauthorizedPage } from "./components/UnauthorizedPage";
 import { ConfigEditor } from "./components/configEditor/ConfigEditor.tsx";
-import {ProfileScreen} from "./components/ProfileScreen.tsx";
+import {ProfileScreen} from "./components/ProfileScreen/ProfileScreen.tsx";
+import {SignageCreatorPage} from './components/SignageCreatorPage/SignageCreatorPage.tsx'
 
 export default function App() {
     return (
@@ -34,6 +35,7 @@ export default function App() {
                     <Route path="templates" element={<TemplatesPage />} />
                     <Route path="config-edit" element={<ConfigEditor />} />
                     <Route path="profile" element={<ProfileScreen />} />
+                    <Route path="s" element={<SignageCreatorPage />} />
                 </Route>
 
                 {/* Любой неизвестный путь */}

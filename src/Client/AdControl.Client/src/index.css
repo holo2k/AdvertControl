@@ -93,6 +93,7 @@
     --text-lg--line-height: calc(1.75 / 1.125);
     --text-xl: 1.25rem;
     --text-2xl: 2rem;
+    --text-5xl: 5rem;
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -349,6 +350,10 @@
     display: none !important;
   }
 
+  .hidden {
+    display: none !important;
+  }
+
   * {
     border-color: var(--border);
     outline-color: var(--ring);
@@ -568,6 +573,18 @@
     margin-top: calc(var(--spacing) * 6);
   }
 
+  .mt-12 {
+    margin-top: calc(var(--spacing) * 12);
+  }
+
+  .mt-16 {
+    margin-top: calc(var(--spacing) * 16);
+  }
+
+  .mt-auto {
+    margin-top: auto;
+  }
+
   .mr-2 {
     margin-right: calc(var(--spacing) * 2);
   }
@@ -702,6 +719,10 @@
     height: calc(var(--spacing) * 48);
   }
 
+  .h-64 {
+    height: calc(var(--spacing) * 64);
+  }
+
   .h-\[1\.15rem\] {
     height: 1.15rem;
   }
@@ -732,6 +753,10 @@
 
   .min-h-screen {
     min-height: 100vh;
+  }
+
+  .min-h-screen-87 {
+    min-height: 87vh;
   }
 
   .w-2 {
