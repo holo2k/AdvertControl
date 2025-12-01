@@ -36,6 +36,7 @@ public class ScreenRepository : IScreenRepository
 
     public async Task UpdateAsync(Screen screen, CancellationToken ct = default)
     {
+        screen.UpdatedAt = DateTime.UtcNow;
         _db.Screens.Update(screen);
         await _db.SaveChangesAsync(ct);
     }

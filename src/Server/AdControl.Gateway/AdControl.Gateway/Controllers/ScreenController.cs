@@ -108,7 +108,7 @@ public class ScreenController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update([FromBody] UpdateScreenFieldsRequest request)
     {
-        var response = await _screenClient.UpdateScreenFieldsAsync(request);
+        var response = await _screenClient.UpdateScreenFieldsAsync(request, BuildAuthMetadata(HttpContext));
         return Ok(response);
     }
 

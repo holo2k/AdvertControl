@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AdControl.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251201121057_AddNameToConfig")]
-    partial class AddNameToConfig
+    [Migration("20251201123144_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
