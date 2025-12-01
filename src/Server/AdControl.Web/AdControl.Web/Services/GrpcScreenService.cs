@@ -216,7 +216,7 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             });
         return new GetConfigResponse { Config = proto };
     }
-
+    
     public override async Task<GetConfigsResponse> GetConfigs(GetConfigsRequest request, ServerCallContext context)
     {
         var userIdString = GetUserIdFromMetadata(context);
