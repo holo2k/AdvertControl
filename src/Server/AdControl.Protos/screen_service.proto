@@ -49,7 +49,7 @@ message ScreenConfig {
   int64 assignedAt = 5;
 }
 
-/* Requests / Responses */
+/* Screen Requests / Responses */
 message CreateScreenRequest { string name = 1; string resolution = 2; string location = 3; }
 message CreateScreenResponse { string id = 1; string status = 2; string error = 3; }
 message DeleteScreenRequest { string id = 1; }
@@ -60,6 +60,8 @@ message ListScreensRequest { string filterName = 1; int32 limit = 2; int32 offse
 message ListScreensResponse { repeated Screen screens = 1; int32 total = 2; }
 message ListUserScreensRequest { string userId = 1; }
 message ListUserScreensResponse {repeated Screen screens = 1; int32 total = 2;}
+message UpdateScreenFieldsRequest{ string id = 1; string name = 2; string resolution = 3; string location = 4;}
+message UpdateScreenFieldsResponse{ Screen screen = 1;}
 
 /* Config requests */
 message CreateConfigRequest {
@@ -90,4 +92,5 @@ service ScreenService {
   rpc GetListUserScreens(ListUserScreensRequest) returns (ListUserScreensResponse);
   rpc AddConfigItems(AddItemsRequest) returns (AddItemsResponse);
   rpc RemoveConfigItem(RemoveItemRequest) returns (RemoveItemResponse);
+  rpc UpdateScreenFields(UpdateScreenFieldsRequest) returns (UpdateScreenFieldsResponse);
 }
