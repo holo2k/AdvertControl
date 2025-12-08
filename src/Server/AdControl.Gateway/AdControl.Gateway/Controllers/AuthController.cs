@@ -1,5 +1,6 @@
 ﻿using AdControl.Gateway.Application.Dtos;
 using AdControl.Protos;
+using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -85,7 +86,6 @@ public class AuthController : ControllerBase
     /// <summary>
     ///     Обновляет текущего пользователя.
     /// </summary>
-    /// <param name="userId">ID обновляемого пользователя.</param>
     /// <param name="dto">Данные для обновления пользователя.</param>
     /// <returns>Информация об обновленном пользователе.</returns>
     [Authorize]
@@ -106,7 +106,10 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.Phone,
         };
 
-        var result = await _authServiceClient.UpdateUserAsync(request);
+        var result = await _authServiceClient.UpdateUserAsync(request, BuildAuthMetadata(HttpContext));
+
+        if (!result.Success)
+            return BadRequest(result);
         return Ok(result);
     }
 
@@ -183,5 +186,13 @@ public class AuthController : ControllerBase
         var resp = await _authServiceClient.GetCurrentUserIdAsync(request);
 
         return resp;
+    }
+
+    private Metadata BuildAuthMetadata(HttpContext http)
+    {
+        var metadata = new Metadata();
+        if (http.Request.Headers.TryGetValue("Authorization", out var auth))
+            metadata.Add("Authorization", auth.ToString());
+        return metadata;
     }
 }
