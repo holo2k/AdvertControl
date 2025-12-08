@@ -23,6 +23,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly PlayerService _player;
     private readonly PollingService _polling;
     private CancellationTokenSource _cts = new();
+    private List<PlayerWindow>? _playerWindows;
 
     private long _knownVersion;
     private string _screenId;
@@ -223,7 +224,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         return list;
     }
 
-    private async Task StartLoopAsync(CancellationToken token)
+    public async Task StartLoopAsync(CancellationToken token)
     {
         try
         {
@@ -255,11 +256,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     
     private void OpenPlayerWindows(ConfigDto cfg)
     {
-        int windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 1;
+        var windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 1;
 
-        for (int i = 0; i < windowCount; i++)
+        for (var i = 0; i < windowCount; i++)
         {
             var win = new PlayerWindow(cfg.Items?.ToList());
+            _playerWindows.Add(win);
             win.Show();
         }
     }
@@ -298,8 +300,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"Ошибка: {ex.Message}"; });
         }
     }
-
-
 
     private async Task ShowItemsAsync(CancellationToken token)
     {

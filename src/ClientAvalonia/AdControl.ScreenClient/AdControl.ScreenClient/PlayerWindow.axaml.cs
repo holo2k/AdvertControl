@@ -1,3 +1,5 @@
+using AdControl.ScreenClient.Services;
+
 using System.Dynamic;
 using System.Text.Json;
 using AdControl.ScreenClient.Services;
@@ -5,7 +7,7 @@ using Avalonia.Controls;
 
 namespace AdControl.ScreenClient
 {
-    public partial class PlayerWindow : Window
+    public partial class PlayerWindow : MainWindow
     {
         private readonly PlayerService _player;
         private readonly List<ConfigItemDto> _items;
