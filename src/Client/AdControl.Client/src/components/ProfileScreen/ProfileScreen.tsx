@@ -1,18 +1,24 @@
-import {Card, CardContent} from "../ui/card.tsx";
-import {Label} from "../ui/label.tsx";
-import {Input} from "../ui/input.tsx";
-import { useEffect } from "react";
+import { Card, CardContent } from "../ui/card.tsx";
+import { Label } from "../ui/label.tsx";
+import { Input } from "../ui/input.tsx";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../../store/profileSlice.ts";
-import {Button} from "../ui/button.tsx";
-import {Avatar, AvatarFallback} from "../ui/avatar.tsx";
+import { Button } from "../ui/button.tsx";
+import { Avatar, AvatarFallback } from "../ui/avatar.tsx";
+import { apiClient } from "../../api/apiClient.ts";
 import "./ProfileScreen.css";
 
 export const ProfileScreen = () => {
     const dispatch = useDispatch();
 
-    const { data } = useSelector((state: any) => state.profile);
+    const { data, loading } = useSelector((state: any) => state.profile);
     const { token } = useSelector((state: any) => state.auth);
+
+    const [email, setEmail] = useState("");
+    const [firstname, setFirstname] = useState("");
+    const [lastname, setLastname] = useState("");
+    const [phone, setPhone] = useState("");
 
     useEffect(() => {
         if (token) {
@@ -20,12 +26,35 @@ export const ProfileScreen = () => {
         }
     }, [dispatch, token]);
 
+    useEffect(() => {
+        if (data) {
+            setEmail(data.email || "");
+            setFirstname(data.firstName || "");
+            setLastname(data.lastName || "");
+            setPhone(data.phoneNumber || "");
+        }
+    }, [data]);
+
     const initials = data?.username
-        ? data.username
-            .split(" ")
-            .map((n: string) => n[0]?.toUpperCase())
-            .join("")
+        ? data.username.split(" ").map((n: string) => n[0]?.toUpperCase()).join("")
         : "U";
+
+    async function handleSave() {
+        try {
+            await apiClient.patch("/auth/update-current", {
+                email,
+                FirstName: firstname,
+                LastName: lastname,
+                phone,
+            });
+            dispatch(fetchProfile());
+        } catch (e) {
+            console.error(e);
+            console.log("Ошибка при обновлении профиля");
+        }
+    }
+
+    if (loading) return <div className="profile-screen">Загрузка...</div>;
 
     return (
         <div className="profile-screen">
@@ -45,33 +74,44 @@ export const ProfileScreen = () => {
 
                 <CardContent className="profile-content">
                     <div className="form-field">
-                        <Label htmlFor="company-name">Пользователь</Label>
-                        <Input id="company-name" defaultValue={data?.username || "Не указано"} />
-                    </div>
-                    <div className="form-field">
-                        <Label htmlFor="company-name">email</Label>
-                        <Input id="company-name" defaultValue={data?.email || "Не указано"} />
-                    </div>
-                    <div className="form-field">
-                        <Label htmlFor="company-name">Имя</Label>
-                        <Input id="company-name" defaultValue={data?.firstname || "Не указано"} />
-                    </div>
-                    <div className="form-field">
-                        <Label htmlFor="company-name">Фамилия</Label>
-                        <Input id="company-name" defaultValue={data?.lastname || "Не указано"} />
-                    </div>
-                    <div className="form-field">
-                        <Label htmlFor="company-name">Телефон</Label>
-                        <Input id="company-name" defaultValue={data?.phoneNumber || "Не указан"} />
+                        <Label>Email</Label>
+                        <Input
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
                     </div>
 
+                    <div className="form-field">
+                        <Label>Имя</Label>
+                        <Input
+                            value={firstname}
+                            onChange={(e) => setFirstname(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-field">
+                        <Label>Фамилия</Label>
+                        <Input
+                            value={lastname}
+                            onChange={(e) => setLastname(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-field">
+                        <Label>Телефон</Label>
+                        <Input
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+                    </div>
                 </CardContent>
             </Card>
 
             <div className="profile-actions">
-                <Button variant="outline">Отмена</Button>
-                <Button className="save-button">Сохранить изменения</Button>
+                <Button className="save-button" onClick={handleSave}>
+                    Сохранить изменения
+                </Button>
             </div>
         </div>
-    )
-}
+    );
+};

@@ -461,6 +461,10 @@
     position: static;
   }
 
+  .object-contain {
+    objectFit: 'contain'
+  }
+
   .inset-0 {
     inset: calc(var(--spacing) * 0);
   }
@@ -797,6 +801,10 @@
 
   .w-64 {
     width: calc(var(--spacing) * 64);
+  }
+
+  .w-75 {
+    width: calc(var(--spacing) * 75);
   }
 
   .w-fit {

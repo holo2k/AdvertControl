@@ -23,11 +23,12 @@ export function MainContent({
                             }: Props) {
 
     return (
-        <div className="w-80 flex-1 flex flex-col gap-6 overflow-hidden py-6 pr-6">
+        <div className="flex-1 flex flex-col gap-6 overflow-hidden py-6 pr-6">
             <PreviewArea
                 config={config}
                 items={contentItems}
                 currentIndex={currentIndex}
+                setCurrentIndex={setCurrentIndex}
                 isPlaying={isPlaying}
                 setIsPlaying={setIsPlaying}
                 onFullScreen={onFullscreen}

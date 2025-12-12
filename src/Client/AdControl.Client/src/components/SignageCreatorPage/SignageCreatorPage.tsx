@@ -4,9 +4,14 @@ import { LeftSidebar } from "./layout/LeftSidebar";
 import { MainContent } from "./layout/MainContent";
 import { RightSidebar } from "./layout/RightSidebar";
 import { FullscreenPreview } from "./preview/FullscreenPreview";
+import { useParams } from 'react-router-dom';
+
 import type { SignageConfig, ContentItem } from "./types";
 
+
 export function SignageCreatorPage() {
+    const { id } = useParams<{ id: string }>();
+
     const [config, setConfig] = useState<SignageConfig>({
         name: "Untitled Signage",
         aspectRatio: "16:9",
