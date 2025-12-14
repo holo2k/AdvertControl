@@ -23,7 +23,7 @@ public class ScreenRepository : IScreenRepository
     public async Task<List<Screen>> ListAsync(string? filterName, int limit, int offset, CancellationToken ct = default)
     {
         var q = _db.Screens.AsQueryable();
-        if (!string.IsNullOrWhiteSpace(filterName)) q = q.Where(x => x.Name.Contains(filterName));
+        if (!string.IsNullOrWhiteSpace(filterName)) q = q.Where(x => x.Name.Contains(filterName) || x.Location.Contains(filterName) || x.Resolution.Contains(filterName));
         return await q.OrderBy(x => x.Name).Skip(offset).Take(limit).ToListAsync(ct);
     }
 

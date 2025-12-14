@@ -86,6 +86,21 @@ public class ScreenController : ControllerBase
     }
 
     /// <summary>
+    ///     Возвращает информацию для дашборда
+    /// </summary>
+    /// <response code="200">Успешно получено</response>
+    [HttpGet]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Dashboard([FromQuery] string? filterName, [FromQuery] int limit = 50,
+        [FromQuery] int offset = 0)
+    {
+        var req = new ListScreensRequest { FilterName = filterName ?? "", Limit = limit, Offset = offset };
+        var resp = await _screenClient.ListScreensAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
+        return Ok(new { items = resp.Screens, total = resp.Total });
+    }
+
+    /// <summary>
     ///     Удаление экрана (не реализовано).
     /// </summary>
     /// <response code="501">Метод не реализован</response>
