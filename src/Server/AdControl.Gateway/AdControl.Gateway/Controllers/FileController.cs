@@ -96,7 +96,7 @@ public class FileController : ControllerBase
         };
         var fileNamesResponse = await _fileServiceClient.GetFilesNameByUserIdAsync(namesRequest);
         var fileNames = fileNamesResponse.FilesName.ToList();
-        if (fileNames.Count == 0) throw new UnauthorizedAccessException();
+        if (fileNames.Count == 0) return NotFound("0 files");
 
         var filesRequest = new GetFilesByUserIdRequest { UserId = userId };
         var filesResponse = await _fileServiceClient.GetFilesByUserIdAsync(filesRequest);

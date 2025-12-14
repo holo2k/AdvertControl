@@ -39,6 +39,8 @@ public class ConfigController : ControllerBase
                 var type = ItemType.Image;
                 if (!string.IsNullOrEmpty(it.Type) && Enum.TryParse<ItemType>(it.Type, true, out var parsed))
                     type = parsed;
+                else
+                    return BadRequest($"Указан неправильный тип при создании элемента конфига {it.Url}");
 
                 var ci = new ConfigItem
                 {
@@ -49,9 +51,10 @@ public class ConfigController : ControllerBase
                     InlineData = it.InlineData ?? "",
                     Checksum = it.Checksum ?? "",
                     Size = it.Size,
-                    DurationSeconds = 5,
+                    DurationSeconds = it.DurationSeconds,
                     Order = it.Order
                 };
+
                 req.Items.Add(ci);
             }
 

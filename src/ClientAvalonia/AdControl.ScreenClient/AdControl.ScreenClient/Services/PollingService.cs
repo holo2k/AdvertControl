@@ -93,7 +93,15 @@ public class PollingService
             var screensCount = doc.RootElement.TryGetProperty("screensCount", out var sc) ? sc.GetInt32() : 0;
             var notModified = knownVersion == ver;
 
-            return new ConfigDto(ver, updatedAt, items.ToArray(), notModified, screensCount);
+            return new ConfigDto(
+                ver,
+                updatedAt,
+                items
+                    .OrderBy(x => x.Order)
+                    .ToArray(),
+                notModified,
+                screensCount
+            );
         }
         catch (HttpRequestException)
         {
@@ -129,7 +137,15 @@ public class PollingService
 
             var notModified = proto.Version == knownVersion;
 
-            return new ConfigDto(proto.Version, proto.UpdatedAt, itemsList.ToArray(), notModified, proto.ScreensCount);
+            return new ConfigDto(
+                proto.Version,
+                proto.UpdatedAt,
+                itemsList
+                    .OrderBy(x => x.Order)
+                    .ToArray(),
+                notModified,
+                proto.ScreensCount
+            );
         }
         catch (Exception)
         {

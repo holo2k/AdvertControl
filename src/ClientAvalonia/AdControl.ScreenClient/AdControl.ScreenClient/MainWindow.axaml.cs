@@ -255,7 +255,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         var windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 0;
 
-        for (var i = 0; i < windowCount; i++)
+        if (windowCount <= 1)
+            return;
+
+        for (var i = 1; i < windowCount; i++)
         {
             var win = new PlayerWindow(cfg.Items?.ToList(), i+1);
             _playerWindows.Add(win);
