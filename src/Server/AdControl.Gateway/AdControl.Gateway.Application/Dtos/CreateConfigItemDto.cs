@@ -8,12 +8,12 @@ public class CreateConfigItemDto
     /// <summary>
     ///     Продолжительность показа элемента в секундах.
     /// </summary>
-    public int DurationSeconds;
+    public int DurationSeconds { get; set; }
 
     /// <summary>
     ///     Порядок элемента в конфигурации.
     /// </summary>
-    public int Order;
+    public int Order { get; set; }
 
     /// <summary>
     ///     Идентификатор элемента.

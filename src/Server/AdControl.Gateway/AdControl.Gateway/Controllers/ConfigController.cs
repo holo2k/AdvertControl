@@ -39,6 +39,8 @@ public class ConfigController : ControllerBase
                 var type = ItemType.Image;
                 if (!string.IsNullOrEmpty(it.Type) && Enum.TryParse<ItemType>(it.Type, true, out var parsed))
                     type = parsed;
+                else
+                    return BadRequest($"Указан неправильный тип при создании элемента конфига {it.Url}");
 
                 var ci = new ConfigItem
                 {
@@ -49,13 +51,15 @@ public class ConfigController : ControllerBase
                     InlineData = it.InlineData ?? "",
                     Checksum = it.Checksum ?? "",
                     Size = it.Size,
-                    DurationSeconds = 5,
+                    DurationSeconds = it.DurationSeconds,
                     Order = it.Order
                 };
+
                 req.Items.Add(ci);
             }
 
         req.Name = dto.Name;
+        req.ScreensCount = dto.ScreensCount;
 
         var resp = await _screenClient.CreateConfigAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
         if (!string.IsNullOrEmpty(resp.Error)) return StatusCode(500, new { error = resp.Error });
@@ -141,7 +145,24 @@ public class ConfigController : ControllerBase
         var response = await _screenClient.AddConfigItemsAsync(request, BuildAuthMetadata(HttpContext));
         return Ok(response);
     }
-    
+
+    [HttpPatch("{id}/update")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateConfigDto dto)
+    {
+        var request = new UpdateConfigRequest
+        {
+            Id = id,
+            Name = dto.Name,
+            ScreensCount = dto.ScreensCount
+        };
+
+        var response = await _screenClient.UpdateConfigFieldsAsync(request, BuildAuthMetadata(HttpContext));
+        return Ok(response);
+    }
+
     [HttpDelete("{id}/remove-items")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]

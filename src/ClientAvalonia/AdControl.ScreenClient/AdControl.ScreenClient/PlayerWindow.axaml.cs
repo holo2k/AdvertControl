@@ -16,8 +16,6 @@ namespace AdControl.ScreenClient
         private CancellationTokenSource _cts = new();
         public ConfigItemDto? CurrentItem { get; set; }
         private int startIndex;
-        
-
 
         public PlayerWindow(List<ConfigItemDto>? items, int startIndex)
         {

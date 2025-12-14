@@ -90,7 +90,18 @@ public class PollingService
                     it.GetProperty("order").GetInt32()
                 ));
             var updatedAt = doc.RootElement.TryGetProperty("updatedAt", out var ua) ? ua.GetInt64() : 0;
-            return new ConfigDto(ver, updatedAt, items.ToArray());
+            var screensCount = doc.RootElement.TryGetProperty("screensCount", out var sc) ? sc.GetInt32() : 0;
+            var notModified = knownVersion == ver;
+
+            return new ConfigDto(
+                ver,
+                updatedAt,
+                items
+                    .OrderBy(x => x.Order)
+                    .ToArray(),
+                notModified,
+                screensCount
+            );
         }
         catch (HttpRequestException)
         {
@@ -124,7 +135,17 @@ public class PollingService
                     it.Order
                 ));
 
-            return new ConfigDto(proto.Version, proto.UpdatedAt, itemsList.ToArray());
+            var notModified = proto.Version == knownVersion;
+
+            return new ConfigDto(
+                proto.Version,
+                proto.UpdatedAt,
+                itemsList
+                    .OrderBy(x => x.Order)
+                    .ToArray(),
+                notModified,
+                proto.ScreensCount
+            );
         }
         catch (Exception)
         {

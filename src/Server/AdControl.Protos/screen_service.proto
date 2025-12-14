@@ -40,6 +40,7 @@ message Config {
   repeated ConfigItem items = 4;
   int64 version = 5;
   string name = 6;
+  int32 screensCount = 7;
 }
 
 message ScreenConfig {
@@ -68,6 +69,7 @@ message UpdateScreenFieldsResponse{ Screen screen = 1;}
 message CreateConfigRequest {
   repeated ConfigItem items = 1;
   string Name = 2;
+  int32 screensCount = 3;
 }
 message CreateConfigResponse { string id = 1; string status = 2; string error = 3; }
 message GetConfigRequest { string id = 1; string name = 2;}
@@ -80,6 +82,8 @@ message AddItemsRequest{string id = 1; repeated ConfigItem items = 2; }
 message AddItemsResponse{Config config = 1;}
 message RemoveItemRequest{string id = 1; string itemId = 2;}
 message RemoveItemResponse{bool success = 1;}
+message UpdateConfigRequest { string id = 1; string Name = 2; int32 ScreensCount = 3;}
+message UpdateConfigResponse { bool success = 1; string error = 2;}
 
 /* Service */
 service ScreenService {
@@ -95,4 +99,5 @@ service ScreenService {
   rpc AddConfigItems(AddItemsRequest) returns (AddItemsResponse);
   rpc RemoveConfigItem(RemoveItemRequest) returns (RemoveItemResponse);
   rpc UpdateScreenFields(UpdateScreenFieldsRequest) returns (UpdateScreenFieldsResponse);
+  rpc UpdateConfigFields(UpdateConfigRequest) returns (UpdateConfigResponse);
 }

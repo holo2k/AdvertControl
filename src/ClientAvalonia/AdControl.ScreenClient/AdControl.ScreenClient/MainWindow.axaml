@@ -39,23 +39,37 @@
                   Background="#F5F7FA"
                   IsVisible="False" />
 
-        <!-- Статус и код -->
-        <StackPanel VerticalAlignment="Top"
-                    HorizontalAlignment="Center"
-                    Margin="0,40,0,0"
-                    Spacing="12">
-            <TextBlock x:Name="StatusText"
-                       FontSize="20"
-                       FontWeight="SemiBold"
-                       Foreground="White"
-                       TextAlignment="Center"/>
-            <TextBlock x:Name="PairCodeText"
-                       Text="Здесь будет код"
-                       Classes="code-display"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       TextAlignment="Center"/>
+		<!-- Статус, код и QR (центр экрана, масштабируемо) -->
+		<Viewbox Stretch="Uniform" MaxWidth="1400" MaxHeight="600"
+				 HorizontalAlignment="Center" VerticalAlignment="Center">
+			<StackPanel Orientation="Horizontal" Spacing="40" VerticalAlignment="Center" HorizontalAlignment="Center">
+				<!-- Текстовая колонка (статус + код) -->
+				<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+					<TextBlock x:Name="StatusText"
+							   FontSize="48"
+							   FontWeight="Bold"
+							   Foreground="White"
+							   TextAlignment="Center"/>
 
-        </StackPanel>
-    </Grid>
+					<TextBlock x:Name="PairCodeText"
+							   Text="000000"
+							   FontSize="96"
+							   FontWeight="Bold"
+							   TextAlignment="Center"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"
+							   Classes="code-display" />
+				</StackPanel>
+
+				<!-- QR-код -->
+				<Border Background="White" Padding="8" CornerRadius="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+					<Image x:Name="QrImage"
+						   Width="300"
+						   Height="300"
+						   Stretch="Uniform"/>
+				</Border>
+			</StackPanel>
+		</Viewbox>
+
+	</Grid>
 </Window>

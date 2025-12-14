@@ -8,5 +8,6 @@ public class Config
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public long Version { get; set; }
+    public int ScreensCount { get; set; }
     public List<ConfigItem> Items { get; set; } = new();
 }

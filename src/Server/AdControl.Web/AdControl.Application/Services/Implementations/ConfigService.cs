@@ -13,9 +13,9 @@ public class ConfigService : IConfigService
         _repo = repo;
     }
 
-    public async Task<Config> CreateAsync(string name, Guid? userId, IEnumerable<ConfigItem> items, CancellationToken ct = default)
+    public async Task<Config> CreateAsync(string name, Guid? userId, IEnumerable<ConfigItem> items, int screensCount, CancellationToken ct = default)
     {
-        var cfg = new Config { Name = name, Id = Guid.NewGuid(), UserId = userId, CreatedAt = DateTime.UtcNow };
+        var cfg = new Config { Name = name, Id = Guid.NewGuid(), UserId = userId, CreatedAt = DateTime.UtcNow, ScreensCount = screensCount};
         cfg.Items = items.Select(i =>
         {
             i.Id = i.Id == Guid.Empty ? Guid.NewGuid() : i.Id;

@@ -1,19 +1,20 @@
-﻿﻿using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Dynamic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
+using Avalonia.Controls.Documents;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
+using QRCoder;
 
 namespace AdControl.ScreenClient;
 
@@ -24,6 +25,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly PollingService _polling;
     private CancellationTokenSource _cts = new();
     private List<PlayerWindow>? _playerWindows;
+    private const string CreateScreenUrlTemplate = "https://advertcontrol.ru/screens/create-screen?code={0}";
 
     private long _knownVersion;
     private string _screenId;
@@ -100,9 +102,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var code = new Random().Next(0, 1000000).ToString("D6");
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                PairCodeText.Text = code;
-                StatusText.Text = "Введите код на сайте";
+                StatusText.Inlines = new InlineCollection
+                {
+                    new Run("Введите код по ссылке\n")
+                    {
+                        FontSize = 48,
+                        Foreground = Brushes.White
+                    },
+                    new Run("advertcontrol.ru/screens")
+                    {
+                        FontSize = 56,
+                        FontWeight = FontWeight.Bold,
+                        Foreground = Brushes.LightSkyBlue,
+                    }
+                };
             });
+
+            UpdateCodeAndQr(code);
 
             try
             {
@@ -259,7 +275,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         var windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 0;
 
-        for (var i = 0; i < windowCount; i++)
+        if (windowCount <= 1)
+            return;
+
+        for (var i = 1; i < windowCount; i++)
         {
             var win = new PlayerWindow(cfg.Items?.ToList(), i+1);
             _playerWindows.Add(win);
@@ -457,5 +476,76 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // Показываем ошибку в UI, но не ломаем поток привязки
             await Dispatcher.UIThread.InvokeAsync(() => StatusText.Text = $"Ошибка сохранения ID: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Генерирует QR-картинку для given code и устанавливает в QrImage.
+    /// Генерация выполняется в background-потоке, UI обновляется через Dispatcher.
+    /// </summary>
+    private async Task GenerateAndSetQrImageAsync(string code, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => QrImage.Source = null);
+            return;
+        }
+
+        var url = string.Format(CreateScreenUrlTemplate, Uri.EscapeDataString(code));
+
+        try
+        {
+            // Выполняем тяжелую работу в Task.Run чтобы не блокировать UI
+            var pngBytes = await Task.Run(() =>
+            {
+                using var qrGen = new QRCodeGenerator();
+                using var data = qrGen.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+                using var qr = new QRCode(data);
+                using var bmp = qr.GetGraphic(20); // возвращает System.Drawing.Bitmap
+
+                using var ms = new MemoryStream();
+                bmp.Save(ms, ImageFormat.Png);
+                return ms.ToArray();
+            }, cancellationToken);
+
+            // Устанавливаем картинку в UI
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    using var ms = new MemoryStream(pngBytes);
+                    var bitmap = new Bitmap(ms);
+                    QrImage.Source = bitmap;
+                }
+                catch
+                {
+                    QrImage.Source = null;
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // игнорируем отмену
+        }
+        catch (Exception)
+        {
+            // в случае ошибки — убираем QR
+            await Dispatcher.UIThread.InvokeAsync(() => QrImage.Source = null);
+        }
+    }
+
+    /// <summary>
+    /// Обновляет UI: текст кода и генерирует QR.
+    /// Вызывать из любого потока.
+    /// </summary>
+    private void UpdateCodeAndQr(string code)
+    {
+        // обновляем текст в UI-потоке
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            PairCodeText.Text = code;
+        });
+
+        // запускаем генерацию QR (не ждём)
+        _ = GenerateAndSetQrImageAsync(code, _cts.Token);
     }
 }

@@ -11,7 +11,12 @@ public class CreateConfigDto
     public string Name { get; set; }
 
     /// <summary>
+    /// Количество экранов, на которые будет выводиться конфиг
+    /// </summary>
+    public int ScreensCount { get; set; }
+
+    /// <summary>
     ///     Список элементов конфигурации.
     /// </summary>
-    public List<CreateConfigItemDto>? Items { get; set; }
+    public List<CreateConfigItemDto>? Items { get; set; } 
 }

@@ -190,7 +190,7 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
                 Order = i.Order
             }).ToList();
 
-            var cfg = await _configs.CreateAsync(request.Name, userId, items);
+            var cfg = await _configs.CreateAsync(request.Name, userId, items, request.ScreensCount);
             return new CreateConfigResponse { Id = cfg.Id.ToString(), Status = "created" };
         }
         catch (Exception ex)
@@ -218,7 +218,7 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
 
         var proto = new Config
         {
-            Id = cfg.Id.ToString(), UserId = cfg.UserId?.ToString() ?? "", CreatedAt = DateTimeToUnixMs(cfg.CreatedAt)
+            Id = cfg.Id.ToString(), UserId = cfg.UserId?.ToString() ?? "", CreatedAt = DateTimeToUnixMs(cfg.CreatedAt), ScreensCount = cfg.ScreensCount
         };
         foreach (var it in cfg.Items)
             proto.Items.Add(new Protos.ConfigItem
@@ -257,7 +257,8 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
                 Id = cfg.Id.ToString(),
                 UserId = cfg.UserId?.ToString() ?? "",
                 CreatedAt = DateTimeToUnixMs(cfg.CreatedAt),
-                Version = cfg.Version
+                Version = cfg.Version,
+                ScreensCount = cfg.ScreensCount
             };
 
             foreach (var it in cfg.Items)
@@ -335,6 +336,53 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         {
             _log.LogError(ex, "UpdateScreenFields failed");
             return new UpdateScreenFieldsResponse();
+        }
+    }
+
+    public override async Task<UpdateConfigResponse> UpdateConfigFields(UpdateConfigRequest request,
+       ServerCallContext context)
+    {
+        var userIdString = GetUserIdFromMetadata(context);
+        Guid? userId = null;
+        if (Guid.TryParse(userIdString, out var g))
+            userId = g;
+        else
+            throw new UnauthorizedAccessException();
+        try
+        {
+            var guidId = Guid.Parse(request.Id);
+            var config = await _configs.GetAsync(guidId);
+            if (config == null)
+                throw new ArgumentException("config not found");
+
+            var name = request.Name;
+            var screensCount = request.ScreensCount;
+            
+            if (name is not null && !string.IsNullOrEmpty(name))
+            {
+                config.Name = name;
+            }
+            if (screensCount > 0)
+            {
+                config.ScreensCount = screensCount;
+            }
+            
+            var newConfig = await _configs.UpdateAsync(config);
+            return new UpdateConfigResponse
+            {
+                Success = true,
+                Error = ""
+            };
+        }
+
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "UpdateConfigFields failed");
+            return new UpdateConfigResponse
+            {
+                Success = false,
+                Error = $"UpdateConfigFields failed. \n Detailed: {ex.Message}"
+            };
         }
     }
 
