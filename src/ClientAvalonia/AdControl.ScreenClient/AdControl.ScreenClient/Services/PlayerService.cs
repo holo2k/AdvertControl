@@ -10,7 +10,7 @@ namespace AdControl.ScreenClient.Services;
 
 public class PlayerService : IDisposable
 {
-    private const string GatewayBaseUrl = "http://localhost:5000/api/files/by-url/";
+    private const string GatewayBaseUrl = "http://advertcontrol.ru/api/files/by-url/";
     private readonly Image _imageControl;
     private readonly DataGrid _jsonTable;
     private readonly LibVLC _libVLC;
