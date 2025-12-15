@@ -320,6 +320,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             {
                 await Dispatcher.UIThread.InvokeAsync(() => pW.UpdateItems(cfg.Items.ToList()));
             }
+
             
         }
         catch (Exception ex)
@@ -343,6 +344,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     break;
 
                 CurrentItem = item;
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StatusText.Text = string.Empty;
+                    QrImage.IsVisible = false;
+                    PairCodeText.IsVisible = false;
+                });
 
                 switch (item.Type)
                 {
