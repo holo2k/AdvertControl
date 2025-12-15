@@ -111,17 +111,34 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             {
                 protoConfig = new Config
                 {
+                    Id = config.Id.ToString(),
                     CreatedAt = DateTimeToUnixMs(config.CreatedAt),
                     UpdatedAt = DateTimeToUnixMs(config.UpdatedAt),
                     UserId = config.UserId.ToString(),
                     Name = config.Name,
                     ScreensCount = config.ScreensCount,
-                    Version = config.Version
+                    Version = config.Version,
                 };
+
+                foreach (var it in config.Items)
+                    protoConfig.Items.Add(new Protos.ConfigItem
+                    {
+                        Id = it.Id.ToString(),
+                        ConfigId = it.ConfigId.ToString(),
+                        Type = Enum.TryParse<ItemType>(it.Type, true, out var t)
+                            ? t
+                            : ItemType.Image,
+                        Url = it.Url,
+                        InlineData = it.InlineData,
+                        Checksum = it.Checksum ?? "",
+                        Size = it.Size,
+                        DurationSeconds = it.DurationSeconds,
+                        Order = it.Order
+                    });
             }
         }
 
-        return new GetScreenResponse { Screen = proto, Type = { types }, Config = protoConfig };
+        return new GetScreenResponse { Screen = proto, Config = protoConfig };
     }
 
     public override async Task<ListUserScreensResponse> GetListUserScreens(ListUserScreensRequest request,
