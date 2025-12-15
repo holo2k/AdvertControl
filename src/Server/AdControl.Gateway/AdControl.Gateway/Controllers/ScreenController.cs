@@ -86,18 +86,16 @@ public class ScreenController : ControllerBase
     }
 
     /// <summary>
+    ///     НЕ РАБОТАЕТ
     ///     Возвращает информацию для дашборда
     /// </summary>
     /// <response code="200">Успешно получено</response>
-    [HttpGet]
+    [HttpGet("dashboard")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Dashboard([FromQuery] string? filterName, [FromQuery] int limit = 50,
-        [FromQuery] int offset = 0)
+    public async Task<IActionResult> Dashboard()
     {
-        var req = new ListScreensRequest { FilterName = filterName ?? "", Limit = limit, Offset = offset };
-        var resp = await _screenClient.ListScreensAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
-        return Ok(new { items = resp.Screens, total = resp.Total });
+        return StatusCode(StatusCodes.Status501NotImplemented, "not implemented");
     }
 
     /// <summary>
