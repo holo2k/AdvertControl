@@ -1,8 +1,10 @@
 using System.Reactive.Linq;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.ApiEndpoints;
 using Minio.DataModel.Args;
+using Minio.Exceptions;
 
 namespace AdControl.Gateway.Application.Minio;
 
@@ -11,6 +13,7 @@ public class MinioFileService
     private const string BucketName = "files";
     private readonly IMinioClient _minioClient;
     private readonly MinioSettings _settings;
+    private readonly FileExtensionContentTypeProvider _contentTypeProvider = new();
 
     public MinioFileService(IOptions<MinioSettings> settings)
     {
@@ -35,19 +38,28 @@ public class MinioFileService
                 new MakeBucketArgs().WithBucket(BucketName)
             );
     }
+    private string DetectContentType(string fileName)
+    {
+        if (_contentTypeProvider.TryGetContentType(fileName, out var contentType))
+            return contentType;
+
+        return "application/octet-stream";
+    }
 
     public async Task<string> UploadFileAsync(string fileName, byte[] data)
     {
+        var contentType = DetectContentType(fileName);
+
         using var ms = new MemoryStream(data);
         await _minioClient.PutObjectAsync(new PutObjectArgs()
             .WithBucket(BucketName)
             .WithObject(fileName)
             .WithStreamData(ms)
             .WithObjectSize(ms.Length)
-            .WithContentType("application/octet-stream"));
+            .WithContentType(contentType)
+        );
 
-        return $"{fileName}";
-        //return $"http://{_settings.Endpoint}/{BucketName}/{fileName}";
+        return fileName;
     }
 
     public async Task<byte[]> GetFileAsync(string fileName)
@@ -123,4 +135,4 @@ public class MinioFileService
 
         return filesContent;
     }
-}
+}}

@@ -11,11 +11,13 @@ import {
     DialogTitle,
 } from "../ui/dialog.tsx";
 
+import { joinResolutionData } from "../../utils.ts";
+
 interface CreateScreenFormProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (screenData: {
-        code: number;
+        code: string;
         name: string;
         resolution: string;
         location: string;
@@ -29,74 +31,92 @@ export function CreateScreenForm({
                                      onOpenChange,
                                      onSubmit,
                                      isSubmitting = false,
-                                     error = null
+                                     error = null,
                                  }: CreateScreenFormProps) {
     const [formData, setFormData] = useState({
-        code: null,
+        code: "",
         name: "",
-        resolution: "",
-        location: "",
-    });
-    const [formErrors, setFormErrors] = useState({
-        code: null,
-        name: "",
-        resolution: "",
+        resolutionWidth: "",
+        resolutionHeight: "",
         location: "",
     });
 
-    // Сбрасываем форму при открытии/закрытии диалога
+    const [formErrors, setFormErrors] = useState({
+        code: "",
+        name: "",
+        resolutionWidth: "",
+        resolutionHeight: "",
+        location: "",
+    });
+
     useEffect(() => {
         if (isOpen) {
-            setFormData({ name: "", resolution: "", location: "", code: null });
-            setFormErrors({ name: "", resolution: "", location: "", code: null });
+            setFormData({
+                code: "",
+                name: "",
+                resolutionWidth: "",
+                resolutionHeight: "",
+                location: "",
+            });
+
+            setFormErrors({
+                code: "",
+                name: "",
+                resolutionWidth: "",
+                resolutionHeight: "",
+                location: "",
+            });
         }
     }, [isOpen]);
 
-    // Валидация формы
     const validateForm = () => {
         const errors = {
             code: "",
             name: "",
-            resolution: "",
+            resolutionWidth: "",
+            resolutionHeight: "",
             location: "",
         };
 
-        if (!formData.code) {
-            errors.code = "Код привязки обязателен";
-        }
-
-        if (!formData.name.trim()) {
-            errors.name = "Название обязательно";
-        }
-
-        if (!formData.resolution.trim()) {
-            errors.resolution = "Разрешение обязательно";
-        }
-
-        if (!formData.location.trim()) {
-            errors.location = "Расположение обязательно";
-        }
+        if (!formData.code.trim()) errors.code = "Код привязки обязателен";
+        if (!formData.name.trim()) errors.name = "Название обязательно";
+        if (!formData.resolutionWidth.trim()) errors.resolutionWidth = "Ширина обязательна";
+        if (!formData.resolutionHeight.trim()) errors.resolutionHeight = "Высота обязательна";
+        if (!formData.location.trim()) errors.location = "Расположение обязательно";
 
         setFormErrors(errors);
-        return !errors.name && !errors.resolution && !errors.location && !errors.code;
+
+        return (
+            !errors.code &&
+            !errors.name &&
+            !errors.resolutionWidth &&
+            !errors.resolutionHeight &&
+            !errors.location
+        );
     };
 
     const handleSubmit = () => {
-        if (validateForm()) {
-            onSubmit(formData);
-        }
+        if (!validateForm()) return;
+
+        const resolution = joinResolutionData(
+            formData.resolutionWidth,
+            formData.resolutionHeight
+        );
+
+        onSubmit({
+            code: formData.code,
+            name: formData.name,
+            resolution,
+            location: formData.location,
+        });
     };
 
     const handleChange = (field: string, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        // Очищаем ошибку при вводе
-        if (formErrors[field as keyof typeof formErrors]) {
-            setFormErrors(prev => ({ ...prev, [field]: "" }));
-        }
-    };
+        setFormData((prev) => ({ ...prev, [field]: value }));
 
-    const handleClose = () => {
-        onOpenChange(false);
+        if (formErrors[field as keyof typeof formErrors]) {
+            setFormErrors((prev) => ({ ...prev, [field]: "" }));
+        }
     };
 
     return (
@@ -110,13 +130,14 @@ export function CreateScreenForm({
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
+                    {/* Код привязки */}
                     <div className="space-y-2">
-                        <Label htmlFor="screen-name">Код привязки *</Label>
+                        <Label htmlFor="code-input">Код привязки *</Label>
                         <Input
-                            id="screen-name"
+                            id="code-input"
                             placeholder="Введите код привязки"
                             value={formData.code}
-                            onChange={(e) => handleChange("name", e.target.value)}
+                            onChange={(e) => handleChange("code", e.target.value)}
                             className={formErrors.code ? "border-red-500" : ""}
                             disabled={isSubmitting}
                         />
@@ -124,11 +145,13 @@ export function CreateScreenForm({
                             <p className="text-sm text-red-600">{formErrors.code}</p>
                         )}
                     </div>
+
+                    {/* Название */}
                     <div className="space-y-2">
-                        <Label htmlFor="screen-name">Название *</Label>
+                        <Label htmlFor="name-input">Название *</Label>
                         <Input
-                            id="screen-name"
-                            placeholder="Введите название экрана"
+                            id="name-input"
+                            placeholder="Введите название"
                             value={formData.name}
                             onChange={(e) => handleChange("name", e.target.value)}
                             className={formErrors.name ? "border-red-500" : ""}
@@ -139,26 +162,53 @@ export function CreateScreenForm({
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="screen-resolution">Разрешение *</Label>
-                        <Input
-                            id="screen-resolution"
-                            placeholder="Например: 1920x1080"
-                            value={formData.resolution}
-                            onChange={(e) => handleChange("resolution", e.target.value)}
-                            className={formErrors.resolution ? "border-red-500" : ""}
-                            disabled={isSubmitting}
-                        />
-                        {formErrors.resolution && (
-                            <p className="text-sm text-red-600">{formErrors.resolution}</p>
-                        )}
+                    {/* Разрешение — ширина + высота */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="resolution-width">Ширина *</Label>
+                            <Input
+                                id="resolution-width"
+                                placeholder="1920"
+                                value={formData.resolutionWidth}
+                                onChange={(e) =>
+                                    handleChange("resolutionWidth", e.target.value)
+                                }
+                                className={formErrors.resolutionWidth ? "border-red-500" : ""}
+                                disabled={isSubmitting}
+                            />
+                            {formErrors.resolutionWidth && (
+                                <p className="text-sm text-red-600">
+                                    {formErrors.resolutionWidth}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="resolution-height">Высота *</Label>
+                            <Input
+                                id="resolution-height"
+                                placeholder="1080"
+                                value={formData.resolutionHeight}
+                                onChange={(e) =>
+                                    handleChange("resolutionHeight", e.target.value)
+                                }
+                                className={formErrors.resolutionHeight ? "border-red-500" : ""}
+                                disabled={isSubmitting}
+                            />
+                            {formErrors.resolutionHeight && (
+                                <p className="text-sm text-red-600">
+                                    {formErrors.resolutionHeight}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
+                    {/* Расположение */}
                     <div className="space-y-2">
-                        <Label htmlFor="location">Расположение *</Label>
+                        <Label htmlFor="location-input">Расположение *</Label>
                         <Input
-                            id="location"
-                            placeholder="Введите расположение экрана"
+                            id="location-input"
+                            placeholder="Введите расположение"
                             value={formData.location}
                             onChange={(e) => handleChange("location", e.target.value)}
                             className={formErrors.location ? "border-red-500" : ""}
@@ -169,20 +219,15 @@ export function CreateScreenForm({
                         )}
                     </div>
 
-                    {/* Отображение ошибки сервера */}
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                            <p className="text-sm text-red-800">{error}</p>
+                        <div className="p-3 bg-red-50 border border-red-200 rounded">
+                            <p className="text-sm text-red-700">{error}</p>
                         </div>
                     )}
                 </div>
 
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isSubmitting}
-                    >
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Отменить
                     </Button>
                     <Button

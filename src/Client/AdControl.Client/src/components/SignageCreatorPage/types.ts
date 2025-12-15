@@ -1,4 +1,3 @@
-// src/components/signage/types.ts
 export type AspectRatio = "16:9" | "9:16" | "4:3" | "custom";
 export type Transition = "fade" | "slide" | "zoom" | "dissolve" | "none";
 export type LoopMode = "continuous" | "scheduled";
@@ -13,8 +12,8 @@ export interface SignageConfig {
     defaultDuration: number;
     loopMode: LoopMode;
     recurring?: "daily" | "weekdays" | "weekends" | "weekly" | "specific";
-    scheduleStart?: string;  // например "09:00"
-    scheduleEnd?: string;    // например "17:00"
+    scheduleStart?: string;
+    scheduleEnd?: string;
 }
 
 export interface ContentItem {
@@ -36,7 +35,31 @@ export interface ContentItem {
         textColor?: string;
         alignment?: "left" | "center" | "right";
 
-        // Для table / video — другие поля
         [key: string]: any;
     };
+}
+
+export interface ScreenConfig {
+    id?: string;
+    name: string;
+    aspectRatio: string;
+    transition: string;
+    defaultDuration: number;
+    loopMode: string;
+    backgroundColor?: string;
+    textColor?: string;
+    contentItems: ContentItem[];
+}
+
+export interface ServerScreenResponse {
+    id: string;
+    name: string;
+    location: string;
+    resolution: string;
+    lastHeartbeatAt: number;
+    pairedAt: number;
+    createdAt: number;
+    updatedAt: number;
+    status: "connected" | "pending" | "error";
+    config?: ScreenConfig;
 }

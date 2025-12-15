@@ -18,3 +18,11 @@ export function getScreensWord(count: number): string {
       return `${count} экранов`;
   }
 }
+
+export function joinResolutionData(width: string, height: string): string {
+  return `${width}x${height}`;
+}
+
+export function getStatus(lastHeartBeat: number): string {
+  return lastHeartBeat < 30 ? `подключено` : 'ошибка';
+}

@@ -35,7 +35,7 @@ export default function App() {
                     <Route path="templates" element={<TemplatesPage />} />
                     <Route path="config-edit" element={<ConfigEditor />} />
                     <Route path="profile" element={<ProfileScreen />} />
-                    <Route path="s" element={<SignageCreatorPage />} />
+                    <Route path="screen/:id" element={<SignageCreatorPage />} />
                 </Route>
 
                 {/* Любой неизвестный путь */}

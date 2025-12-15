@@ -122,11 +122,7 @@ public class FileController : ControllerBase
         return File(memoryStream, "application/zip", "all-files.zip");
     }
 
-
-    /// <summary>
-    ///     ���������� ���� �� �����.
-    /// </summary>
-    /// <param name="fileName">��� �����.</param>
+    [Obsolete("Метод устарел, используйте получение картинок через /img/image.png")]
     [HttpGet("{fileName}")]
     [Authorize]
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
@@ -136,21 +132,40 @@ public class FileController : ControllerBase
         var request = new GetFileRequest { FileName = fileName };
         var resp = await _fileServiceClient.GetFileAsync(request);
 
-        return File(resp.FileData.ToByteArray(), "application/octet-stream", fileName);
+        if (resp?.FileData == null || resp.FileData.Length == 0)
+            return NotFound();
+
+        var bytes = resp.FileData.ToByteArray();
+
+        var contentType = GetContentType(fileName);
+
+        Response.Headers["Content-Disposition"] = "inline";
+
+        return File(bytes, contentType);
     }
 
-    /// <summary>
-    ///     ���������� ���� �� URL.
-    /// </summary>
-    /// <param name="url">URL �����.</param>
+    [Obsolete("Метод устарел, используйте получение картинок через /img/image.png")]
     [HttpGet("by-url/{*url}")]
-    //[Authorize]
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByUrl(string url)
     {
         var decodedUrl = Uri.UnescapeDataString(url);
-        var fileName = decodedUrl.Split('/').LastOrDefault();
+        var fileName = decodedUrl.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+
+        if (string.IsNullOrEmpty(fileName))
+            return NotFound();
+
         return await Get(fileName);
+    }
+
+    private static string GetContentType(string fileName)
+    {
+        var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+
+        if (!provider.TryGetContentType(fileName, out var contentType))
+            contentType = "application/octet-stream";
+
+        return contentType;
     }
 }

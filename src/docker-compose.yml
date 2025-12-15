@@ -198,6 +198,18 @@ services:
       - adcontrol-network
 
 
+  minio-init:
+    image: alpine:3.18
+    container_name: minio-init
+    depends_on:
+       - minio
+    volumes:
+       - ./minio-init.sh:/minio-init.sh:ro
+    entrypoint: ["sh", "/minio-init.sh"]
+    networks:
+       - adcontrol-network
+    restart: "no"
+
 volumes:
   pgdata:
   redisdata:

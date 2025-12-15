@@ -86,6 +86,19 @@ public class ScreenController : ControllerBase
     }
 
     /// <summary>
+    ///     НЕ РАБОТАЕТ
+    ///     Возвращает информацию для дашборда
+    /// </summary>
+    /// <response code="200">Успешно получено</response>
+    [HttpGet("dashboard")]
+    [Authorize]
+    [ProducesResponseType(typeof(GetDashboardResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Dashboard()
+    {
+        return StatusCode(StatusCodes.Status501NotImplemented, "not implemented");
+    }
+
+    /// <summary>
     ///     Удаление экрана (не реализовано).
     /// </summary>
     /// <response code="501">Метод не реализован</response>

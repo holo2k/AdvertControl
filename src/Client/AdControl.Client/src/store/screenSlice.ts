@@ -30,6 +30,7 @@ interface ScreensState {
     offset: number;
     createStatus: "idle" | "loading" | "succeeded" | "failed";
     createError: string | null;
+    currentScreen: Screen | null,
 }
 
 const initialState: ScreensState = {
@@ -41,6 +42,7 @@ const initialState: ScreensState = {
     offset: 0,
     createStatus: "idle",
     createError: null,
+    currentScreen: null,
 };
 
 export const fetchScreens = createAsyncThunk(
@@ -65,6 +67,30 @@ export const fetchScreens = createAsyncThunk(
             return response.data;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || "Ошибка при загрузке экранов");
+        }
+    }
+);
+
+export const fetchScreen = createAsyncThunk(
+    "screens/fetchScreen",
+    async (
+        id: string,
+        { getState, rejectWithValue }
+    ) => {
+        const state = getState() as RootState;
+        const token = state.auth.token;
+
+        if (!token) return rejectWithValue("Нет токена авторизации");
+
+        try {
+            const response = await apiClient.get(`/screen/${id}`);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Ошибка при загрузке экрана"
+            );
         }
     }
 );
@@ -110,6 +136,9 @@ const screensSlice = createSlice({
             state.createStatus = "idle";
             state.createError = null;
         },
+        setCurrentScreen: (state, action: PayloadAction<Screen | null>) => {
+            state.currentScreen = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -139,6 +168,25 @@ const screensSlice = createSlice({
             .addCase(createScreen.rejected, (state, action) => {
                 state.createStatus = "failed";
                 state.createError = action.payload as string;
+            })
+            .addCase(fetchScreen.pending, (state) => {
+                state.status = "loading";
+                state.error = null;
+            })
+            .addCase(fetchScreen.fulfilled, (state, action) => {
+                state.status = "succeeded";
+                // Обновляем или добавляем экран в список
+                const index = state.items.findIndex(s => s.id === action.payload.id);
+                if (index >= 0) {
+                    state.items[index] = action.payload;
+                } else {
+                    state.items.push(action.payload);
+                    state.total += 1;
+                }
+            })
+            .addCase(fetchScreen.rejected, (state, action) => {
+                state.status = "failed";
+                state.error = action.payload as string;
             })
     },
 });

@@ -52,7 +52,6 @@ export function AddContentButton({ onAdd }: Props) {
             return toast.error("Поддерживаемые форматы: MP4, WebM, MOV");
         }
 
-        // 100 МБ лимит — можно увеличить
         if (file.size > 100 * 1024 * 1024) {
             return toast.error("Видео слишком большое (макс. 100 МБ)");
         }
@@ -83,10 +82,6 @@ export function AddContentButton({ onAdd }: Props) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
-                    <DropdownMenuItem onSelect={() => onAdd("table")}>
-                        <FileText className="w-4 h-4 mr-2" /> Загрузить таблицу
-                    </DropdownMenuItem>
-
                     <DropdownMenuItem onSelect={openImagePicker}>
                         <ImageIcon className="w-4 h-4 mr-2" /> Загрузить изображение
                     </DropdownMenuItem>
@@ -95,13 +90,16 @@ export function AddContentButton({ onAdd }: Props) {
                         <Video className="w-4 h-4 mr-2" /> Загрузить видео
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onSelect={() => onAdd("text")}>
+                    <DropdownMenuItem disabled onSelect={() => onAdd("table")}>
+                        <FileText className="w-4 h-4 mr-2" /> Загрузить таблицу
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem disabled onSelect={() => onAdd("text")}>
                         <FileText className="w-4 h-4 mr-2" /> Добавить текст
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Скрытые инпуты */}
             <input
                 ref={imageInputRef}
                 type="file"

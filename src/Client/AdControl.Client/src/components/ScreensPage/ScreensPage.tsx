@@ -26,6 +26,8 @@ import { Pagination } from "./Pagination.tsx";
 import { CreateScreenForm } from "./CreateScreenForm.tsx";
 import ContentLoader from "react-content-loader";
 import { useNavigate } from 'react-router-dom';
+import {getStatus} from "../../utils.ts";
+
 
 export function ScreensPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,12 +86,10 @@ export function ScreensPage() {
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (!open) {
-      // Сбрасываем статус создания при закрытии диалога
       dispatch(resetCreateStatus());
     }
   };
 
-  // 🔹 Фильтрация по имени, локации и статусу (с защитой от undefined)
   const filteredScreens = items.filter((screen) => {
     const screenName = screen.name || "";
     const screenLocation = screen.location || "";
@@ -104,12 +104,11 @@ export function ScreensPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // 🔹 Бейджи статусов
+
   const getStatusBadge = (status: string | undefined) => {
     const styles = {
-      connected: "bg-green-100 text-green-800 hover:bg-green-200",
-      error: "bg-red-100 text-red-800 hover:bg-red-200",
-      pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+      подключено: "bg-green-100 text-green-800 hover:bg-green-200",
+      ошибка: "bg-red-100 text-red-800 hover:bg-red-200",
     };
     return (
         <Badge className={styles[status as keyof typeof styles] || ""}>
@@ -223,34 +222,21 @@ export function ScreensPage() {
                       <TableHead>Расположение</TableHead>
                       <TableHead>Разрешение</TableHead>
                       <TableHead>Статус подключения</TableHead>
-                      <TableHead className="text-right">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredScreens.map((screen) => (
                         <TableRow
                             key={screen.id}
-                            className="cursor-pointer hover:bg-gray-50"
-                            onClick={() => navigate(`/s`)}
+                            className="cursor-pointer"
+                            onClick={() => navigate(`/screen/${screen.id}`)}
                         >
                           <TableCell>{screen.name || "Не указано"}</TableCell>
                           <TableCell className="text-gray-600">
                             {screen.location || "Не указано"}
                           </TableCell>
                           <TableCell>{screen.resolution || "Не указано"}</TableCell>
-                          <TableCell>{getStatusBadge(screen.status)}</TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/s`);
-                                }}
-                            >
-                              View
-                            </Button>
-                          </TableCell>
+                          <TableCell>{getStatusBadge(getStatus(screen.lastHeartbeatAt))}</TableCell>
                         </TableRow>
                     ))}
                   </TableBody>

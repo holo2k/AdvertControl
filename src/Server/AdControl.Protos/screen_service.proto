@@ -51,6 +51,27 @@ message ScreenConfig {
   int64 assignedAt = 5;
 }
 
+message Action {
+	Screen screen = 1;
+	string action = 2;
+	string lastUpdate = 3;
+	bool status = 4;
+}
+
+message ScreenLocations {
+	string screenLocation = 1;
+	int32 count = 2;
+}
+
+message Dashboard{
+	int32 activeScreens = 1;
+	int32 connectedScreens = 2;
+	int32 errorScreens = 3;
+	int32 waitingScreens = 4;
+	repeated Action actions = 5;
+	repeated ScreenLocations locations =6;
+}
+
 /* Screen Requests / Responses */
 message CreateScreenRequest { string name = 1; string resolution = 2; string location = 3; }
 message CreateScreenResponse { string id = 1; string status = 2; string error = 3; }
@@ -85,6 +106,9 @@ message RemoveItemResponse{bool success = 1;}
 message UpdateConfigRequest { string id = 1; string Name = 2; int32 ScreensCount = 3;}
 message UpdateConfigResponse { bool success = 1; string error = 2;}
 
+message GetDashboardRequest { }
+message GetDashboardResponse {bool success = 1; string error = 2; Dashboard dashboard = 3;}
+
 /* Service */
 service ScreenService {
   rpc CreateScreen(CreateScreenRequest) returns (CreateScreenResponse);
@@ -100,4 +124,5 @@ service ScreenService {
   rpc RemoveConfigItem(RemoveItemRequest) returns (RemoveItemResponse);
   rpc UpdateScreenFields(UpdateScreenFieldsRequest) returns (UpdateScreenFieldsResponse);
   rpc UpdateConfigFields(UpdateConfigRequest) returns (UpdateConfigResponse);
+  rpc GetDashboard(GetDashboardRequest) returns (GetDashboardResponse);
 }
