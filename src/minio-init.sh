@@ -1,5 +1,6 @@
-#!/bin/sh
-set -eu
+#!/bin/bash
+set -e
+set -u
 
 # Установим mc если его нет
 if ! command -v mc >/dev/null 2>&1; then
