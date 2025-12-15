@@ -98,20 +98,27 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             .SelectMany(c => c.Items)
             .Select(i => i.Type);
 
-        var config = s.ScreenConfigs
-           .First(sc => sc.IsActive)
-           .Config;
+
+        var activeScreenConfig = s.ScreenConfigs
+              .FirstOrDefault(sc => sc.IsActive);
 
         var protoConfig = new Config();
 
-        if (config is not null)
+        if (activeScreenConfig is not null)
         {
-            protoConfig.CreatedAt = DateTimeToUnixMs(config.CreatedAt);
-            protoConfig.UpdatedAt = DateTimeToUnixMs(config.UpdatedAt);
-            protoConfig.UserId =  config.UserId.ToString();
-            protoConfig.Name = config.Name;
-            protoConfig.ScreensCount = config.ScreensCount;
-            protoConfig.Version = config.Version;
+            var config = activeScreenConfig.Config;
+            if (config is not null)
+            {
+                protoConfig = new Config
+                {
+                    CreatedAt = DateTimeToUnixMs(config.CreatedAt),
+                    UpdatedAt = DateTimeToUnixMs(config.UpdatedAt),
+                    UserId = config.UserId.ToString(),
+                    Name = config.Name,
+                    ScreensCount = config.ScreensCount,
+                    Version = config.Version
+                };
+            }
         }
 
         return new GetScreenResponse { Screen = proto, Type = { types }, Config = protoConfig };
