@@ -117,6 +117,7 @@ deploy-backend-job:
     - if [ -n "${FINGERPRINT:-}" ]; then echo "$FINGERPRINT" > ~/.ssh/known_hosts; else ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts; fi
   script:
     - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/docker-compose.yml "$USER@$HOST:docker/backend"
+    - rsync -avz -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" src/minio-init.sh "$USER@$HOST:docker/backend"
     - |
       ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes "$USER@$HOST" bash -lc "
         set -euo pipefail
