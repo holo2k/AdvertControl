@@ -43,7 +43,6 @@ export function ScreensPage() {
     total,
     limit,
     offset,
-    status,
     createStatus,
     createError
   } = useSelector((state: RootState) => state.screens);
@@ -98,10 +97,8 @@ export function ScreensPage() {
         screenName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         screenLocation.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus =
-        statusFilter === "all" || screen.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
 

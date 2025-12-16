@@ -2,9 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "./store";
 import { apiClient } from "../api/apiClient";
+import type {SignageConfig} from "../components/SignageCreatorPage/types.ts";
 
-export interface Screen {
+export interface ScreenDto {
     id: string;
+    userId: string;
     name: string;
     location: string;
     resolution: string;
@@ -12,7 +14,12 @@ export interface Screen {
     pairedAt: number;
     createdAt: number;
     updatedAt: number;
-    status?: "connected" | "pending" | "error";
+}
+
+export interface Screen {
+    screen: ScreenDto;
+    type: string[];
+    config: SignageConfig;
 }
 
 interface CreateScreenData {
@@ -22,64 +29,78 @@ interface CreateScreenData {
 }
 
 interface ScreensState {
-    items: Screen[];
+    items: ScreenDto[];
     total: number;
-    status: "idle" | "loading" | "succeeded" | "failed";
-    error: string | null;
+
+    listStatus: "idle" | "loading" | "succeeded" | "failed";
+    listError: string | null;
+
+    currentScreen: Screen | null;
+    currentStatus: "idle" | "loading" | "succeeded" | "failed";
+    currentError: string | null;
+
     limit: number;
     offset: number;
+
     createStatus: "idle" | "loading" | "succeeded" | "failed";
     createError: string | null;
-    currentScreen: Screen | null,
 }
 
 const initialState: ScreensState = {
     items: [],
     total: 0,
-    status: "idle",
-    error: null,
+
+    listStatus: "idle",
+    listError: null,
+
+    currentScreen: null,
+    currentStatus: "idle",
+    currentError: null,
+
     limit: 20,
     offset: 0,
+
     createStatus: "idle",
     createError: null,
-    currentScreen: null,
 };
 
-export const fetchScreens = createAsyncThunk(
+// Для списка экранов, вероятно, API возвращает массив ScreenDto
+export const fetchScreens = createAsyncThunk<
+    { items: ScreenDto[]; total: number },
+    { limit?: number; offset?: number } | undefined,
+    { state: RootState; rejectValue: string }
+>(
     "screens/fetchScreens",
-    async (
-        { limit, offset }: { limit?: number; offset?: number } = {},
-        { getState, rejectWithValue }
-    ) => {
-        const state = getState() as RootState;
-        const token = state.auth.token;
-
+    async ({ limit, offset } = {}, { getState, rejectWithValue }) => {
+        const token = getState().auth.token;
         if (!token) return rejectWithValue("Нет токена авторизации");
 
         try {
             const response = await apiClient.get("/screen", {
                 params: {
-                    limit: limit ?? state.screens.limit,
-                    offset: offset ?? state.screens.offset,
+                    limit: limit ?? getState().screens.limit,
+                    offset: offset ?? getState().screens.offset,
                 },
             });
 
             return response.data;
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || "Ошибка при загрузке экранов");
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке экранов"
+            );
         }
     }
 );
 
-export const fetchScreen = createAsyncThunk(
+// Для одиночного экрана возвращается ScreenResponseDto
+export const fetchScreen = createAsyncThunk<
+    Screen,
+    string,
+    { state: RootState; rejectValue: string }
+>(
     "screens/fetchScreen",
-    async (
-        id: string,
-        { getState, rejectWithValue }
-    ) => {
-        const state = getState() as RootState;
-        const token = state.auth.token;
-
+    async (id, { getState, rejectWithValue }) => {
+        const token = getState().auth.token;
         if (!token) return rejectWithValue("Нет токена авторизации");
 
         try {
@@ -95,16 +116,22 @@ export const fetchScreen = createAsyncThunk(
     }
 );
 
-export const createScreen = createAsyncThunk(
+export const createScreen = createAsyncThunk<
+    ScreenDto,
+    CreateScreenData,
+    { state: RootState; rejectValue: string }
+>(
     "screens/createScreen",
-    async (screenData: CreateScreenData, { getState, rejectWithValue }) => {
-        const state = getState() as RootState;
-        const token = state.auth.token;
-
+    async (screenData, { getState, rejectWithValue }) => {
+        const token = getState().auth.token;
         if (!token) return rejectWithValue("Нет токена авторизации");
 
         try {
-            const response = await apiClient.post("/screen/pair/confirm", screenData);
+            const response = await apiClient.post(
+                "/screen/pair/confirm",
+                screenData
+            );
+            // Если бэкенд возвращает полный объект ScreenResponseDto, измените тип
             return response.data;
         } catch (error: any) {
             return rejectWithValue(
@@ -118,78 +145,135 @@ const screensSlice = createSlice({
     name: "screens",
     initialState,
     reducers: {
-        addScreen: (state, action: PayloadAction<Screen>) => {
-            state.items.push(action.payload);
-            state.total += 1;
-        },
-        setPagination: (state, action: PayloadAction<{ limit: number; offset: number }>) => {
-            state.limit = action.payload.limit;
-            state.offset = action.payload.offset;
-        },
-        clearScreens: (state) => {
+        clearScreens(state) {
             state.items = [];
             state.total = 0;
-            state.status = "idle";
+            state.listStatus = "idle";
             state.offset = 0;
         },
-        resetCreateStatus: (state) => {
+
+        resetCreateStatus(state) {
             state.createStatus = "idle";
             state.createError = null;
         },
-        setCurrentScreen: (state, action: PayloadAction<Screen | null>) => {
-            state.currentScreen = action.payload;
+
+        clearCurrentScreen(state) {
+            state.currentScreen = null;
+            state.currentStatus = "idle";
+            state.currentError = null;
+        },
+
+        setPagination(
+            state,
+            action: PayloadAction<{ limit: number; offset: number }>
+        ) {
+            state.limit = action.payload.limit;
+            state.offset = action.payload.offset;
+        },
+
+        // Дополнительные редьюсеры для обновления данных экрана
+        updateCurrentScreenConfig(
+            state,
+            action: PayloadAction<Partial<SignageConfig>>
+        ) {
+            if (state.currentScreen) {
+                state.currentScreen.config = {
+                    ...state.currentScreen.config,
+                    ...action.payload,
+                };
+            }
+        },
+
+        updateCurrentScreenTypes(
+            state,
+            action: PayloadAction<string[]>
+        ) {
+            if (state.currentScreen) {
+                state.currentScreen.type = action.payload;
+            }
         },
     },
+
     extraReducers: (builder) => {
         builder
-            // Fetch screens
+            /* ===== List ===== */
             .addCase(fetchScreens.pending, (state) => {
-                state.status = "loading";
-                state.error = null;
+                state.listStatus = "loading";
+                state.listError = null;
             })
             .addCase(fetchScreens.fulfilled, (state, action) => {
-                state.status = "succeeded";
+                state.listStatus = "succeeded";
                 state.items = action.payload.items;
                 state.total = action.payload.total;
             })
             .addCase(fetchScreens.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.payload as string;
+                state.listStatus = "failed";
+                state.listError = action.payload ?? "Unknown error";
             })
-            // Create screen
-            .addCase(createScreen.pending, (state) => {
-                state.createStatus = "loading";
-                state.createError = null;
-            })
-            .addCase(createScreen.fulfilled, (state) => {
-                state.createStatus = "succeeded";
-                state.createError = null;
-            })
-            .addCase(createScreen.rejected, (state, action) => {
-                state.createStatus = "failed";
-                state.createError = action.payload as string;
-            })
+
+            /* ===== Single Screen ===== */
             .addCase(fetchScreen.pending, (state) => {
-                state.status = "loading";
-                state.error = null;
+                state.currentStatus = "loading";
+                state.currentError = null;
             })
             .addCase(fetchScreen.fulfilled, (state, action) => {
-                state.status = "succeeded";
-                // Обновляем или добавляем экран в список
-                const index = state.items.findIndex(s => s.id === action.payload.id);
+                state.currentStatus = "succeeded";
+                state.currentScreen = action.payload;
+
+                // Обновляем базовую информацию об экране в списке
+                const screenData = action.payload.screen;
+                const index = state.items.findIndex(
+                    (s) => s.id === screenData.id
+                );
+
                 if (index >= 0) {
-                    state.items[index] = action.payload;
+                    state.items[index] = screenData;
                 } else {
-                    state.items.push(action.payload);
+                    state.items.push(screenData);
                     state.total += 1;
                 }
             })
             .addCase(fetchScreen.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.payload as string;
+                state.currentStatus = "failed";
+                state.currentError = action.payload ?? "Unknown error";
             })
+
+            /* ===== Create Screen ===== */
+            .addCase(createScreen.pending, (state) => {
+                state.createStatus = "loading";
+                state.createError = null;
+            })
+            .addCase(createScreen.fulfilled, (state, action) => {
+                state.createStatus = "succeeded";
+                state.items.unshift(action.payload);
+                state.total += 1;
+            })
+            .addCase(createScreen.rejected, (state, action) => {
+                state.createStatus = "failed";
+                state.createError = action.payload ?? "Unknown error";
+            });
     },
 });
 
-export const { addScreen, setPagination, clearScreens, resetCreateStatus } = screensSlice.actions;
+export const {
+    clearScreens,
+    resetCreateStatus,
+    clearCurrentScreen,
+    setPagination,
+    updateCurrentScreenConfig,
+    updateCurrentScreenTypes,
+} = screensSlice.actions;
+
+// Селекторы
+export const selectCurrentScreen = (state: RootState) => state.screens.currentScreen;
+export const selectCurrentScreenData = (state: RootState) => state.screens.currentScreen?.screen;
+export const selectCurrentScreenConfig = (state: RootState) => state.screens.currentScreen?.config;
+export const selectCurrentScreenTypes = (state: RootState) => state.screens.currentScreen?.type;
+export const selectScreensList = (state: RootState) => state.screens.items;
+export const selectScreensTotal = (state: RootState) => state.screens.total;
+export const selectScreensPagination = (state: RootState) => ({
+    limit: state.screens.limit,
+    offset: state.screens.offset,
+});
+
 export default screensSlice.reducer;

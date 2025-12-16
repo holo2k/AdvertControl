@@ -17,6 +17,7 @@ export const LoginPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // @ts-expect-error хз че ругается
         const resultAction: any = await dispatch(loginUser({ username, password }));
 
         if (resultAction.meta.requestStatus === "fulfilled") {

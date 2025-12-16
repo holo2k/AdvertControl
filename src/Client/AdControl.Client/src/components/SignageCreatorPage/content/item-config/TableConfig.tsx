@@ -1,35 +1,17 @@
 import {Label} from "../../../ui/label.tsx";
-import {Input} from "../../../ui/input.tsx";
+import type {ContentItem} from "../../types.ts";
 
-export function TableConfig({
-                         config,
-                         onChange,
-                     }: {
-    config: any;
-    onChange: (update: any) => void;
-}) {
+interface TableConfigProps {
+    item: ContentItem;
+}
+
+export function TableConfig({item}: TableConfigProps) {
     return (
         <div className="space-y-4">
             <h3 className="text-sm">Параметры таблицы</h3>
-
             <div className="space-y-2">
-                <Label>Цвет заголовка</Label>
-                <Input
-                    type="color"
-                    value={config.headerColor || "#2563EB"}
-                    onChange={(e) => onChange({ headerColor: e.target.value })}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label>Строк</Label>
-                <Input
-                    type="number"
-                    value={config.pagination || 10}
-                    onChange={(e) =>
-                        onChange({ pagination: parseInt(e.target.value) })
-                    }
-                />
+                <Label>Размер</Label>
+                {item.size}
             </div>
         </div>
     );

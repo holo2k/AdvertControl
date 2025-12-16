@@ -1,16 +1,14 @@
 import {useEffect, useState} from "react";
 import {Pause, Play, X} from "lucide-react";
 import {Button} from "../../ui/button.tsx";
-import type {Types} from "../types.ts";
+import type {ContentItem} from "../types.ts";
 import {PreviewContent} from "./PreviewContent.tsx";
 
 export function FullscreenPreview({
                                items,
-                               transition,
                                onClose,
                            }: {
-    items: Types[];
-    transition: string;
+    items: ContentItem[];
     onClose: () => void;
 }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,7 +30,7 @@ export function FullscreenPreview({
 
         const timer = setTimeout(() => {
             setCurrentIndex((prev) => (prev + 1) % items.length);
-        }, items[currentIndex].duration * 1000);
+        }, items[currentIndex].durationSeconds * 1000);
 
         return () => clearTimeout(timer);
     }, [isPlaying, currentIndex, items]);
@@ -61,7 +59,7 @@ export function FullscreenPreview({
             </div>
 
             <div className="w-full h-full">
-                <PreviewContent item={items[currentIndex]} transition={transition} />
+                <PreviewContent item={items[currentIndex]}/>
             </div>
         </div>
     );

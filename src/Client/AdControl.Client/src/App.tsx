@@ -7,9 +7,9 @@ import { LoginPage } from "./components/loginPage/LoginPage.tsx";
 import { MainLayout } from "./components/layouts/MainLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { UnauthorizedPage } from "./components/UnauthorizedPage";
-import { ConfigEditor } from "./components/configEditor/ConfigEditor.tsx";
 import {ProfileScreen} from "./components/ProfileScreen/ProfileScreen.tsx";
 import {SignageCreatorPage} from './components/SignageCreatorPage/SignageCreatorPage.tsx'
+import {ScreenDetail} from "./components/ScreenDetailPage/ScreenDetailPage.tsx";
 
 export default function App() {
     return (
@@ -33,9 +33,9 @@ export default function App() {
                     <Route path="screens" element={<ScreensPage />} />
                     <Route path="configurations" element={<ConfigurationsPage />} />
                     <Route path="templates" element={<TemplatesPage />} />
-                    <Route path="config-edit" element={<ConfigEditor />} />
                     <Route path="profile" element={<ProfileScreen />} />
-                    <Route path="screen/:id" element={<SignageCreatorPage />} />
+                    <Route path="screen/:id" element={<ScreenDetail />} />
+                    <Route path="screen/:id/config" element={<SignageCreatorPage />} />
                 </Route>
 
                 {/* Любой неизвестный путь */}

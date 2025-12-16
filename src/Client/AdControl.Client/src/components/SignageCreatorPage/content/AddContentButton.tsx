@@ -1,4 +1,5 @@
-// src/components/signage/content/AddContentButton.tsx
+import { useRef } from "react";
+import axios from "axios";
 import { Button } from "../../ui/button";
 import {
     DropdownMenu,
@@ -7,71 +8,132 @@ import {
     DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { Plus, FileText, Image as ImageIcon, Video } from "lucide-react";
-import type { ContentType } from "../types";
+import type { ContentItem, ContentType } from "../types";
 import { toast } from "../../ui/sonner";
-import { useRef } from "react";
+
+/* ================= API CLIENT ================= */
+
+const apiClient = axios.create({
+    baseURL: "http://localhost:5000/api/",
+    headers: { "Content-Type": "application/json" },
+});
+
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+/* ================= TYPES ================= */
 
 interface Props {
-    onAdd: (type: ContentType, config?: any) => void;
+    onAdd: (type: ContentType, item: ContentItem) => void;
 }
+
+/* ================= COMPONENT ================= */
 
 export function AddContentButton({ onAdd }: Props) {
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
 
-    // === Загрузка изображения ===
-    const openImagePicker = () => imageInputRef.current?.click();
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) return toast.error("Выберите изображение");
-        if (file.size > 15 * 1024 * 1024) return toast.error("Изображение слишком большое (>15 МБ)");
+    /* ================= UPLOAD ================= */
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            onAdd("image", {
-                url: reader.result as string,
-                fit: "cover",
-                animation: "none",
-                backgroundColor: "#000000",
-            });
-            toast.success(`${file.name} загружено`);
-        };
-        reader.readAsDataURL(file);
-        e.target.value = "";
+    const uploadFile = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await apiClient.post("files/upload", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        return response.data.fileUrl;
     };
 
-    // === Загрузка видео ===
+    /* ================= IMAGE ================= */
+
+    const openImagePicker = () => imageInputRef.current?.click();
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Выберите изображение");
+            return;
+        }
+
+        if (file.size > 15 * 1024 * 1024) {
+            toast.error("Изображение слишком большое (>15 МБ)");
+            return;
+        }
+
+        try {
+            const fileUrl = await uploadFile(file);
+
+            const newItem: ContentItem = {
+                type: "IMAGE",
+                durationSeconds: 10,
+                size: file.size,
+                url: fileUrl,
+                order: 1
+            };
+
+            onAdd("IMAGE", newItem);
+            toast.success("Изображение загружено");
+        } catch {
+            toast.error("Ошибка загрузки изображения");
+        } finally {
+            e.target.value = "";
+        }
+    };
+
+    /* ================= VIDEO ================= */
+
     const openVideoPicker = () => videoInputRef.current?.click();
-    const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         const validTypes = ["video/mp4", "video/webm", "video/quicktime"];
         if (!validTypes.includes(file.type)) {
-            return toast.error("Поддерживаемые форматы: MP4, WebM, MOV");
+            toast.error("Поддерживаемые форматы: MP4, WebM, MOV");
+            return;
         }
 
         if (file.size > 100 * 1024 * 1024) {
-            return toast.error("Видео слишком большое (макс. 100 МБ)");
+            toast.error("Видео слишком большое (макс. 100 МБ)");
+            return;
         }
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            onAdd("video", {
-                url: reader.result as string,
-                volume: 50,
-                loop: true,
-                muted: true,
-                quality: "auto",
-            });
-            toast.success(`${file.name} загружено`);
-        };
-        reader.onerror = () => toast.error("Ошибка чтения видео");
-        reader.readAsDataURL(file);
+        try {
+            const fileUrl = await uploadFile(file);
 
-        e.target.value = "";
+            const newItem: ContentItem = {
+                type: "VIDEO",
+                durationSeconds: 10,
+                size: file.size,
+                order: 0,
+                url: fileUrl,
+            };
+
+            onAdd("VIDEO", newItem);
+            toast.success("Видео загружено");
+        } catch {
+            toast.error("Ошибка загрузки видео");
+        } finally {
+            e.target.value = "";
+        }
     };
+
+    /* ================= RENDER ================= */
 
     return (
         <>
@@ -81,21 +143,26 @@ export function AddContentButton({ onAdd }: Props) {
                         <Plus className="w-4 h-4" /> Добавить контент
                     </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent className="w-56">
                     <DropdownMenuItem onSelect={openImagePicker}>
-                        <ImageIcon className="w-4 h-4 mr-2" /> Загрузить изображение
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        Загрузить изображение
                     </DropdownMenuItem>
 
                     <DropdownMenuItem onSelect={openVideoPicker}>
-                        <Video className="w-4 h-4 mr-2" /> Загрузить видео
+                        <Video className="w-4 h-4 mr-2" />
+                        Загрузить видео
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem disabled onSelect={() => onAdd("table")}>
-                        <FileText className="w-4 h-4 mr-2" /> Загрузить таблицу
+                    <DropdownMenuItem disabled>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Загрузить таблицу
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem disabled onSelect={() => onAdd("text")}>
-                        <FileText className="w-4 h-4 mr-2" /> Добавить текст
+                    <DropdownMenuItem disabled>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Добавить текст
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -107,10 +174,11 @@ export function AddContentButton({ onAdd }: Props) {
                 className="hidden"
                 onChange={handleImageUpload}
             />
+
             <input
                 ref={videoInputRef}
                 type="file"
-                accept="video/mp4,video/webm"
+                accept="video/mp4,video/webm,video/quicktime"
                 className="hidden"
                 onChange={handleVideoUpload}
             />

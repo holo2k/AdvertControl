@@ -8,9 +8,10 @@ import { Button } from "../ui/button.tsx";
 import { Avatar, AvatarFallback } from "../ui/avatar.tsx";
 import { apiClient } from "../../api/apiClient.ts";
 import "./ProfileScreen.css";
+import type {AppDispatch} from "../../store/store.ts";
 
 export const ProfileScreen = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { data, loading } = useSelector((state: any) => state.profile);
     const { token } = useSelector((state: any) => state.auth);

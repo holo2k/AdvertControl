@@ -3,11 +3,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../ui/co
 import { ChevronUp, ChevronDown, Settings } from "lucide-react";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { Slider } from "../../ui/slider";
 import { Separator } from "../../ui/separator";
 import type { SignageConfig } from "../types";
 import { useState } from "react";
+import {useSelector} from "react-redux";
+import type {RootState} from "../../../store/store.ts";
 
 interface Props {
     config: SignageConfig;
@@ -16,6 +16,10 @@ interface Props {
 
 export function GeneralSettings({ config, setConfig }: Props) {
     const [open, setOpen] = useState(true);
+
+    const { currentScreen } = useSelector(
+        (state: RootState) => state.screens
+    );
 
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
@@ -26,50 +30,56 @@ export function GeneralSettings({ config, setConfig }: Props) {
 
             <CollapsibleContent className="space-y-4 mt-4">
                 <div className="space-y-2">
-                    <Label htmlFor="display-name">Название</Label>
+                    <Label htmlFor="display-name">Экран</Label>
                     <Input
+                        disabled
                         id="display-name"
-                        value={config.name}
+                        value={currentScreen?.screen.name || ""}
                         onChange={(e) => setConfig((c) => ({ ...c, name: e.target.value }))}
                     />
                 </div>
 
                 <div className="space-y-2">
                     <Label>Разрешение</Label>
-                    <Select value={config.aspectRatio} onValueChange={(v: any) => setConfig(c => ({ ...c, aspectRatio: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="16:9">1920x1080 </SelectItem>
-                            <SelectItem value="custom">Свое</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {config.aspectRatio === "custom" && (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Ширина (пикс.)</Label>
-                            <Input type="number" value={config.customWidth ?? 1920}
-                                   onChange={e => setConfig(c => ({ ...c, customWidth: +e.target.value }))} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Высота (пикс.)</Label>
-                            <Input type="number" value={config.customHeight ?? 1080}
-                                   onChange={e => setConfig(c => ({ ...c, customHeight: +e.target.value }))} />
-                        </div>
-                    </div>
-                )}
-
-                <div className="space-y-2">
-                    <Label>Продолжительность (по умолч): {config.defaultDuration}s</Label>
-                    <Slider
-                        min={1} max={60} step={1}
-                        value={[config.defaultDuration]}
-                        onValueChange={([v]) => setConfig(c => ({ ...c, defaultDuration: v }))}
+                    <Input
+                        disabled
+                        id="display-name"
+                        value={currentScreen?.screen.resolution || ""}
+                        onChange={(e) => setConfig((c) => ({ ...c, name: e.target.value }))}
                     />
                 </div>
+
             </CollapsibleContent>
+
             <Separator className="mt-6" />
+            <div className="space-y-2 mt-4">
+                <Label>Название конфига </Label>
+                <Input
+                    id="config-name"
+                    value={config.name}
+                    onChange={(e) => setConfig((c) => ({ ...c, name: e.target.value }))}
+                />
+            </div>
+            <div className="space-y-2 mt-4">
+                <Label>Кол-во экранов </Label>
+                <Input
+                    id="config-screensCount"
+                    type="number"
+                    min={1}
+                    step={2}
+                    value={config.screensCount}
+                    onChange={(e) => {
+                        const value = Number(e.target.value);
+
+                        if (Number.isNaN(value)) return;
+
+                        setConfig((c) => ({
+                            ...c,
+                            screensCount: value % 2 === 0 ? value : value - 1,
+                        }));
+                    }}
+                />
+            </div>
         </Collapsible>
     );
 }

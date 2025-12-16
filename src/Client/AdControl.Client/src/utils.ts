@@ -26,3 +26,15 @@ export function joinResolutionData(width: string, height: string): string {
 export function getStatus(lastHeartBeat: number): string {
   return lastHeartBeat < 30 ? `подключено` : 'ошибка';
 }
+
+export function truncateString(str: string, maxLength: number, ellipsis = "...") {
+  if (typeof str !== 'string') {
+    throw new TypeError('Первый аргумент должен быть строкой');
+  }
+
+  if (str.length <= maxLength) {
+    return str;
+  }
+
+  return str.slice(0, maxLength - ellipsis.length) + ellipsis;
+}

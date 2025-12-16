@@ -1,10 +1,9 @@
 import { PreviewArea } from "../preview/PreviewArea";
 import { Timeline } from "../preview/Timeline";
-import type { ContentItem, SignageConfig } from "../types";
+import type { SignageConfig } from "../types";
 
 interface Props {
     config: SignageConfig;
-    contentItems: ContentItem[];
     currentIndex: number;
     setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
     isPlaying: boolean;
@@ -14,7 +13,6 @@ interface Props {
 
 export function MainContent({
                                 config,
-                                contentItems,
                                 currentIndex,
                                 setCurrentIndex,
                                 isPlaying,
@@ -26,18 +24,16 @@ export function MainContent({
         <div className="flex-1 flex flex-col gap-6 overflow-hidden py-6 pr-6">
             <PreviewArea
                 config={config}
-                items={contentItems}
                 currentIndex={currentIndex}
                 setCurrentIndex={setCurrentIndex}
                 isPlaying={isPlaying}
                 setIsPlaying={setIsPlaying}
                 onFullScreen={onFullscreen}
-                contentItems={contentItems}
             />
 
-            {contentItems.length > 0 && (
+            {config.items.length > 0 && (
                 <Timeline
-                    items={contentItems}
+                    items={config.items}
                     currentIndex={currentIndex}
                     setCurrentIndex={setCurrentIndex}
                     setIsPlaying={setIsPlaying}

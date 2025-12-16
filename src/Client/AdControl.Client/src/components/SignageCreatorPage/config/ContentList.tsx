@@ -1,85 +1,114 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../ui/collapsible.tsx";
-import { ChevronUp, ChevronDown, FileText, Upload } from "lucide-react";
+import {ChevronUp, ChevronDown, FileText, Loader2, Upload} from "lucide-react";
 import { useState } from "react";
 import { toast } from "../../ui/sonner.tsx";
 import { AddContentButton } from "../content/AddContentButton.tsx";
 import { ContentItemCard } from "../content/ContentItemCard.tsx";
-import type { ContentItem, ContentType } from "../types.ts";
+import type { ContentItem, ContentType, SignageConfig } from "../types.ts";
 
 interface Props {
-    contentItems: ContentItem[];
-    setContentItems: React.Dispatch<React.SetStateAction<ContentItem[]>>;
+    items: ContentItem[];
+    setConfig: React.Dispatch<React.SetStateAction<SignageConfig>>;
     selectedItem: string | null;
     setSelectedItem: React.Dispatch<React.SetStateAction<string | null>>;
-    defaultDuration: number;
 }
 
-export function ContentList({ contentItems, setContentItems, selectedItem, setSelectedItem, defaultDuration }: Props) {
+export function ContentList({ items, setConfig, selectedItem, setSelectedItem }: Props) {
     const [open, setOpen] = useState(true);
     const [draggedId, setDraggedId] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
+
+    const getNextOrder = () => {
+        if (items.length === 0) return 0;
+        const maxOrder = Math.max(...items.map(item => item.order || 0));
+        return maxOrder + 1;
+    };
+
+    // Функция для обновления порядка всех элементов
+    const updateAllOrders = (items: ContentItem[]): ContentItem[] => {
+        return items
+            .map((item, index) => ({
+                ...item,
+                order: index
+            }));
+    };
 
     const handleAdd = (type: ContentType, extraConfig?: any) => {
-        const defaultConfigs = {
-            image: {
-                url: "",
-                fit: "cover",
-                animation: "none",
-                backgroundColor: "#000000",
-                ...extraConfig,
-            },
-            text: {
-                content: "Enter your text here",
-                fontSize: 48,
-                textColor: "#FFFFFF",
-                backgroundColor: "#2563EB",
-                alignment: "center",
-                ...extraConfig,
-            },
-            video: {
-                volume: 50,
-                loop: false,
-                muted: false,
-                ...extraConfig,
-            },
-            table: {
-                columns: [],
-                headerColor: "#2563EB",
-                alternateRows: true,
-                ...extraConfig,
-            },
-        };
-
+        const newOrder = getNextOrder();
         const newItem: ContentItem = {
             id: `item-${Date.now()}`,
             type,
-            name: `${type} ${contentItems.length + 1}`,
-            duration: defaultDuration,
+            name: `${type} ${items.length + 1}`,
+            durationSeconds: 10,
             status: "ready",
-            config: {
-                ...defaultConfigs[type],
-            },
+            order: newOrder,
+            url: extraConfig?.url,
+            ...extraConfig
         };
 
-        setContentItems(prev => [...prev, newItem]);
-        setSelectedItem(newItem.id);
+        setConfig(prev => ({
+            ...prev,
+            items: [...prev.items, newItem],
+        }));
+
+        setSelectedItem(newItem?.url || "");
+        toast.success("Элемент добавлен");
     };
 
-    const handleDuplicate = (id: string) => {
-        const item = contentItems.find(i => i.id === id);
+    const handleDuplicate = (url: string) => {
+        const item = items.find(i => i.url === url);
         if (!item) return;
+
+        const newOrder = getNextOrder();
         const copy: ContentItem = {
             ...item,
-            id: `item-${Date.now()}`,
-            name: `${item.name} (Copy)`,
+            url: `${item.url} (Copy)`,
+            order: newOrder,
         };
-        setContentItems(prev => [...prev, copy]);
-        toast.success("Duplicated");
+
+        setConfig(prev => ({
+            ...prev,
+            items: [...prev.items, copy],
+        }));
+
+        toast.success("Элемент скопирован");
     };
 
-    const handleDelete = (id: string) => {
-        setContentItems(prev => prev.filter(i => i.id !== id));
-        if (selectedItem === id) setSelectedItem(null);
-        toast.success("Removed");
+    const handleDelete = (url: string) => {
+        setConfig(prev => {
+            const filteredItems = prev.items.filter(i => i.url !== url);
+            const reorderedItems = updateAllOrders(filteredItems);
+            return {
+                ...prev,
+                items: reorderedItems
+            };
+        });
+
+        if (selectedItem === url) setSelectedItem(null);
+        toast.success("Элемент удален");
+    };
+
+    const handleReorder = (dragUrl: string, targetUrl: string) => {
+        if (dragUrl === targetUrl) return;
+
+        setConfig(prev => {
+            const newItems = [...prev.items];
+            const dragIdx = newItems.findIndex(i => i.url === dragUrl);
+            const targetIdx = newItems.findIndex(i => i.url === targetUrl);
+
+            if (dragIdx === -1 || targetIdx === -1) return prev;
+
+            // Удаляем перетаскиваемый элемент
+            const [draggedItem] = newItems.splice(dragIdx, 1);
+
+            // Вставляем его на новую позицию
+            newItems.splice(targetIdx, 0, draggedItem);
+
+            // Обновляем порядок всех элементов
+            const reorderedItems = updateAllOrders(newItems);
+
+            return { ...prev, items: reorderedItems };
+        });
     };
 
     const handleDragStart = (id: string) => setDraggedId(id);
@@ -87,48 +116,78 @@ export function ContentList({ contentItems, setContentItems, selectedItem, setSe
     const handleDragOver = (e: React.DragEvent, targetId: string) => {
         e.preventDefault();
         if (!draggedId || draggedId === targetId) return;
-
-        setContentItems(prev => {
-            const dragIdx = prev.findIndex(i => i.id === draggedId);
-            const targetIdx = prev.findIndex(i => i.id === targetId);
-            const newItems = [...prev];
-            const [removed] = newItems.splice(dragIdx, 1);
-            newItems.splice(targetIdx, 0, removed);
-            return newItems;
-        });
+        handleReorder(draggedId, targetId);
     };
 
     const handleDragEnd = () => setDraggedId(null);
 
+    // Сортируем элементы по порядку для отображения
+    const sortedItems = [...items].sort((a, b) => {
+        const orderA = a.order || 0;
+        const orderB = b.order || 0;
+        return orderA - orderB;
+    });
+
     return (
         <Collapsible open={open} onOpenChange={setOpen}>
             <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h2 className="flex items-center gap-2"><FileText className="w-5 h-5" /> Кол-во объектов ({contentItems.length})</h2>
+                <h2 className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" /> Кол-во объектов ({items.length})
+                </h2>
                 {open ? <ChevronUp /> : <ChevronDown />}
             </CollapsibleTrigger>
 
             <CollapsibleContent className="space-y-4 mt-4">
-                <AddContentButton onAdd={handleAdd} />
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <AddContentButton onAdd={handleAdd} />
 
-                {contentItems.length === 0 ? (
-                    <div className="text-center p-8 px-2 border-2 border-dashed border-gray-300 rounded-lg">
-                        <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-600 text-sm mb-1">Контент еще не добавлен</p>
-                        <p className="text-gray-400 text-xs">Нажмите "Добавить контент", чтобы начать</p>
+                    <label className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors
+                        ${uploading
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            disabled={uploading}
+                            className="hidden"
+                            id="upload-image-input"
+                        />
+                        {uploading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Upload className="w-4 h-4" />
+                        )}
+                        {uploading ? "Загрузка..." : "Загрузить изображение"}
+                    </label>
+                </div>
+
+                {uploading && (
+                    <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-lg">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+                        <p className="text-sm text-gray-600">Загрузка на сервер...</p>
+                    </div>
+                )}
+
+                {sortedItems.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                        <p className="text">Добавьте контент для отображения на экранах</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {contentItems.map(item => (
+
+                        {sortedItems.map((item, index) => (
                             <ContentItemCard
-                                key={item.id}
+                                key={item.url || ""}
                                 item={item}
-                                isSelected={selectedItem === item.id}
-                                isDragging={draggedId === item.id}
-                                onSelect={() => setSelectedItem(item.id)}
-                                onDuplicate={() => handleDuplicate(item.id)}
-                                onDelete={() => handleDelete(item.id)}
-                                onDragStart={() => handleDragStart(item.id)}
-                                onDragOver={(e) => handleDragOver(e, item.id)}
+                                index={index}
+                                totalItems={sortedItems.length}
+                                isSelected={selectedItem === item.url}
+                                isDragging={draggedId === item.url}
+                                onSelect={() => setSelectedItem(item?.url || "")}
+                                onDuplicate={() => handleDuplicate(item?.url || "")}
+                                onDelete={() => handleDelete(item?.url || "")}
+                                onDragStart={() => handleDragStart(item?.url || "")}
+                                onDragOver={(e) => handleDragOver(e, item?.url || "")}
                                 onDragEnd={handleDragEnd}
                             />
                         ))}

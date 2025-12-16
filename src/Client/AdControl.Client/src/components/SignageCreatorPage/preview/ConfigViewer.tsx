@@ -1,4 +1,3 @@
-// src/components/signage/preview/ConfigViewer.tsx
 import CodeMirror from "@uiw/react-codemirror";
 import { dracula } from "@uiw/codemirror-theme-dracula";
 import { json } from "@codemirror/lang-json";
@@ -12,28 +11,11 @@ interface ConfigViewerProps {
 export function ConfigViewer({ config, items }: ConfigViewerProps) {
     const fullConfig = {
         signageName: config.name,
-        aspectRatio: config.aspectRatio,
-        customResolution: config.aspectRatio === "custom" ? {
-            width: config.customWidth,
-            height: config.customHeight,
-        } : null,
-        transition: config.transition,
-        defaultDuration: config.defaultDuration,
-        loopMode: config.loopMode,
-        schedule: config.loopMode === "scheduled" ? {
-            recurring: config.recurring,
-            startTime: config.scheduleStart,
-            endTime: config.scheduleEnd,
-        } : null,
         contentItems: items.map(item => ({
-            id: item.id,
             type: item.type,
-            name: item.name,
-            duration: item.duration,
-            status: item.status,
-            config: item.config,
+            durationSeconds: item.durationSeconds,
         })),
-        totalDuration: items.reduce((sum, i) => sum + i.duration, 0),
+        totalDuration: items.reduce((sum, i) => sum + i.durationSeconds, 0),
         itemsCount: items.length,
     };
 

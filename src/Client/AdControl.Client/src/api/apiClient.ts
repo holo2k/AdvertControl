@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const MINIO_PUBLIC_URL='https://advertcontrol.ru/files'
+
 const apiClient = axios.create({
-    baseURL: "http://localhost:5000/api/",
+    baseURL: "/api/",
     headers: { "Content-Type": "application/json" },
 });
 
@@ -16,4 +18,4 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-export { apiClient };
+export { apiClient, MINIO_PUBLIC_URL };

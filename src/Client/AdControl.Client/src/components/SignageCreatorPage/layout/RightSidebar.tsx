@@ -1,5 +1,4 @@
 import { ScrollArea } from "../../ui/scroll-area";
-import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Slider } from "../../ui/slider";
 import { Separator } from "../../ui/separator";
@@ -11,12 +10,10 @@ import type { ContentItem } from "../types";
 
 interface Props {
     item: ContentItem;
-    onNameChange: (name: string) => void;
     onDurationChange: (duration: number) => void;
-    onConfigChange: (update: Partial<ContentItem["config"]>) => void;
 }
 
-export function RightSidebar({ item, onNameChange, onDurationChange, onConfigChange }: Props) {
+export function RightSidebar({ item, onDurationChange}: Props) {
     return (
         <div className="w-80 border-l border-gray-200 bg-white">
             <ScrollArea className="h-full px-6 py-6">
@@ -26,26 +23,28 @@ export function RightSidebar({ item, onNameChange, onDurationChange, onConfigCha
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label>Имя объекта</Label>
-                            <Input value={item.name} onChange={e => onNameChange(e.target.value)} />
+                            <div className="w-64 truncate overflow-hidden text-ellipsis">
+                                {item.url}
+                            </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Продолжительность: {item.duration}s</Label>
+                            <Label>Продолжительность: {item.durationSeconds}s</Label>
                             <Slider
                                 min={1}
                                 max={60}
                                 step={1}
-                                value={[item.duration]}
+                                value={[item.durationSeconds]}
                                 onValueChange={([v]) => onDurationChange(v)}
                             />
                         </div>
 
                         <Separator />
 
-                        {item.type === "table" && <TableConfig config={item.config} onChange={onConfigChange} />}
-                        {item.type === "image" && <ImageConfig config={item.config} onChange={onConfigChange} />}
-                        {item.type === "video" && <VideoConfig config={item.config} onChange={onConfigChange} />}
-                        {item.type === "text" && <TextConfig config={item.config} onChange={onConfigChange} />}
+                        {item.type === "TABLE" && <TableConfig item={item}/>}
+                        {item.type === "IMAGE" && <ImageConfig item = {item}/>}
+                        {item.type === "VIDEO" && <VideoConfig item={item} />}
+                        {item.type === "TEXT" && <TextConfig item={item}/>}
                     </div>
                 </div>
             </ScrollArea>
