@@ -1,4 +1,5 @@
 ﻿using AdControl.Gateway.Application.Dtos;
+using AdControl.Gateway.Mapper;
 using AdControl.Protos;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
@@ -11,13 +12,11 @@ namespace AdControl.Gateway.Controllers;
 [Route("api/config")]
 public class ConfigController : ControllerBase
 {
-    private readonly AuthServiceClient _authServiceClient;
     private readonly ScreenService.ScreenServiceClient _screenClient;
 
-    public ConfigController(ScreenService.ScreenServiceClient screenClient, AuthServiceClient authServiceClient)
+    public ConfigController(ScreenService.ScreenServiceClient screenClient)
     {
         _screenClient = screenClient;
-        _authServiceClient = authServiceClient;
     }
 
     /// <summary>
@@ -80,7 +79,7 @@ public class ConfigController : ControllerBase
         var resp = await _screenClient.GetConfigAsync(new GetConfigRequest { Id = id }, BuildAuthMetadata(HttpContext))
             .ResponseAsync;
         if (resp.Config == null || string.IsNullOrEmpty(resp.Config.Id)) return NotFound();
-        return Ok(resp.Config);
+        return Ok(resp.Config.MapToConfigDto());
     }
 
     /// <summary>
@@ -94,10 +93,10 @@ public class ConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUserConfigs()
     {
-        var resp = _screenClient.GetConfigs(new GetConfigsRequest(), BuildAuthMetadata(HttpContext));
+        var resp = await _screenClient.GetConfigsAsync(new GetConfigsRequest(), BuildAuthMetadata(HttpContext));
         if (resp.Configs == null || resp.Configs.Count == 0)
             return NotFound();
-        return Ok(resp.Configs);
+        return Ok(resp.Configs.Select(c => c.MapToConfigDto()));
     }
 
     /// <summary>

@@ -56,6 +56,7 @@ public class ScreenService : IScreenService
 
     public async Task<Screen> UpdateAsync(Screen screen, CancellationToken ct = default)
     {
+        screen.UpdatedAt = DateTime.UtcNow;
         await _repo.UpdateAsync(screen, ct);
         return screen;
     }

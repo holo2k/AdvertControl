@@ -77,6 +77,13 @@ public class ConfigRepository : IConfigRepository
 
     public async Task<Config?> AddItems(Guid configId, List<ConfigItem> items, CancellationToken ct = default)
     {
+        var config = await _db.Configs.Include(c => c.Items).FirstOrDefaultAsync(x => x.Id == configId, ct);
+
+        if (config is not null)
+        {
+            config.UpdatedAt = DateTime.UtcNow;
+        }
+
         _db.ConfigItems.AddRange(items);
         await _db.SaveChangesAsync(ct);
         return await GetAsync(configId, ct);
@@ -92,12 +99,18 @@ public class ConfigRepository : IConfigRepository
 
     public async Task<bool> DeleteConfigItem(Guid configId, Guid itemId, CancellationToken ct = default)
     {
-        var config = _db.ConfigItems.FirstOrDefault(x=>x.ConfigId == configId && x.Id == itemId);
-        if (config is null)
+        var configItem = _db.ConfigItems.Include(ci=>ci.Config).FirstOrDefault(x=>x.ConfigId == configId && x.Id == itemId);
+        if (configItem is null)
         {
             return false;
         }
-        _db.ConfigItems.Remove(config);
+
+        if(configItem.Config is not null)
+        {
+            configItem.Config.UpdatedAt = DateTime.UtcNow;
+        }
+
+        _db.ConfigItems.Remove(configItem);
         await _db.SaveChangesAsync(ct);
         return true;
     }

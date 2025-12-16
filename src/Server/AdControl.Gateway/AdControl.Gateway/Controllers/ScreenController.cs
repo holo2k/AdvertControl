@@ -1,7 +1,9 @@
 ﻿using AdControl.Gateway.Application.Dtos;
+using AdControl.Gateway.Mapper;
 using AdControl.Protos;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 
@@ -67,7 +69,11 @@ public class ScreenController : ControllerBase
         var resp = await _screenClient.GetScreenAsync(req, metadata).ResponseAsync;
         if (resp.Screen == null || string.IsNullOrEmpty(resp.Screen.Id))
             return NotFound();
-        return Ok(new { resp.Screen, resp.Type, resp.Config } );
+
+        var cfg = resp.Config.MapToConfigDto();
+        var screen = resp.Screen.MapToScreenDto();
+
+        return Ok(new { screen, resp.Type, cfg } );
     }
 
     /// <summary>
@@ -82,7 +88,8 @@ public class ScreenController : ControllerBase
     {
         var req = new ListScreensRequest { FilterName = filterName ?? "", Limit = limit, Offset = offset };
         var resp = await _screenClient.ListScreensAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
-        return Ok(new { items = resp.Screens, total = resp.Total });
+
+        return Ok(new { items = resp.Screens.Select(s => s.MapToScreenDto()), total = resp.Total });
     }
 
     /// <summary>
@@ -131,7 +138,7 @@ public class ScreenController : ControllerBase
     public async Task<IActionResult> Update([FromBody] UpdateScreenFieldsRequest request)
     {
         var response = await _screenClient.UpdateScreenFieldsAsync(request, BuildAuthMetadata(HttpContext));
-        return Ok(response);
+        return Ok(response.Screen.MapToScreenDto());
     }
 
     /// <summary>
