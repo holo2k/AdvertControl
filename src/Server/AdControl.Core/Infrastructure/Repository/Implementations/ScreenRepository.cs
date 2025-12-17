@@ -46,6 +46,7 @@ public class ScreenRepository : IScreenRepository
         var screen = await _db.Screens.FirstOrDefaultAsync(x => x.Id == screenId, ct);
         if (screen is not null)
             screen.LastHeartbeatAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default)

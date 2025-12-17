@@ -263,7 +263,8 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             UserId = cfg.UserId?.ToString() ?? "",
             CreatedAt = DateTimeToUnixMs(cfg.CreatedAt),
             ScreensCount = cfg.ScreensCount, 
-            UpdatedAt =  DateTimeToUnixMs(cfg.UpdatedAt)
+            UpdatedAt =  DateTimeToUnixMs(cfg.UpdatedAt),
+            Name = cfg.Name,
         };
 
         foreach (var it in cfg.Items)
@@ -301,6 +302,8 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             var proto = new Config
             {
                 Id = cfg.Id.ToString(),
+                Name = cfg.Name,
+                UpdatedAt = DateTimeToUnixMs(cfg.UpdatedAt),
                 UserId = cfg.UserId?.ToString() ?? "",
                 CreatedAt = DateTimeToUnixMs(cfg.CreatedAt),
                 Version = cfg.Version,
