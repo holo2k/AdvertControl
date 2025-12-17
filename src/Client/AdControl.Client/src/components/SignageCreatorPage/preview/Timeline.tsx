@@ -18,12 +18,12 @@ export function Timeline({
     const totalDuration = items.reduce((sum, i) => sum + i.durationSeconds, 0);
 
     return (
-        <Card>
+        <Card style={{ padding: "0px", gap: "5px" }}>
             <CardHeader>
-                <CardTitle className="text-base">Временная шкала контента</CardTitle>
+                <CardTitle  className="text-base">Временная шкала контента</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto" >
                     {items.map((item, index) => {
                         const widthPercent = (item.durationSeconds / totalDuration) * 100;
 
@@ -31,14 +31,14 @@ export function Timeline({
                             <div
                                 key={item.url}
                                 className={`
-                  flex-shrink-0 h-16 rounded-lg border-2 flex items-center justify-center
-                  text-xs px-3 cursor-pointer transition-all
+                  flex-shrink-0 p-1 px-6 rounded-lg border-2 flex items-center justify-center mb-2
+                  text-xs cursor-pointer transition-all
                   ${currentIndex === index
                                     ? "border-blue-500 bg-blue-50"
                                     : "border-gray-300 bg-white hover:border-gray-400"
                                 }
                 `}
-                                style={{ minWidth: `${Math.max(widthPercent, 10)}%` }}
+                                style={{ maxWidth: `${Math.max(widthPercent, 10)}%` }}
                                 onClick={() => {
                                     setCurrentIndex(index);
                                     setIsPlaying(false);

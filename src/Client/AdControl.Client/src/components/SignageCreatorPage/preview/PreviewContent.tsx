@@ -1,21 +1,14 @@
 import { Image as ImageIcon,  Video } from "lucide-react";
 import type { ContentItem } from "../types";
 import {MINIO_PUBLIC_URL} from "../../../api/apiClient.ts";
+import {buildMinioUrl} from "../../../utils.ts";
 
 interface PreviewContentProps {
     item: ContentItem;
 }
 
 export function PreviewContent({ item }: PreviewContentProps) {
-
-
-    const getImageUrl = () => {
-        if (!item.url) return null;
-        return `${MINIO_PUBLIC_URL}/${encodeURIComponent(item.url)}`;
-    };
-
-    const fullImageUrl = item.type === "IMAGE" ? getImageUrl() : null;
-
+    const fullImageUrl = buildMinioUrl(MINIO_PUBLIC_URL, item.url);
     return (
         <div
             className="w-full h-full flex items-center justify-center"
@@ -59,13 +52,13 @@ export function PreviewContent({ item }: PreviewContentProps) {
             )}
 
             {/* IMAGE — теперь через прямую MinIO ссылку */}
-            {item.type === "IMAGE" && (
+            {(item.type === "IMAGE" || item.type === "Image") && (
                 <>
                     {fullImageUrl ? (
                         <img
                             src={fullImageUrl}
                             alt={item.url}
-                            className="max-w-full max-h-full object-cover"
+                            className="max-w-full max-h-full w-full h-full "
                             style={{objectFit: "cover"}}
                             onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = "none";
@@ -86,7 +79,7 @@ export function PreviewContent({ item }: PreviewContentProps) {
             )}
 
             {/* VIDEO — если добавишь позже */}
-            {item.type === "VIDEO" && (
+            {(item.type === "VIDEO" || item.type === "Video") && (
                 // аналогично, если video тоже в MinIO
                 <>
                     {item.url ? (

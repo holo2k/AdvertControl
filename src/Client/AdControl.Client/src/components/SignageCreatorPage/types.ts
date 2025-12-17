@@ -11,6 +11,7 @@ export interface ContentItem {
 }
 
 export interface SignageConfig {
+    id?: string;
     name: string;
     screensCount: number;
     items: ContentItem[];

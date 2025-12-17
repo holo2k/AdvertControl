@@ -27,6 +27,7 @@ import { CreateScreenForm } from "./CreateScreenForm.tsx";
 import ContentLoader from "react-content-loader";
 import { useNavigate } from 'react-router-dom';
 import {getStatus} from "../../utils.ts";
+import {formatDateShort} from "../../utils.ts";
 
 
 export function ScreensPage() {
@@ -219,6 +220,7 @@ export function ScreensPage() {
                       <TableHead>Расположение</TableHead>
                       <TableHead>Разрешение</TableHead>
                       <TableHead>Статус подключения</TableHead>
+                      <TableHead>Последнее обновление</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -234,6 +236,7 @@ export function ScreensPage() {
                           </TableCell>
                           <TableCell>{screen.resolution || "Не указано"}</TableCell>
                           <TableCell>{getStatusBadge(getStatus(screen.lastHeartbeatAt))}</TableCell>
+                          <TableCell>{formatDateShort(screen?.updatedAt || "")}</TableCell>
                         </TableRow>
                     ))}
                   </TableBody>

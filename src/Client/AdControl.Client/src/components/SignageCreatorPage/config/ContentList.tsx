@@ -140,25 +140,6 @@ export function ContentList({ items, setConfig, selectedItem, setSelectedItem }:
             <CollapsibleContent className="space-y-4 mt-4">
                 <div className="flex flex-col sm:flex-row gap-2">
                     <AddContentButton onAdd={handleAdd} />
-
-                    <label className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors
-                        ${uploading
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            disabled={uploading}
-                            className="hidden"
-                            id="upload-image-input"
-                        />
-                        {uploading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Upload className="w-4 h-4" />
-                        )}
-                        {uploading ? "Загрузка..." : "Загрузить изображение"}
-                    </label>
                 </div>
 
                 {uploading && (
@@ -173,7 +154,7 @@ export function ContentList({ items, setConfig, selectedItem, setSelectedItem }:
                         <p className="text">Добавьте контент для отображения на экранах</p>
                     </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-2 overflow-y-auto" style={{height: "25vh"}}>
 
                         {sortedItems.map((item, index) => (
                             <ContentItemCard

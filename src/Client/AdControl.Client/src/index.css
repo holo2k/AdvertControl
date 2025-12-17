@@ -1025,6 +1025,9 @@
   .overflow-y-auto {
     overflow-y: auto;
   }
+  .overflow-y-scroll {
+    overflow-y: scroll;
+  }
 
   .rounded-full {
     border-radius: 3.40282e38px;

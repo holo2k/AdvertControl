@@ -51,7 +51,6 @@ export const ProfileScreen = () => {
             dispatch(fetchProfile());
         } catch (e) {
             console.error(e);
-            console.log("Ошибка при обновлении профиля");
         }
     }
 

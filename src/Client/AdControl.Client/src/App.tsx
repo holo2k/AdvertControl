@@ -36,6 +36,7 @@ export default function App() {
                     <Route path="profile" element={<ProfileScreen />} />
                     <Route path="screen/:id" element={<ScreenDetail />} />
                     <Route path="screen/:id/config" element={<SignageCreatorPage />} />
+                    <Route path="screen/:id/config/edit" element={<SignageCreatorPage />} />
                 </Route>
 
                 {/* Любой неизвестный путь */}

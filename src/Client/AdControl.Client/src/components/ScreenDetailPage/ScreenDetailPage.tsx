@@ -23,7 +23,6 @@ export function ScreenDetail() {
 
     useEffect(() => {
         if (id) dispatch(fetchScreen(id));
-
     }, [id, dispatch]);
 
     useEffect(() => {
@@ -35,14 +34,14 @@ export function ScreenDetail() {
 
     const screenData = {
         id,
-        name: currentScreen?.screen.name ?? "",
+        name: currentScreen?.screen?.name ?? "",
         location: currentScreen?.screen.location ?? "",
         resolution: currentScreen?.screen.resolution ?? "",
         status: getStatus(currentScreen?.screen.lastHeartbeatAt ?? 10),
         config: currentScreen?.config,
     };
 
-    const hasConfig = Boolean(currentScreen?.config.name);
+    const hasConfig = Boolean(currentScreen?.config?.id);
 
     return (
         <div style={styles.container}>
@@ -116,13 +115,13 @@ export function ScreenDetail() {
                                 <div className="flex justify-between gap-2">
 
                                     <div>
-                                        <p style={styles.configName}>{screenData.config!.name}</p>
+                                        <p style={styles.configName}>{screenData.config?.name || "Название не задано"}</p>
                                         <p style={styles.configMeta}>
                                             {screenData.config!.items.length} объектов •{" "}
                                             {screenData.config!.screensCount} экранов
                                         </p>
                                     </div>
-                                    <Button onClick={() => navigate(`/screen/${id}/config`, {
+                                    <Button onClick={() => navigate(`/screen/${id}/config/edit`, {
                                         state: {
                                             configId: screenData.config.id,
                                         },

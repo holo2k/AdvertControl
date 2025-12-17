@@ -13,7 +13,7 @@ export interface ScreenDto {
     lastHeartbeatAt: number;
     pairedAt: number;
     createdAt: number;
-    updatedAt: number;
+    updatedAt: string;
 }
 
 export interface Screen {
@@ -104,8 +104,14 @@ export const fetchScreen = createAsyncThunk<
         if (!token) return rejectWithValue("Нет токена авторизации");
 
         try {
-            const response = await apiClient.get(`/screen/${id}`);
-            return response.data;
+            const response = await apiClient.get(`screen/${id}`);
+            const data = response.data;
+            return {
+                screen: data.screen,
+                type: [],
+                config: data.cfg
+            };
+
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message ||

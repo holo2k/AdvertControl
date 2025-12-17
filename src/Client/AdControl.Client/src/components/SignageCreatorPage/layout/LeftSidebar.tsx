@@ -3,18 +3,17 @@ import { GeneralSettings } from "../config/GeneralSettings";
 import { ContentList } from "../config/ContentList";
 import { ActionButtons } from "../config/ActionButtons";
 import type { SignageConfig } from "../types";
-import {apiClient} from "../../../api/apiClient.ts";
-import { toast } from "../../ui/sonner.tsx";
-import {useNavigate} from "react-router-dom";
+import { apiClient } from "../../../api/apiClient";
+import { toast } from "../../ui/sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     config: SignageConfig;
     setConfig: React.Dispatch<React.SetStateAction<SignageConfig>>;
     selectedItem: string | null;
     setSelectedItem: React.Dispatch<React.SetStateAction<string | null>>;
-    onSave: () => void;
-    onPublish: () => void;
     screenId: string | undefined;
+    isEdit: boolean;
 }
 
 export function LeftSidebar({
@@ -23,39 +22,51 @@ export function LeftSidebar({
                                 selectedItem,
                                 setSelectedItem,
                                 screenId,
+                                isEdit,
                             }: Props) {
     /* ================= UTILS ================= */
 
     const navigate = useNavigate();
 
     const getScreenIdFromQuery = (): string => {
-
         if (!screenId) {
-            throw new Error("screenId отсутствует в query параметрах");
+            throw new Error("screenId отсутствует");
         }
-
         return screenId;
     };
+
+    /* ================= PAYLOAD ================= */
+
+    const buildConfigPayload = () => ({
+        name: config.name,
+        screensCount: config.screensCount,
+        items: config.items.map((item, index) => ({
+            durationSeconds: item.durationSeconds,
+            order: index + 1,
+            type: item.type,
+            url: item.url,
+            inlineData: item.inlineData ?? "",
+            checksum: item.checksum ?? "",
+            size: item.size ?? 0,
+        })),
+    });
 
     /* ================= API ================= */
 
     const createConfig = async (): Promise<string> => {
-        const payload = {
-            name: config.name,
-            screensCount: config.screensCount,
-            items: config.items.map((item, index) => ({
-                durationSeconds: item.durationSeconds,
-                order: index + 1,
-                type: item.type,
-                url: item.url,
-                inlineData: item.inlineData ?? "",
-                checksum: item.checksum ?? "",
-                size: item.size ?? 0,
-            })),
-        };
-
-        const response = await apiClient.post("/config", payload);
+        const response = await apiClient.post("/config", buildConfigPayload());
         return response.data.id;
+    };
+
+    const updateConfig = async () => {
+        if (!config.id) {
+            throw new Error("Отсутствует id конфига");
+        }
+
+        await apiClient.patch(
+            `/config/${config.id}/update`,
+            buildConfigPayload()
+        );
     };
 
     const assignConfigToScreen = async (configId: string) => {
@@ -71,14 +82,25 @@ export function LeftSidebar({
 
     const handlePublish = async () => {
         try {
-            const configId = await createConfig();
-            await assignConfigToScreen(configId);
+            let configId = config.id;
 
-            toast.success("Конфиг опубликован и отправлен на экран");
+            if (isEdit) {
+                await updateConfig();
+                toast.success("Конфиг обновлён");
+            } else {
+                configId = await createConfig();
+                await assignConfigToScreen(configId);
+                toast.success("Конфиг создан и отправлен на экран");
+            }
+
             navigate(`/screen/${screenId}`);
         } catch (error) {
             console.error(error);
-            toast.error("Ошибка публикации конфига");
+            toast.error(
+                isEdit
+                    ? "Ошибка обновления конфига"
+                    : "Ошибка публикации конфига"
+            );
         }
     };
 
@@ -99,9 +121,7 @@ export function LeftSidebar({
                 </div>
             </ScrollArea>
 
-            <ActionButtons
-                onPublish={handlePublish}
-            />
+            <ActionButtons onPublish={handlePublish} />
         </div>
     );
 }

@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import "./LoginPage.css";
+import Dither from './Background.tsx';
 
 export const LoginPage: React.FC = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { loading, error} = useSelector((state: any) => state.auth);
+    const { loading, error } = useSelector((state: any) => state.auth);
 
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState("");
@@ -17,79 +19,84 @@ export const LoginPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // @ts-expect-error хз че ругается
+        // @ts-expect-error хзхзхз
         const resultAction: any = await dispatch(loginUser({ username, password }));
 
         if (resultAction.meta.requestStatus === "fulfilled") {
             setIsSuccess(true);
-            setTimeout(() => {
-                navigate("/");
-            }, 1000);
+            setTimeout(() => navigate("/"), 1000);
         }
     };
 
     return (
-        <div className="login-wrapper">
-            <header className="login-header">
-                <h1 className="login-logo">AdControl</h1>
-            </header>
+        <div className="login-page-wrapper" style={{ position: "relative", width: "100%", minHeight: "100vh" }}>
+            {/* Фоновый компонент */}
+            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }}>
+                <Dither
+                    waveColor={[0.35, 0.4, 0.4]}
+                    disableAnimation={false}
+                    enableMouseInteraction={true}
+                    mouseRadius={0.3}
+                    colorNum={4}
+                    waveAmplitude={0.3}
+                    waveFrequency={3}
+                    waveSpeed={0.05}
+                />
+            </div>
 
-            <main className="login-main">
-                <div className="login-bg"></div>
-
+            {/* Основной контент */}
+            <div className="login-page" style={{ position: "relative", zIndex: 1 }}>
                 <div className="login-card">
-                    <h2 className="login-title">Вход</h2>
+                    <h1 className="login-logo">AdControl</h1>
+                    <p className="login-subtitle">
+                        Войдите в систему, чтобы управлять своими экранами
+                    </p>
 
                     <form className="login-form" onSubmit={handleSubmit}>
-                        <div className="login-field">
-                            <input
-                                type="text"
-                                id="login"
-                                className="login-input"
-                                placeholder=" "
-                                required
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
-                            <label htmlFor="login" className="login-label">LOGIN</label>
-                        </div>
+                        <label className="login-label">ЛОГИН</label>
+                        <input
+                            type="text"
+                            className="login-input"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
 
-                        <div className="login-field">
+                        <label className="login-label">ПАРОЛЬ</label>
+                        <div className="login-password">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                id="password"
                                 className="login-input"
-                                required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                required
                             />
-                            <label htmlFor="password" className="login-label">PASSWORD</label>
-                            <span
-                                className="login-showpass"
+                            <button
+                                type="button"
+                                className="login-eye"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
-                                👁
-                            </span>
+                                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
                         </div>
 
-                        <div className="login-options">
-                            <label className="login-remember">
-                                <input type="checkbox" /> Запомнить меня?
-                            </label>
-                            <a href="#" className="login-forgot">
-                                Забыли пароль?
-                            </a>
-                        </div>
+                        <a href="#" className="login-forgot">
+                            Забыли пароль?
+                        </a>
 
-                        <button type="submit" className="login-btn" disabled={loading}>
-                            {loading ? "Входим..." : "Войти в аккаунт"}
+                        <button className="login-button" disabled={loading}>
+                            {loading ? "Входим..." : "Войти"}
                         </button>
 
-                        {error && <p className="login-error">{String(error)}</p>}
-                        {isSuccess && <p className="login-success">Успешный вход!</p>}
+                        {error && <div className="login-error">{String(error)}</div>}
+                        {isSuccess && <div className="login-success active">Успешный вход</div>}
                     </form>
+                    <footer className="login-footer">
+                        © 2025 AdControl. All rights reserved.
+                    </footer>
                 </div>
-            </main>
+
+            </div>
         </div>
     );
 };

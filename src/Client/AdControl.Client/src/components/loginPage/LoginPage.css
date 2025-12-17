@@ -1,263 +1,184 @@
-/* Основная обертка */
-.login-wrapper {
-    min-height: 100vh;
-    min-width: 100vw;
+.login-page-wrapper {
     display: flex;
     flex-direction: column;
-    background-color: #1564be;
-    font-family: "Inter", sans-serif;
-}
-
-/* ===== Хедер ===== */
-.login-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    color: #fff;
-    border-bottom: 1px solid #ffffff;
-}
-
-.login-logo {
-    font-size: 18px;
-    font-weight: 500;
-}
-
-/* ===== Основная секция ===== */
-.login-main {
-    flex: 1;
-    display: flex;
     justify-content: center;
-    align-items: center;
+}
+
+.dither-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.login-card {
+    max-width: 100%;
+    width: 600px; /* Увеличена максимальная ширина */
+    background: rgba(255, 255, 255, 0.25); /* Полупрозрачный белый */
+    backdrop-filter: blur(20px) saturate(180%); /* Эффект жидкого стекла */
+    -webkit-backdrop-filter: blur(20px) saturate(180%); /* Для Safari */
+    border-radius: 20px; /* Немного больше скругление */
+    padding: 40px 48px 44px; /* Увеличены отступы */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Полупрозрачная граница */
+    text-align: center;
+    box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.08), /* Мягкая тень */
+            inset 0 1px 0 rgba(255, 255, 255, 0.6); /* Внутреннее свечение */
     position: relative;
     overflow: hidden;
 }
 
-/* Белый наклонный фон */
-.login-bg {
+/* Необязательный декоративный элемент для усиления эффекта стекла */
+.login-card::before {
+    content: '';
     position: absolute;
-    inset: 0;
-    background: #fff;
-    transform: skewY(-10deg);
-    transform-origin: top right;
-    top: 200px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+
+    z-index: 1;
 }
 
-/* ===== Карточка входа ===== */
-.login-card {
-    position: relative;
-    background: #fff;
-    border-radius: 32px;
-    border: 1px #000 solid;
-    padding: 40px 60px;
-    width: 500px;
-    height: 450px;
-    z-index: 2;
+/* typography */
+.login-logo {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
-.login-title {
-    font-size: 40px;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 24px;
+.login-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 28px;
 }
 
-/* ===== Поля ввода ===== */
+/* form */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .login-label {
-    display: block;
     font-size: 12px;
-    color: #666;
-    margin-bottom: 4px;
-    margin-top: 12px;
+    font-weight: 500;
+    color: #374151;
+    text-align: left;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #abadb1;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .login-input:focus {
-    border-color: #0d5bd7;
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
-/* Пароль с иконкой */
-.login-password-wrapper {
+/* password field */
+.login-password {
     position: relative;
 }
 
-.login-showpass {
+.login-eye {
     position: absolute;
     right: 10px;
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
+    background: none;
+    border: none;
     cursor: pointer;
     opacity: 0.6;
 }
 
-.login-showpass:hover {
+.login-eye:hover {
     opacity: 1;
 }
 
-/* ===== Опции ===== */
-.login-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 0 20px;
-    font-size: 12px;
-    color: #616161;
-}
-
-.login-remember input {
-    margin-right: 4px;
-}
-
+/* links */
 .login-forgot {
-    color: #555;
+    font-size: 12px;
+    color: #2563eb;
+    text-align: right;
     text-decoration: none;
+    margin-bottom: 8px;
 }
 
 .login-forgot:hover {
     text-decoration: underline;
 }
 
-/* ===== Кнопка входа ===== */
-.login-btn {
-    width: 100%;
-    height: 64px;
-    background: #000;
-    color: #fff;
-    font-weight: 600;
-    padding: 12px 0;
+/* button */
+.login-button {
+    margin-top: 8px;
+    height: 44px;
+    border-radius: 8px;
     border: none;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background 0.2s, transform 0.05s;
 }
 
-.login-btn:hover {
-    background: #333;
-}
-.login-form {
-    display: flex;
-    flex-direction: column;
+.login-button:hover:not(:disabled) {
+    background: #1d4ed8;
 }
 
-.login-field {
-    position: relative;
+.login-button:active:not(:disabled) {
+    transform: translateY(1px);
 }
 
-/* Поле ввода */
-.login-input {
-    width: 100%;
-    padding: 32px 12px 10px;
-    border: 1px solid #000;
-    font-size: 16px;
-    background: #fff;
-    height: 68px;
+.login-button:disabled {
+    opacity: 0.7;
+    cursor: default;
 }
 
-.login-field input {
-    color: #616161;
-}
-
-.login-label {
-    position: absolute;
-    left: 10px;
-    top: -4px;
-    font-size: 11px;
-    color: #424242;
-    padding: 0 4px;
-}
-
+/* states */
 .login-error {
-    margin: 0 auto;
-    margin-top: 20px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #dc2626;
 }
 
 .login-success {
-    margin: 0 auto;
-    margin-top: 20px;
-    text-align: center;
-    opacity: 0;
-    animation: fadeIn 0.3s ease-in forwards;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #000000;
+    opacity: 0; /* изначально невидима */
+    transition: opacity 0.5s ease-in-out; /* плавное появление */
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-
-/* Иконка */
-.login-showpass {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-}
-
-.login-showpass:hover {
+/* когда элемент должен стать видимым, добавляем класс active */
+.login-success.active {
     opacity: 1;
 }
 
-@media (max-width: 768px) {
-    .login-logo {
-        font-size: 16px;
-    }
+/* footer */
+.login-footer {
+    margin-top: 24px;
+    font-size: 13px;
+    color: #8a8a8a;
+    text-align: center;
+    margin-bottom: -10px;
+}
 
-    .login-register-btn {
-        padding: 4px 14px;
-        font-size: 14px;
-    }
-
-    /* Белый фон */
-    .login-bg {
-        top: 150px;
-        transform: skewY(-30deg);
-    }
-
-    /* Карточка входа */
+/* adaptive */
+@media (max-width: 480px) {
     .login-card {
-        width: 90%;
-        height: auto;
-        padding: 28px 24px;
-        border-radius: 20px;
-        margin-bottom: 250px;
+        padding: 24px;
+        border-radius: 12px;
     }
 
-    .login-title {
-        font-size: 28px;
-        margin-bottom: 16px;
-    }
-
-    /* Поля */
-    .login-input {
-        height: 56px;
-        font-size: 14px;
-        padding: 28px 10px 8px;
-    }
-
-    .login-label {
-        font-size: 10px;
-        top: -3px;
-        left: 8px;
-    }
-
-    /* Опции */
-    .login-options {
-        align-items: flex-start;
-        gap: 8px;
-        font-size: 11px;
-    }
-
-    /* Кнопка входа */
-    .login-btn {
-        height: 54px;
-        font-size: 15px;
-    }
-
-    /* Иконка "показать пароль" */
-    .login-showpass {
-        right: 10px;
+    .login-logo {
+        font-size: 22px;
     }
 }

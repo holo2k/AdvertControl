@@ -6,7 +6,7 @@ import { LeftSidebar } from "./layout/LeftSidebar";
 import { MainContent } from "./layout/MainContent";
 import { RightSidebar } from "./layout/RightSidebar";
 import { FullscreenPreview } from "./preview/FullscreenPreview";
-import { useLocation, useParams } from "react-router-dom";
+import {useLocation, useMatch, useParams} from "react-router-dom";
 
 import type { SignageConfig, ContentItem } from "./types";
 import { apiClient } from "../../api/apiClient.ts";
@@ -14,6 +14,7 @@ import { apiClient } from "../../api/apiClient.ts";
 
 export function SignageCreatorPage() {
     const { id: screenId } = useParams<{ id: string }>();
+    const isEdit = useMatch("screen/:id/config/edit") !== null;
     const location = useLocation();
 
     const configId = location.state?.configId as string | undefined;
@@ -32,7 +33,6 @@ export function SignageCreatorPage() {
     const selectedItem = config.items.find(i => i.url === selectedItemUrl);
 
     useEffect(() => {
-        console.log(configId);
         if (!configId) return;
 
         const fetchConfig = async () => {
@@ -40,18 +40,11 @@ export function SignageCreatorPage() {
                 setLoading(true);
                 const { data } = await apiClient.get<SignageConfig>(`/config/${configId}`);
 
-                // Маппинг типов
-                const mappedItems = data.items?.map(item => ({
-                    ...item,
-                    type: item.type === 0 ? "IMAGE" :
-                        item.type === 1 ? "VIDEO" :
-                            item.type === 2 ? "AUDIO" : "TEXT" // добавьте другие типы при необходимости
-                })) ?? [];
-
                 setConfig({
+                    id: data.id,
                     name: data.name ?? "",
                     screensCount: data.screensCount ?? 1,
-                    items: mappedItems, // используем преобразованные элементы
+                    items: data.items ?? [],
                 });
 
             } catch (e) {
@@ -92,7 +85,7 @@ export function SignageCreatorPage() {
     }
 
     return (
-        <div className="min-h-screen-87 flex gap-6" style={{ maxWidth: "1920px" }}>
+        <div className="flex gap-6" style={{ height: "86vh"}}>
             <LeftSidebar
                 config={config}
                 setConfig={setConfig}
@@ -101,6 +94,7 @@ export function SignageCreatorPage() {
                 onSave={handleSave}
                 onPublish={handlePublish}
                 screenId={screenId}
+                isEdit={isEdit}
             />
 
             <MainContent

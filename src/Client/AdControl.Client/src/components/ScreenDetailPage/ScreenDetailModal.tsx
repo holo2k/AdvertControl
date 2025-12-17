@@ -54,12 +54,8 @@ export const ScreenDetailModal = ({
                 setLoading(true);
                 // Убрали деструктуризацию - response.data уже содержит массив
                 const response = await apiClient.get<SignageConfig[]>("/config/current");
-
                 // Проверяем структуру ответа
                 if (Array.isArray(response.data)) {
-                    setConfigs(response.data);
-                } else if (response.data && Array.isArray(response.data.configs)) {
-                    // Если ответ приходит в формате { configs: [...] }
                     setConfigs(response.data);
                 } else {
                     console.warn("Неожиданная структура ответа:", response.data);

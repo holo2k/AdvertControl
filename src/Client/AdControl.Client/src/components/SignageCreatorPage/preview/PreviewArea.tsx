@@ -27,7 +27,7 @@ export function PreviewArea({
         if (!isPlaying || config.items.length === 0) return;
 
         const currentItem = config.items[currentIndex];
-        const duration = currentItem?.durationSeconds * 1000; // в мс
+        const duration = currentItem?.durationSeconds * 1000;
 
         const timer = setTimeout(() => {
             setCurrentIndex((prev) => (prev + 1) % config.items.length);
@@ -39,7 +39,6 @@ export function PreviewArea({
     // Остановка при смене items
     useEffect(() => {
         setIsPlaying(false);
-        console.log(config);
     }, [config.items.length]);
 
 
@@ -88,7 +87,7 @@ export function PreviewArea({
                         </p>
                     </div>
                 ) : (
-                    <div>
+                    <div style={{overflow: "hidden"}}>
                         <PreviewContent
                             item={config.items[currentIndex]}
                         />

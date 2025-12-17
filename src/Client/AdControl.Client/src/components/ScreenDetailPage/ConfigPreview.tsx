@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { SignageConfig } from "../SignageCreatorPage/types.ts";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { MINIO_PUBLIC_URL } from "../../api/apiClient.ts";
+import {buildMinioUrl} from "../../utils.ts";
 
 interface ConfigPreviewProps {
     config: SignageConfig | null | undefined;
@@ -44,11 +45,8 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
         ? parsedResolution.width / parsedResolution.height
         : 16 / 9;
 
-    const rawUrl = currentItem.url || "";
-    const normalizedUrl = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
-    const mediaUrl = normalizedUrl
-        ? `${MINIO_PUBLIC_URL.replace(/\/$/, "")}/${normalizedUrl}`
-        : "";
+
+    const mediaUrl = buildMinioUrl(MINIO_PUBLIC_URL, currentItem.url);
 
     const isVideo =
         currentItem.type === "VIDEO" ||
@@ -84,13 +82,15 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
                             muted
                             loop={isPlaying}
                             playsInline
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full"
+                            style={{objectFit: "cover"}}
                         />
                     ) : (
                         <img
                             src={mediaUrl}
                             alt={currentItem.name}
                             className="absolute inset-0 w-full h-full object-cover"
+                            style={{objectFit: "cover"}}
                         />
                     )
                 ) : (
