@@ -30,10 +30,8 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
 
         options.ListenAnyIP(port, listenOptions =>
         {
-            if (!string.IsNullOrEmpty(certPath) && !string.IsNullOrEmpty(certPassword))
-                listenOptions.UseHttps(certPath, certPassword);
-
-            listenOptions.Protocols = HttpProtocols.Http2;
+           listenOptions.UseHttps(certPath, certPassword);
+            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
         });
     });
 }
