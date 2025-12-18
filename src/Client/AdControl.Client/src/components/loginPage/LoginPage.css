@@ -3,41 +3,39 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 100vh; /* Важно для полного покрытия */
+    padding: 20px; /* Отступы по краям на мобильных */
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden; /* Предотвращает горизонтальный скролл */
 }
 
 .dither-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
+    position: fixed; /* Фон должен быть фиксированным */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
 }
 
 .login-card {
-    max-width: 100%;
-    width: 600px; /* Увеличена максимальная ширина */
-    background: rgba(255, 255, 255, 0.25); /* Полупрозрачный белый */
-    backdrop-filter: blur(20px) saturate(180%); /* Эффект жидкого стекла */
-    -webkit-backdrop-filter: blur(20px) saturate(180%); /* Для Safari */
-    border-radius: 20px; /* Немного больше скругление */
-    padding: 40px 48px 44px; /* Увеличены отступы */
-    border: 1px solid rgba(255, 255, 255, 0.4); /* Полупрозрачная граница */
+    max-width: 600px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 20px;
+    padding: 40px 48px 44px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     text-align: center;
     box-shadow:
-            0 8px 32px rgba(0, 0, 0, 0.08), /* Мягкая тень */
-            inset 0 1px 0 rgba(255, 255, 255, 0.6); /* Внутреннее свечение */
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
     position: relative;
     overflow: hidden;
-}
-
-/* Необязательный декоративный элемент для усиления эффекта стекла */
-.login-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-
     z-index: 1;
+    box-sizing: border-box;
 }
 
 /* typography */
@@ -51,6 +49,7 @@
     font-size: 14px;
     color: #6b7280;
     margin-bottom: 28px;
+    line-height: 1.4;
 }
 
 /* form */
@@ -74,6 +73,7 @@
     border: 1px solid #abadb1;
     font-size: 14px;
     transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box; /* Важно для мобильных */
 }
 
 .login-input:focus {
@@ -85,17 +85,20 @@
 /* password field */
 .login-password {
     position: relative;
+    width: 100%;
 }
 
 .login-eye {
     position: absolute;
     right: 10px;
-    top: 55%;
+    top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
     opacity: 0.6;
+    padding: 8px;
+    z-index: 2;
 }
 
 .login-eye:hover {
@@ -109,6 +112,7 @@
     text-align: right;
     text-decoration: none;
     margin-bottom: 8px;
+    display: block;
 }
 
 .login-forgot:hover {
@@ -127,6 +131,7 @@
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s, transform 0.05s;
+    width: 100%;
 }
 
 .login-button:hover:not(:disabled) {
@@ -147,17 +152,17 @@
     margin-top: 8px;
     font-size: 13px;
     color: #dc2626;
+    word-break: break-word; /* Для длинных сообщений об ошибках */
 }
 
 .login-success {
     margin-top: 8px;
     font-size: 13px;
     color: #000000;
-    opacity: 0; /* изначально невидима */
-    transition: opacity 0.5s ease-in-out; /* плавное появление */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
-/* когда элемент должен стать видимым, добавляем класс active */
 .login-success.active {
     opacity: 1;
 }
@@ -171,14 +176,84 @@
     margin-bottom: -10px;
 }
 
-/* adaptive */
-@media (max-width: 480px) {
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .login-page-wrapper {
+        padding: 16px; /* Меньше отступов на мобильных */
+    }
+
     .login-card {
-        padding: 24px;
+        padding: 32px 24px;
+        border-radius: 16px;
+    }
+
+    .login-logo {
+        font-size: 18px;
+    }
+
+    .login-subtitle {
+        font-size: 12px;
+        margin-bottom: 24px;
+    }
+
+    .login-form {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page-wrapper {
+        padding: 12px;
+        padding-top: 100px;
+        justify-content: flex-start;
+    }
+
+    .login-card {
+        padding: 24px 20px;
         border-radius: 12px;
     }
 
     .login-logo {
         font-size: 22px;
+        margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .login-input {
+        padding: 10px 12px;
+        font-size: 16px; /* Увеличен для удобства на мобильных */
+    }
+
+    .login-button {
+        height: 48px; /* Больше для touch-устройств */
+        font-size: 16px;
+    }
+
+    .login-footer {
+        font-size: 12px;
+        margin-top: 20px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+    .login-card {
+        padding: 20px 16px;
+    }
+
+    .login-logo {
+        font-size: 20px;
+    }
+
+    .login-input {
+        padding: 8px 10px;
+    }
+
+    .login-button {
+        height: 44px;
     }
 }
