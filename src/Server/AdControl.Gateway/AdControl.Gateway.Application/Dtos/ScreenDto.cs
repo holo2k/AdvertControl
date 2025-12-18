@@ -7,6 +7,7 @@
         public string Name { get; set; } = "";
         public string Resolution { get; set; } = "";
         public string Location { get; set; } = "";
+        public string Status { get; set; }
         public DateTime? LastHeartbeatAt { get; set; }
         public DateTime? PairedAt { get; set; }
         public DateTime CreatedAt { get; set; }

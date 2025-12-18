@@ -28,7 +28,7 @@ namespace AdControl.Gateway.Mapper
                 configDto.Items.Add(new ConfigItemDto
                 {
                     Id = Guid.Parse(it.Id),
-                    Type = it.Type.ToString(),
+                    Type = it.Type.ToString().ToUpperInvariant(),
                     Url = it.Url,
                     InlineData = it.InlineData,
                     Checksum = it.Checksum ?? string.Empty,

@@ -14,7 +14,11 @@ namespace AdControl.Gateway.Mapper
             {
                 return null;
             }
-            
+
+            var lastHb = FromUnixMs(screen.LastHeartbeatAt);
+            var pairedAt = FromUnixMs(screen.PairedAt);
+            var diff = DateTime.UtcNow - lastHb;
+
             var screenDto = new ScreenDto
             {
                 Id = Guid.Parse(screen.Id),
@@ -24,9 +28,18 @@ namespace AdControl.Gateway.Mapper
                 Name = screen.Name,
                 Resolution = screen.Resolution,
                 Location = screen.Location,
-                LastHeartbeatAt = FromUnixMs(screen.LastHeartbeatAt),
-                PairedAt = FromUnixMs(screen.PairedAt)
+                LastHeartbeatAt = lastHb,
+                PairedAt = pairedAt
             };
+
+            if (pairedAt.Year < 2025)
+                screenDto.Status = "NOT_PAIRED";
+            else if (pairedAt.Year >= 2025 && lastHb.Year < 2025)
+                screenDto.Status = "PAIRED";
+            else if (diff > TimeSpan.FromMinutes(3))
+                screenDto.Status = "ERROR";
+            else
+                screenDto.Status = "SUCCESS";
 
             return screenDto;
         }

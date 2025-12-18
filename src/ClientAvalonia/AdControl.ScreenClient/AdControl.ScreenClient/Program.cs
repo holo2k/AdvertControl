@@ -32,8 +32,12 @@ internal class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((ctx, cfg) =>
             {
-                cfg.AddJsonFile("appsettings.json", true, true)
-                    .AddEnvironmentVariables();
+                cfg.SetBasePath(AppContext.BaseDirectory);
+                cfg.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                cfg.AddEnvironmentVariables();
+                Console.WriteLine("BaseDirectory = " + AppContext.BaseDirectory);
+                Console.WriteLine("appsettings exists = " +
+                File.Exists(Path.Combine(AppContext.BaseDirectory, "appsettings.json")));
             })
             .ConfigureServices((ctx, services) =>
             {
@@ -42,7 +46,7 @@ internal class Program
                 // HttpClient для gateway polling
                 services.AddHttpClient("gateway", client =>
                 {
-                    var baseUrl = configuration["Gateway:Url"] ?? "http://localhost:5000";
+                    var baseUrl = configuration["Gateway:Url"];
                     client.BaseAddress = new Uri(baseUrl);
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
@@ -50,14 +54,20 @@ internal class Program
                 // gRPC channel для Avalonia.Logic (HTTP/2 без TLS)
                 services.AddSingleton(sp =>
                 {
-                    var avaloniaUrl = configuration["AvaloniaLogic:GrpcUrl"] ?? "http://localhost:5002";
-                    var handler = new HttpClientHandler
+                    var avaloniaUrl = configuration["AvaloniaLogic:GrpcUrl"];
+
+                    var handler = new SocketsHttpHandler
                     {
-                        ServerCertificateCustomValidationCallback =
-                            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                        EnableMultipleHttp2Connections = true
+                        // НИКАКИХ кастомных callbacks
                     };
-                    return GrpcChannel.ForAddress(avaloniaUrl, new GrpcChannelOptions { HttpHandler = handler });
+
+                    return GrpcChannel.ForAddress(avaloniaUrl, new GrpcChannelOptions
+                    {
+                        HttpHandler = handler
+                    });
                 });
+
 
                 services.AddSingleton(sp =>
                     new AvaloniaLogicService.AvaloniaLogicServiceClient(sp.GetRequiredService<GrpcChannel>()));
