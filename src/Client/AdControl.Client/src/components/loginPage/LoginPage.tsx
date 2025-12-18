@@ -29,73 +29,68 @@ export const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="login-page-wrapper" style={{ position: "relative", width: "100%", minHeight: "100vh" }}>
-            {/* Фоновый компонент */}
-            <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0 }}>
+        <div className="login-page-wrapper">
+            <div className="dither-container">
                 <Dither
-                    waveColor={[0.35, 0.4, 0.4]}
+                    waveColor={[0.4, 0.4, 0.4]}
                     disableAnimation={false}
-                    enableMouseInteraction={true}
-                    mouseRadius={0.3}
-                    colorNum={4}
+                    enableMouseInteraction={false}
+                    mouseRadius={0.2}
+                    colorNum={100}
                     waveAmplitude={0.3}
                     waveFrequency={3}
                     waveSpeed={0.05}
                 />
             </div>
 
-            {/* Основной контент */}
-            <div className="login-page" style={{ position: "relative", zIndex: 1 }}>
-                <div className="login-card">
-                    <h1 className="login-logo">AdControl</h1>
-                    <p className="login-subtitle">
-                        Войдите в систему, чтобы управлять своими экранами
-                    </p>
+            <div className="login-card">
+                <h1 className="login-logo">AdControl</h1>
+                <p className="login-subtitle">
+                    Войдите в систему, чтобы управлять своими экранами
+                </p>
 
-                    <form className="login-form" onSubmit={handleSubmit}>
-                        <label className="login-label">ЛОГИН</label>
+                <form className="login-form" onSubmit={handleSubmit}>
+                    <label className="login-label">ЛОГИН</label>
+                    <input
+                        type="text"
+                        className="login-input"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+
+                    <label className="login-label">ПАРОЛЬ</label>
+                    <div className="login-password">
                         <input
-                            type="text"
+                            type={showPassword ? "text" : "password"}
                             className="login-input"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-
-                        <label className="login-label">ПАРОЛЬ</label>
-                        <div className="login-password">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className="login-input"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="button"
-                                className="login-eye"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
-                        </div>
-
-                        <a href="#" className="login-forgot">
-                            Забыли пароль?
-                        </a>
-
-                        <button className="login-button" disabled={loading}>
-                            {loading ? "Входим..." : "Войти"}
+                        <button
+                            type="button"
+                            className="login-eye"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
+                    </div>
 
-                        {error && <div className="login-error">{String(error)}</div>}
-                        {isSuccess && <div className="login-success active">Успешный вход</div>}
-                    </form>
-                    <footer className="login-footer">
-                        © 2025 AdControl. All rights reserved.
-                    </footer>
-                </div>
+                    <a href="#" className="login-forgot">
+                        Забыли пароль?
+                    </a>
 
+                    <button className="login-button" disabled={loading}>
+                        {loading ? "Входим..." : "Войти"}
+                    </button>
+
+                    {error && <div className="login-error">{String(error)}</div>}
+                    {isSuccess && <div className="login-success active">Успешный вход</div>}
+                </form>
+                <footer className="login-footer">
+                    © 2025 AdControl. All rights reserved.
+                </footer>
             </div>
         </div>
     );
