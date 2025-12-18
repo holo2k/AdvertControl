@@ -135,6 +135,9 @@ services:
       - Minio__AccessKey=minioaccess
       - Minio__SecretKey=miniosecret
       - ASPNETCORE_URLS=http://+:5000
+       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/adcontrol.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_PORT=5000
     ports:

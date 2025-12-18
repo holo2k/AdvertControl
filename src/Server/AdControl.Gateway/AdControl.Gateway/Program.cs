@@ -19,7 +19,14 @@ AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport
 builder.WebHost.ConfigureKestrel(options =>
 {
     var port = int.TryParse(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"), out var p) ? p : 5000;
-    options.ListenAnyIP(port, listenOptions => { listenOptions.Protocols = HttpProtocols.Http1AndHttp2; });
+    var certPath = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__Path");
+    var certPassword = Environment.GetEnvironmentVariable("ASPNETCORE_Kestrel__Certificates__Default__Password");
+
+    options.ListenAnyIP(port, listenOptions => 
+    {
+        listenOptions.UseHttps(certPath, certPassword);
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
 });
 
 builder.Services.AddControllers().AddJsonOptions(options =>
