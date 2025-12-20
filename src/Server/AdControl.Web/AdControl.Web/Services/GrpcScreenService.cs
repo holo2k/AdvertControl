@@ -4,7 +4,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Xml.Linq;
 using AdControl.Application.Services.Abstractions;
+using AdControl.Gateway.Application.Dtos;
 using AdControl.Protos;
+using Google.Protobuf;
 using Grpc.Core;
 using Minio.Exceptions;
 using ConfigItem = AdControl.Domain.Models.ConfigItem;
@@ -22,6 +24,39 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         _screens = screens;
         _configs = configs;
         _log = log;
+    }
+
+    public override async Task<GetDashboardResponse> GetDashboard(GetDashboardRequest request,
+    ServerCallContext context)
+    {
+        try
+        {
+            var userIdString = GetUserIdFromMetadata(context);
+            if (!Guid.TryParse(userIdString, out var userId))
+                throw new UnauthorizedAccessException();
+
+            var result = new GetDashboardResponse() { Success = true, Dashboard = new Dashboard() };
+            var screens = (await _screens.GetListByUserIdAsync(userId)).ToList();
+
+            // Основные метрики
+            result.Dashboard.ActiveScreens = GetActiveScreensCount(screens);
+            result.Dashboard.ConnectedScreens = GetConnectedScreensCount(screens);
+            result.Dashboard.ErrorScreens = GetErrorScreensCount(screens);
+            result.Dashboard.WaitingScreens = GetWaitingScreensCount(screens);
+
+            // Локации
+            result.Dashboard.Locations.AddRange(GetLocations(screens));
+
+            // Действия
+            result.Dashboard.Actions.AddRange(GetActions(screens));
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "GetDashboard failed");
+            return new GetDashboardResponse { Success = false, Error = ex.Message };
+        }
     }
 
     public override async Task<CreateScreenResponse> CreateScreen(CreateScreenRequest request,
@@ -568,5 +603,117 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
 
         var sub = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier)?.Value;
         return sub;
+    }
+
+    private int GetActiveScreensCount(List<Domain.Models.Screen> screens)
+        => screens.Count(IsActive);
+
+    private int GetConnectedScreensCount(List<Domain.Models.Screen> screens)
+        => screens.Count(IsConnected);
+
+    private int GetErrorScreensCount(List<Domain.Models.Screen> screens)
+        => screens.Count(IsError);
+
+    private int GetWaitingScreensCount(List<Domain.Models.Screen> screens)
+        => screens.Count(IsWaiting);
+
+    private List<ScreenLocations> GetLocations(List<Domain.Models.Screen> screens)
+    {
+        return screens
+            .GroupBy(s => s.Location)
+            .Select(g => new ScreenLocations
+            {
+                ScreenLocation = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+    }
+
+    private List<Protos.Action> GetActions(List<Domain.Models.Screen> screens)
+    {
+        return screens
+            .Select(s => new Protos.Action
+            {
+                Screen = s.Name,
+                Action_ = BuildActionStatus(s),
+                LastUpdate = s.LastHeartbeatAt.HasValue && s.LastHeartbeatAt.Value.Year < 2025 ? 
+                             s.LastHeartbeatAt.Value.ToString() : s.UpdatedAt.ToString(),
+                Status = IsSuccess(s)
+            })
+            .ToList();
+    }
+
+    private string BuildActionStatus(Domain.Models.Screen s)
+    {
+        var isSuccess = IsSuccess(s);
+
+        // Добавлен экран
+        if (s.PairedAt.HasValue &&
+            s.PairedAt.Value.Year < 2025)
+            return "Добавлен экран";
+
+        // Синхронизирован
+        if (s.PairedAt.HasValue &&
+            s.PairedAt.Value.Year >= 2025 &&
+            s.LastHeartbeatAt.HasValue &&
+            s.LastHeartbeatAt.Value.Year < 2025)
+            return "Синхронизирован";
+
+        // Изменена конфигурация
+        var lastConfigUpdate = s.ScreenConfigs
+            .OrderByDescending(c => c.Config.UpdatedAt)
+            .FirstOrDefault()?.Config.UpdatedAt;
+
+        if (lastConfigUpdate.HasValue &&
+            (DateTime.UtcNow - lastConfigUpdate.Value).TotalSeconds < 5)
+            return "Изменена конфигурация";
+
+        if (!isSuccess)
+            return "Соединение потеряно";
+
+        // Контент обновлён
+        if (s.LastHeartbeatAt.HasValue)
+        {
+            var diff = (DateTime.UtcNow - s.LastHeartbeatAt.Value).TotalSeconds;
+
+            if (diff <= 5)
+                return "Контент обновлен";
+        }
+
+        return "";
+    }
+
+    private bool IsSuccess(Domain.Models.Screen s)
+    {
+        return s.LastHeartbeatAt is { } ts &&
+               DateTime.UtcNow - ts <= TimeSpan.FromMinutes(3);
+    }
+
+    private bool IsError(Domain.Models.Screen s)
+    {
+        return !IsSuccess(s);
+    }
+
+    private bool IsWaiting(Domain.Models.Screen s)
+    {
+        return s.PairedAt.HasValue &&
+               s.PairedAt.Value.Year >= 2025 &&
+               s.ScreenConfigs.FirstOrDefault(sc => sc.ScreenId == s.Id)?
+                    .Config.Items.Count == 0;
+    }
+
+    private bool IsConnected(Domain.Models.Screen s)
+    {
+        return s.PairedAt.HasValue &&
+               s.PairedAt.Value.Year >= 2025 &&
+               IsSuccess(s) &&
+               !IsWaiting(s);
+    }
+
+    private bool IsActive(Domain.Models.Screen s)
+    {
+        return IsSuccess(s) &&
+               !IsConnected(s) &&
+               !IsWaiting(s);
     }
 }

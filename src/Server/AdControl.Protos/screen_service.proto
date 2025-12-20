@@ -54,7 +54,7 @@ message ScreenConfig {
 }
 
 message Action {
-	Screen screen = 1;
+	string screen = 1;
 	string action = 2;
 	string lastUpdate = 3;
 	bool status = 4;

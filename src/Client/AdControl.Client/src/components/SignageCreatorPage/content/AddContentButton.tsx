@@ -51,8 +51,8 @@ export function AddContentButton({ onAdd }: Props) {
             return;
         }
 
-        if (file.size > 15 * 1024 * 1024) {
-            toast.error("Изображение слишком большое (>15 МБ)");
+        if (file.size > 4 * 1024 * 1024) {
+            toast.error("Изображение слишком большое (>4 МБ)");
             return;
         }
 
@@ -90,8 +90,8 @@ export function AddContentButton({ onAdd }: Props) {
             return;
         }
 
-        if (file.size > 100 * 1024 * 1024) {
-            toast.error("Видео слишком большое (макс. 100 МБ)");
+        if (file.size > 4 * 1024 * 1024) {
+            toast.error("Видео слишком большое (макс. 4 МБ)");
             return;
         }
 
