@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Xml.Linq;
 using AdControl.Application.Services.Abstractions;
 using AdControl.Protos;
+using Google.Protobuf;
 using Grpc.Core;
 using Minio.Exceptions;
 using ConfigItem = AdControl.Domain.Models.ConfigItem;
@@ -35,11 +36,28 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
                 userId = g;
             else
                 throw new UnauthorizedAccessException();
-            
+
+            var result = new GetDashboardResponse();
+
+            var screenListByUserId = await _screens.GetListByUserIdAsync((Guid)userId);
+
+            result.Dashboard.ActiveScreens = screenListByUserId.Count();
+            result.Dashboard.ConnectedScreens = screenListByUserId.Where(s => s.PairedAt.Value.Year >= 2025).Count();
+            result.Dashboard.ErrorScreens = screenListByUserId.Where(s => DateTime.UtcNow - s.LastHeartbeatAt.Value > TimeSpan.FromMinutes(3)).Count();
+            result.Dashboard.WaitingScreens = screenListByUserId.Where(s => s.PairedAt.Value.Year >= 2025 && s.LastHeartbeatAt.Value.Year < 2025).Count();
+
+            result.Dashboard.Locations.AddRange
+                (
+                    new List<ScreenLocations>() 
+                    {
+                        new ScreenLocations()
+                        {
+                            
+                        }
+                    }
+                );
 
 
-
-            return new GetDashboardResponse { Id = created.Id.ToString(), Status = "created" };
         }
         catch (Exception ex)
         {
