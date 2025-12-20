@@ -600,34 +600,16 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
     }
 
     private int GetActiveScreensCount(List<Domain.Models.Screen> screens)
-    {
-        return screens.Count;
-    }
+        => screens.Count(IsActive);
 
     private int GetConnectedScreensCount(List<Domain.Models.Screen> screens)
-    {
-        return screens.Count(s =>
-            s.PairedAt.HasValue &&
-            s.PairedAt.Value.Year >= 2025 &&
-            s.LastHeartbeatAt.HasValue &&
-            s.LastHeartbeatAt.Value.Year < 2025);
-    }
+        => screens.Count(IsConnected);
 
     private int GetErrorScreensCount(List<Domain.Models.Screen> screens)
-    {
-        return screens.Count(s =>
-            s.LastHeartbeatAt.HasValue &&
-            DateTime.UtcNow - s.LastHeartbeatAt.Value > TimeSpan.FromMinutes(3));
-    }
+        => screens.Count(IsError);
 
     private int GetWaitingScreensCount(List<Domain.Models.Screen> screens)
-    {
-        return screens.Count(s =>
-            s.PairedAt.HasValue &&
-            s.PairedAt.Value.Year >= 2025 &&
-            s.LastHeartbeatAt.HasValue &&
-            s.LastHeartbeatAt.Value.Year < 2025);
-    }
+        => screens.Count(IsWaiting);
 
     private List<ScreenLocations> GetLocations(List<Domain.Models.Screen> screens)
     {
@@ -659,9 +641,6 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
     {
         var isSuccess = IsSuccess(s);
 
-        if (!isSuccess)
-            return "Соединение потеряно";
-
         // Добавлен экран
         if (s.PairedAt.HasValue &&
             s.PairedAt.Value.Year < 2025)
@@ -683,6 +662,9 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             (DateTime.UtcNow - lastConfigUpdate.Value).TotalSeconds < 5)
             return "Изменена конфигурация";
 
+        if (!isSuccess)
+            return "Соединение потеряно";
+
         // Контент обновлён
         if (s.LastHeartbeatAt.HasValue)
         {
@@ -697,7 +679,35 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
 
     private bool IsSuccess(Domain.Models.Screen s)
     {
-        return s.LastHeartbeatAt is { } ts
-               && DateTime.UtcNow - ts <= TimeSpan.FromMinutes(3);
+        return s.LastHeartbeatAt is { } ts &&
+               DateTime.UtcNow - ts <= TimeSpan.FromMinutes(3);
+    }
+
+    private bool IsError(Domain.Models.Screen s)
+    {
+        return !IsSuccess(s);
+    }
+
+    private bool IsWaiting(Domain.Models.Screen s)
+    {
+        return s.PairedAt.HasValue &&
+               s.PairedAt.Value.Year >= 2025 &&
+               s.ScreenConfigs.FirstOrDefault(sc => sc.ScreenId == s.Id)?
+                    .Config.Items.Count == 0;
+    }
+
+    private bool IsConnected(Domain.Models.Screen s)
+    {
+        return s.PairedAt.HasValue &&
+               s.PairedAt.Value.Year >= 2025 &&
+               IsSuccess(s) &&
+               !IsWaiting(s);
+    }
+
+    private bool IsActive(Domain.Models.Screen s)
+    {
+        return IsSuccess(s) &&
+               !IsConnected(s) &&
+               !IsWaiting(s);
     }
 }

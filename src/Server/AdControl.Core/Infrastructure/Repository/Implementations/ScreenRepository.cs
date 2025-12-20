@@ -51,7 +51,7 @@ public class ScreenRepository : IScreenRepository
 
     public async Task<IQueryable<Screen>> GetListByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
-        var screens = _db.Screens.Include(s => s.ScreenConfigs).ThenInclude(sc => sc.Config).Where(x=>x.UserId == userId);
+        var screens = _db.Screens.Include(s => s.ScreenConfigs).ThenInclude(sc => sc.Config).ThenInclude(c => c.Items).Where(x=>x.UserId == userId);
         return screens;
     }
 
