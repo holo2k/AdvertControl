@@ -4,7 +4,7 @@ namespace AdControl.Application.Services.Abstractions;
 
 public interface IConfigService
 {
-    Task<Config> CreateAsync(string name, Guid? userId, IEnumerable<ConfigItem> items, int screensCount, CancellationToken ct = default);
+    Task<Config> CreateAsync(string name, Guid? userId, IEnumerable<ConfigItem> items, int screensCount, bool isStatic, CancellationToken ct = default);
     Task<Config?> GetAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<Config?>> GetUserConfigs(Guid userId, CancellationToken ct = default);
     Task AssignToScreenAsync(Guid screenId, Guid configId, bool isActive, CancellationToken ct = default);

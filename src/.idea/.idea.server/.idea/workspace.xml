@@ -9,6 +9,7 @@
     <projectFile profileName="https">Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic.csproj</projectFile>
     <projectFile kind="Docker">Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj</projectFile>
     <projectFile profileName="http">Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj</projectFile>
+    <projectFile profileName="https">Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj</projectFile>
     <projectFile kind="Docker">Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj</projectFile>
     <projectFile profileName="http">Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj</projectFile>
     <projectFile profileName="https">Server/AdControl.Web/AdControl.Web/AdControl.Web.csproj</projectFile>
@@ -20,23 +21,25 @@
   <component name="ChangeListManager">
     <list default="true" id="2e56ad8a-55cc-4fff-95f5-8634e0554000" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.server/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.server/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Auth/Models/CreateUserRequest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Auth/Models/CreateUserRequest.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Auth/Services/Implementations/KeycloakSetupService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Auth/Services/Implementations/KeycloakSetupService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Infrastructure/Repository/Implementations/ConfigRepository.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Core/Infrastructure/Repository/Implementations/ConfigRepository.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251012204542_Init.Designer.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251012204542_Init.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251015153037_EditConfigModel.Designer.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251015153037_EditConfigModel.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251022171027_EditConfigItemModel.Designer.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251022171027_EditConfigItemModel.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/20251201100721_DeleteTestField.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Core/Migrations/AppDbContextModelSnapshot.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/.idea/.idea.AdControl.ScreenClient/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/.idea/.idea.AdControl.ScreenClient/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/PlayerWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/PlayerWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/Services/PlayerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/Services/PlayerService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/Services/PollingService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/Services/PollingService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Services/GrpcAvaloniaService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Services/GrpcAvaloniaService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/ConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/ConfigDto.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/CreateConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/CreateConfigDto.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/UpdateConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/UpdateConfigDto.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/PollingController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/PollingController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Mapper/ConfigMapper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Mapper/ConfigMapper.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Protos/avalonia_logic.proto" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Protos/avalonia_logic.proto" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Server/AdControl.Protos/screen_service.proto" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Protos/screen_service.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Repository/Abstractions/IConfigRepository.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Repository/Abstractions/IConfigRepository.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Services/Abstractions/IConfigService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Services/Abstractions/IConfigService.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Services/Implementations/ConfigService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Services/Implementations/ConfigService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Domain/Models/Config.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Domain/Models/Config.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Web/Services/GrpcScreenService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Server/AdControl.Web/AdControl.Web/Services/GrpcScreenService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,24 +59,23 @@
     }
   }
 }</component>
-  <component name="GitLabMergeRequestsSettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "first": "https://git.66bit.ru/urfu-2025/advertising-screen-management-system.git",
-    "second": "61b2fcbb-1e0a-4edd-84aa-8f267b53ab55"
+  <component name="GitLabMergeRequestsSettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;first&quot;: &quot;https://git.66bit.ru/urfu-2025/advertising-screen-management-system.git&quot;,
+    &quot;second&quot;: &quot;61b2fcbb-1e0a-4edd-84aa-8f267b53ab55&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/MainWindow.axaml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ClientAvalonia/AdControl.ScreenClient/AdControl.ScreenClient/PlayerWindow.axaml" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Server/AdControl.Auth/Services/Implementations/AuthService.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Auth/Services/Implementations/KeycloakSetupService.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://B:/RiderProjects/advertising-screen-management-system/src/Server/AdControl.Core/Migrations/AppDbContextModelSnapshot.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://B:/RiderProjects/advertising-screen-management-system/src/Server/AdControl.Core/Migrations/AppDbContextModelSnapshot.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/CreateConfigDto.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://B:/RiderProjects/advertising-screen-management-system/src/Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/FileController.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/ScreenController.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Protos/file_service.proto" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Server/AdControl.Protos/obj/Debug/net9.0/ScreenService.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Web/AdControl.Application/Services/Abstractions/IConfigService.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://B:/RiderProjects/advertising-screen-management-system/src/Server/AdControl.Web/AdControl.Domain/Models/Config.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://B:/RiderProjects/advertising-screen-management-system/src/Server/AdControl.Web/AdControl.Domain/Models/Config.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Web/AdControl.Web/Services/GrpcMinioService.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Server/AdControl.Web/AdControl.Web/Services/MinioFileService.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -90,21 +92,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Docker.docker-compose.yml: Compose Deployment.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "dev-setup",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Docker.docker-compose.yml: Compose Deployment.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Docker.docker-compose.yml: Compose Deployment">
     <configuration name="AdControl.Auth: http" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Server/AdControl.Auth/AdControl.Auth.csproj" />
@@ -142,6 +145,22 @@
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj" />
       <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
       <option name="LAUNCH_PROFILE_NAME" value="http" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="USE_MONO" value="0" />
+      <option name="RUNTIME_ARGUMENTS" value="" />
+      <option name="GENERATE_APPLICATIONHOST_CONFIG" value="1" />
+      <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
+      <option name="SEND_DEBUG_REQUEST" value="1" />
+      <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
+      <method v="2">
+        <option name="Build" />
+      </method>
+    </configuration>
+    <configuration name="AdControl.Gateway: https" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
+      <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/AdControl.Gateway.csproj" />
+      <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
+      <option name="LAUNCH_PROFILE_NAME" value="https" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
@@ -274,6 +293,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue=".NET Launch Settings Profile.AdControl.Gateway: https" />
       <item itemvalue=".NET Launch Settings Profile.AdControl.Auth: http" />
       <item itemvalue=".NET Launch Settings Profile.AdControl.Avalonia.Logic: http" />
       <item itemvalue=".NET Launch Settings Profile.AdControl.Gateway: http" />
@@ -310,6 +330,14 @@
       <workItem from="1763226662215" duration="7000" />
       <workItem from="1763226678785" duration="1063000" />
       <workItem from="1763227872868" duration="343000" />
+      <workItem from="1765202033467" duration="4000" />
+      <workItem from="1765202497773" duration="756000" />
+      <workItem from="1765210659927" duration="1200000" />
+      <workItem from="1765896734412" duration="145000" />
+      <workItem from="1766243545549" duration="57000" />
+      <workItem from="1766244421398" duration="918000" />
+      <workItem from="1766245462179" duration="33000" />
+      <workItem from="1766247806137" duration="1421000" />
     </task>
     <task id="LOCAL-00001" summary="добавил возможность загружать файл в минио и получать его по имени">
       <option name="closed" value="true" />
@@ -415,7 +443,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764585025680</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014">
+      <option name="closed" value="true" />
+      <created>1765211864715</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1765211864715</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -455,19 +491,6 @@
           <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
           <option name="timeStamp" value="3" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs</url>
-          <line>38</line>
-          <properties documentPath="B:\RiderProjects\advertising-screen-management-system\src\Server\AdControl.Gateway\AdControl.Gateway\Controllers\ConfigController.cs" containingFunctionPresentation="Method 'Create'">
-            <startOffsets>
-              <option value="1290" />
-            </startOffsets>
-            <endOffsets>
-              <option value="1316" />
-            </endOffsets>
-          </properties>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

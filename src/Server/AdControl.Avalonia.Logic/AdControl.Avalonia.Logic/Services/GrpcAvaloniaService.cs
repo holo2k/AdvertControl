@@ -62,7 +62,8 @@ public class GrpcAvaloniaService : AvaloniaLogicService.AvaloniaLogicServiceBase
                 ConfigId = cfg.Id.ToString(),
                 Version = cfg.Version,
                 UpdatedAt = new DateTimeOffset(cfg.UpdatedAt).ToUnixTimeMilliseconds(),
-                ScreensCount = cfg.ScreensCount
+                ScreensCount = cfg.ScreensCount,
+                IsStatic = cfg.IsStatic,
             };
 
             foreach (var protoItem in cfg.Items.Select(it => new ConfigItem

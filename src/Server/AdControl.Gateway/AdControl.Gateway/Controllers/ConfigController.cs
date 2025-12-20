@@ -59,6 +59,7 @@ public class ConfigController : ControllerBase
 
         req.Name = dto.Name;
         req.ScreensCount = dto.ScreensCount;
+        req.IsStatic = dto.IsStatic;
 
         var resp = await _screenClient.CreateConfigAsync(req, BuildAuthMetadata(HttpContext)).ResponseAsync;
         if (!string.IsNullOrEmpty(resp.Error)) return StatusCode(500, new { error = resp.Error });
@@ -155,7 +156,8 @@ public class ConfigController : ControllerBase
         {
             Id = id,
             Name = dto.Name,
-            ScreensCount = dto.ScreensCount
+            ScreensCount = dto.ScreensCount,
+            IsStatic = dto.IsStatic,
         };
 
         var response = await _screenClient.UpdateConfigFieldsAsync(request, BuildAuthMetadata(HttpContext));

@@ -14,16 +14,18 @@ namespace AdControl.ScreenClient
         private PlayerService _player;
         private List<ConfigItemDto> _items;
         private CancellationTokenSource _cts = new();
+        private bool isStatic;
         public ConfigItemDto? CurrentItem { get; set; }
         private int startIndex;
 
-        public PlayerWindow(List<ConfigItemDto>? items, int startIndex)
+        public PlayerWindow(List<ConfigItemDto>? items, int startIndex, bool isStatic = false)
         {
             InitializeComponent(); 
             _items = items ?? new List<ConfigItemDto>();
             _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
             DataContext = this;
-            this.startIndex = startIndex;
+            this.startIndex = startIndex - 1 % _items.Count;
+            this.isStatic = isStatic;
             _ = StartLoopAsync(_cts.Token);
         }
 
@@ -44,10 +46,11 @@ namespace AdControl.ScreenClient
                 var snapshot = await Dispatcher.UIThread.InvokeAsync(() => _items.ToList());
 
                 var i = startIndex;
-                while (i < snapshot.Count)
+
+                while (!token.IsCancellationRequested && snapshot.Count > 0)
                 {
                     var item = snapshot[i];
-                    
+
                     CurrentItem = item;
 
                     switch (item.Type)
@@ -55,11 +58,9 @@ namespace AdControl.ScreenClient
                         case "Video":
                             await _player.ShowVideoAsync(item.Url, item.DurationSeconds, token);
                             break;
-
                         case "Image":
                             await _player.ShowImageAsync(item.Url, item.DurationSeconds, token, false);
                             break;
-
                         case "InlineJson":
                             var rows = await GetDynamicListFromJson(item.InlineData);
                             if (rows != null)
@@ -67,8 +68,10 @@ namespace AdControl.ScreenClient
                             break;
                     }
 
-                    i++;
-                    if (i == snapshot.Count) i = 0;
+                    if (!isStatic)
+                    {
+                        i = (i + 1) % snapshot.Count;
+                    }
                 }
             }
         }

@@ -8,9 +8,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4e6a6a83-5801-400e-a28f-da7ec74d3a7b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml" beforeDir="false" afterPath="$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/.idea.server/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/.idea.server/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.AdControl.ScreenClient/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AdControl.ScreenClient/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AdControl.ScreenClient/PlayerWindow.axaml.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AdControl.ScreenClient/PlayerWindow.axaml.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AdControl.ScreenClient/Services/PlayerService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AdControl.ScreenClient/Services/PlayerService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AdControl.ScreenClient/Services/PollingService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/AdControl.ScreenClient/Services/PollingService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Services/GrpcAvaloniaService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Avalonia.Logic/AdControl.Avalonia.Logic/Services/GrpcAvaloniaService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/ConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/ConfigDto.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/CreateConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/CreateConfigDto.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/UpdateConfigDto.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway.Application/Dtos/UpdateConfigDto.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Controllers/ConfigController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Controllers/PollingController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Controllers/PollingController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Mapper/ConfigMapper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Gateway/AdControl.Gateway/Mapper/ConfigMapper.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Protos/avalonia_logic.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Protos/avalonia_logic.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Protos/screen_service.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Protos/screen_service.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Application/Services/Abstractions/IConfigService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Application/Services/Abstractions/IConfigService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Application/Services/Implementations/ConfigService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Application/Services/Implementations/ConfigService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Domain/Models/Config.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Domain/Models/Config.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Web/Services/GrpcScreenService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/../../Server/AdControl.Web/AdControl.Web/Services/GrpcScreenService.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../../docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,7 +53,7 @@
   <component name="GitLabMergeRequestsSettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;first&quot;: &quot;https://git.66bit.ru/urfu-2025/advertising-screen-management-system.git&quot;,
-    &quot;second&quot;: &quot;c20c1dac-d0ae-40ee-83cc-84705145625b&quot;
+    &quot;second&quot;: &quot;61b2fcbb-1e0a-4edd-84aa-8f267b53ab55&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
@@ -44,9 +61,13 @@
     <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/App.axaml.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/MediaContentTemplateConverter.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/PlayerWindow.axaml.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/AdControl.ScreenClient/Program.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/436655c01cbc45bcb0fc60c819ebded9106a00/10/d499e236/AppBuilder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/AppData/Local/Temp/SourceGeneratedDocuments/2E3D2A290B967FEC27356032/Avalonia.Generators/Avalonia.Generators.NameGenerator.AvaloniaNameSourceGenerator/AdControl.ScreenClient.MainWindow.g.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/570951fce6534ff5885de3715c0e149c106e00/92/26038161/Application.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ac3636edb8e748248c309055c4df04c21f9a00/63/48250379/Dispatcher.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ac3636edb8e748248c309055c4df04c21f9a00/d8/ab507492/DispatcherOperation.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4cd728a7a5c1151e66ce95f5f6dd9de14ca93158c17ec1eacaf81e0bbab92/DispatcherOperation.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -60,22 +81,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Project.AdControl.ScreenClient.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;server+avalonia&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Project.AdControl.ScreenClient.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "XThreadsFramesViewSplitterKey": "0.6744548",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="AdControl.ScreenClient" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -121,6 +143,12 @@
       <workItem from="1761660077479" duration="1193000" />
       <workItem from="1761661658750" duration="455000" />
       <workItem from="1762100374586" duration="16000" />
+      <workItem from="1765202041461" duration="452000" />
+      <workItem from="1765203256181" duration="718000" />
+      <workItem from="1765204007127" duration="549000" />
+      <workItem from="1765204695604" duration="5944000" />
+      <workItem from="1766243605912" duration="1846000" />
+      <workItem from="1766245497642" duration="3993000" />
     </task>
     <task id="LOCAL-00001" summary="заменил воспроизведение видео на vlc">
       <option name="closed" value="true" />
@@ -154,7 +182,31 @@
       <option name="project" value="LOCAL" />
       <updated>1761553352299</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="добавил возможность открывать несколько окон">
+      <option name="closed" value="true" />
+      <created>1765205622371</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1765205622371</updated>
+    </task>
+    <task id="LOCAL-00006" summary="добавил возможность работать с несколькими окнами">
+      <option name="closed" value="true" />
+      <created>1765207201359</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1765207201359</updated>
+    </task>
+    <task id="LOCAL-00007" summary="изображение между экранами переключается змейкой">
+      <option name="closed" value="true" />
+      <created>1765210054251</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1765210054251</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -168,7 +220,10 @@
     <MESSAGE value="вынес воспроизведение медиа в отдельный сервис. теперь медиа расширяется на весь экран" />
     <MESSAGE value="удалил core.initialize() в PlayerService.cs(есть уже в App.axaml.cs)" />
     <MESSAGE value="fix auth, fix videoplayer" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix auth, fix videoplayer" />
+    <MESSAGE value="добавил возможность открывать несколько окон" />
+    <MESSAGE value="добавил возможность работать с несколькими окнами" />
+    <MESSAGE value="изображение между экранами переключается змейкой" />
+    <option name="LAST_COMMIT_MESSAGE" value="изображение между экранами переключается змейкой" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -185,6 +240,45 @@
           <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
           <option name="timeStamp" value="3" />
         </breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/AdControl.ScreenClient/MainWindow.axaml.cs</url>
+          <line>272</line>
+          <properties documentPath="B:\RiderProjects\advertising-screen-management-system\src\ClientAvalonia\AdControl.ScreenClient\AdControl.ScreenClient\MainWindow.axaml.cs" containingFunctionPresentation="Method 'OpenPlayerWindows'">
+            <startOffsets>
+              <option value="8733" />
+            </startOffsets>
+            <endOffsets>
+              <option value="8786" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/AdControl.ScreenClient/Services/PlayerService.cs</url>
+          <line>82</line>
+          <properties documentPath="B:\RiderProjects\advertising-screen-management-system\src\ClientAvalonia\AdControl.ScreenClient\AdControl.ScreenClient\Services\PlayerService.cs" containingFunctionPresentation="Method 'ShowImageAsync'">
+            <startOffsets>
+              <option value="2388" />
+            </startOffsets>
+            <endOffsets>
+              <option value="2457" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DotNet Breakpoints">
+          <url>file://$PROJECT_DIR$/AdControl.ScreenClient/PlayerWindow.axaml.cs</url>
+          <line>22</line>
+          <properties documentPath="B:\RiderProjects\advertising-screen-management-system\src\ClientAvalonia\AdControl.ScreenClient\AdControl.ScreenClient\PlayerWindow.axaml.cs" containingFunctionPresentation="Constructor 'PlayerWindow'">
+            <startOffsets>
+              <option value="675" />
+            </startOffsets>
+            <endOffsets>
+              <option value="697" />
+            </endOffsets>
+          </properties>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>

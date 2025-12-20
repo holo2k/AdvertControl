@@ -14,6 +14,7 @@ public class CreateConfigDto
     /// Количество экранов, на которые будет выводиться конфиг
     /// </summary>
     public int ScreensCount { get; set; }
+    public bool IsStatic { get; set; }
 
     /// <summary>
     ///     Список элементов конфигурации.

@@ -146,7 +146,7 @@ public class PollingController : ControllerBase
             var cacheJson = JsonSerializer.Serialize(cacheObj);
             await db.StringSetAsync($"config:screen:{screenId}", cacheJson);
 
-            return Ok(new { version = cfg.Version, items, cfg.ScreensCount, cfg.UpdatedAt });
+            return Ok(new { version = cfg.Version, items, cfg.ScreensCount, cfg.UpdatedAt, cfg.IsStatic });
         }
         catch (RpcException)
         {
@@ -165,11 +165,12 @@ public class PollingController : ControllerBase
                 var version = doc.RootElement.GetProperty("version").GetInt64();
                 var itemsEl = doc.RootElement.GetProperty("items");
                 var screensCount = doc.RootElement.GetProperty("screensCount");
+                var isStatic = doc.RootElement.GetProperty("isStatic");
                 var updatedAt = doc.RootElement.GetProperty("updatedAt");
 
                 if (knownVersion != 0 && knownVersion == version) return StatusCode(304);
 
-                return Ok(new { version, items = itemsEl, screensCount, updatedAt });
+                return Ok(new { version, items = itemsEl, screensCount, updatedAt, isStatic });
             }
             catch
             {

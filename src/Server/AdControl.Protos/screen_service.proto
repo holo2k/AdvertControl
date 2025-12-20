@@ -42,6 +42,7 @@ message Config {
   string name = 6;
   int32 screensCount = 7;
   int64 updatedAt = 8;
+  bool isStatic = 9;
 }
 
 message ScreenConfig {
@@ -92,6 +93,7 @@ message CreateConfigRequest {
   repeated ConfigItem items = 1;
   string Name = 2;
   int32 screensCount = 3;
+  bool isStatic = 4;
 }
 message CreateConfigResponse { string id = 1; string status = 2; string error = 3; }
 message GetConfigRequest { string id = 1; string name = 2;}
@@ -104,7 +106,7 @@ message AddItemsRequest{string id = 1; repeated ConfigItem items = 2; }
 message AddItemsResponse{Config config = 1;}
 message RemoveItemRequest{string id = 1; string itemId = 2;}
 message RemoveItemResponse{bool success = 1;}
-message UpdateConfigRequest { string id = 1; string Name = 2; int32 ScreensCount = 3;}
+message UpdateConfigRequest { string id = 1; string Name = 2; int32 ScreensCount = 3; bool isStatic = 4;}
 message UpdateConfigResponse { bool success = 1; string error = 2;}
 
 message GetDashboardRequest { }

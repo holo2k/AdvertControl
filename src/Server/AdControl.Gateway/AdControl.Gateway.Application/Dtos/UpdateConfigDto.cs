@@ -19,5 +19,6 @@ namespace AdControl.Gateway.Application.Dtos
         /// Количество экранов, на которых отображается конфиг
         /// </summary>
         public int ScreensCount { get; set; }
+        public bool IsStatic { get; set; }
     }
 }

@@ -20,6 +20,7 @@ namespace AdControl.Gateway.Mapper
                 UserId = Guid.Parse(config.UserId),
                 Name = config.Name,
                 ScreensCount = config.ScreensCount,
+                IsStatic = config.IsStatic,
                 Version = config.Version
             };
 

@@ -9,6 +9,7 @@
         public DateTime UpdatedAt { get; set; }
         public long Version { get; set; }
         public int ScreensCount { get; set; }
+        public bool IsStatic { get; set; }
         public List<ConfigItemDto> Items { get; set; } = new();
     }
 }

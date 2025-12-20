@@ -26,6 +26,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private CancellationTokenSource _cts = new();
     private List<PlayerWindow>? _playerWindows;
     private const string CreateScreenUrlTemplate = "https://advertcontrol.ru/screens/create-screen?code={0}";
+    private bool isStatic;
 
     private long _knownVersion;
     private string _screenId;
@@ -303,9 +304,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = "Обращение к серверу..."; });
 
             var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
-
             if (cfg == null) throw new Exception("Конфиг пуст либо не загружён :(");
-            
+
+            isStatic = cfg.isStatic;
             
             _knownVersion = cfg.Version;
             
@@ -345,7 +346,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             var currentVersion = _knownVersion;
             var snapshot = await Dispatcher.UIThread.InvokeAsync(() => Items.ToList());
-
+            
             foreach (var item in snapshot)
             {
                 if (_knownVersion != currentVersion)
@@ -375,6 +376,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                         if (rows != null)
                             await _player.ShowTableAsync(rows, item.DurationSeconds, token);
                         break;
+                }
+                
+                if (isStatic)
+                {
+                    break;
                 }
 
                 if (_knownVersion != currentVersion)

@@ -10,6 +10,7 @@ message ScreenConfigDto {
   repeated ConfigItem items = 3;
   int64 updatedAt = 4;
   int32 screensCount = 5;
+  bool isStatic = 6;
 }
 
 message GetConfigForScreenRequest {

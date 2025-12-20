@@ -50,7 +50,7 @@ public class ConfigItemDto : IEquatable<ConfigItemDto>
     }
 }
 
-public record ConfigDto(long Version, long UpdatedAt, ConfigItemDto[] Items, bool NotModified = false, int WindowCount = 0);
+public record ConfigDto(long Version, long UpdatedAt, ConfigItemDto[] Items, bool NotModified = false, int WindowCount = 0, bool isStatic = false);
 
 public class PollingService
 {
@@ -91,6 +91,7 @@ public class PollingService
                 ));
             var updatedAt = doc.RootElement.TryGetProperty("updatedAt", out var ua) ? ua.GetInt64() : 0;
             var screensCount = doc.RootElement.TryGetProperty("screensCount", out var sc) ? sc.GetInt32() : 0;
+            var isStatic = doc.RootElement.TryGetProperty("isStatic", out var iss) && iss.GetBoolean();
             var notModified = knownVersion == ver;
 
             return new ConfigDto(
@@ -100,7 +101,8 @@ public class PollingService
                     .OrderBy(x => x.Order)
                     .ToArray(),
                 notModified,
-                screensCount
+                screensCount,
+                isStatic
             );
         }
         catch (HttpRequestException)
@@ -144,7 +146,8 @@ public class PollingService
                     .OrderBy(x => x.Order)
                     .ToArray(),
                 notModified,
-                proto.ScreensCount
+                proto.ScreensCount,
+                proto.IsStatic
             );
         }
         catch (Exception)
