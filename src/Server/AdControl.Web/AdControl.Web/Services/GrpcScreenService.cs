@@ -24,6 +24,30 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         _log = log;
     }
 
+    public override async Task<GetDashboardResponse> GetDashboard(GetDashboardRequest request,
+       ServerCallContext context)
+    {
+        try
+        {
+            var userIdString = GetUserIdFromMetadata(context);
+            Guid? userId = null;
+            if (Guid.TryParse(userIdString, out var g))
+                userId = g;
+            else
+                throw new UnauthorizedAccessException();
+            
+
+
+
+            return new GetDashboardResponse { Id = created.Id.ToString(), Status = "created" };
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "CreateScreen failed");
+            return new GetDashboardResponse { Success = false, Error = ex.Message };
+        }
+    }
+
     public override async Task<CreateScreenResponse> CreateScreen(CreateScreenRequest request,
         ServerCallContext context)
     {

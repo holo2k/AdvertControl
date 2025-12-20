@@ -102,7 +102,10 @@ public class ScreenController : ControllerBase
     [ProducesResponseType(typeof(GetDashboardResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Dashboard()
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, "not implemented");
+        var req = new GetDashboardRequest();
+        var resp = await _screenClient.GetDashboardAsync(req);
+
+        return Ok(resp);
     }
 
     /// <summary>
