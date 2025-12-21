@@ -42,7 +42,7 @@ public class FileController : ControllerBase
         var extension = Path.GetExtension(file.FileName);
         var safeFileName = Path.GetFileNameWithoutExtension(file.FileName);
 
-        var newFileName = $"{safeFileName}_{userId}{extension}";
+        var newFileName = $"{safeFileName}_{Guid.NewGuid().ToString().Substring(0,8)}_{userId}{extension}";
 
         var request = new UploadFileRequest
         {

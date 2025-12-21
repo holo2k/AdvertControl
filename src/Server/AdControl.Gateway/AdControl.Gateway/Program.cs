@@ -193,7 +193,6 @@ static void AddGrpcClient<TClient>(WebApplicationBuilder builder, string configK
         });
 }
 
-
 static void ConfigureMinio(WebApplicationBuilder builder)
 {
     var cfg = builder.Configuration.GetSection("Minio");

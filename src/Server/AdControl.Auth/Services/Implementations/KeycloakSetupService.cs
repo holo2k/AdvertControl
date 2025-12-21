@@ -99,7 +99,7 @@ public class KeycloakSetupService : IKeycloakSetupService
                     realm = _defaultRealm,
                     enabled = true,
                     registrationAllowed = true,
-                    accessTokenLifespan = 10800 // 3 часа в секундах
+                    accessTokenLifespan = 9999999 // 3 часа в секундах
                 };
                 using var createReq = new HttpRequestMessage(HttpMethod.Post, createRealmUrl)
                 {
@@ -131,7 +131,7 @@ public class KeycloakSetupService : IKeycloakSetupService
                     standardFlowEnabled = true,
                     attributes = new Dictionary<string, string>
                     {
-                        ["access.token.lifespan"] = "10800"
+                        ["access.token.lifespan"] = "9999999"
                     }
                 };
                 using var createClientReq = new HttpRequestMessage(HttpMethod.Post, clientsUrl)
