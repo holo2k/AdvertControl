@@ -531,7 +531,8 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             var protoCfg = new Config
             {
                 Id = cfg.Id.ToString(), UserId = cfg.UserId?.ToString() ?? "",
-                CreatedAt = DateTimeToUnixMs(cfg.CreatedAt), Items = { protoItems }
+                UpdatedAt = DateTimeToUnixMs(cfg.UpdatedAt), 
+                Items = { protoItems }
             };
             var response = new AddItemsResponse
             {

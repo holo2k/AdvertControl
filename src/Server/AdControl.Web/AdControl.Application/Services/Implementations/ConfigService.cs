@@ -67,6 +67,7 @@ public class ConfigService : IConfigService
     public async Task<Config> UpdateAsync(Config config, CancellationToken ct = default)
     {
         config.UpdatedAt = DateTime.UtcNow;
+        config.Version = config.Version + 1;
         return await _repo.UpdateAsync(config, ct);
     }
 

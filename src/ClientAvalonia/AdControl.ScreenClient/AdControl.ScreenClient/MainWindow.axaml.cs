@@ -34,7 +34,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         InitializeComponent();
 
-        _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
+        var httpFactory = App.Services?.GetService<IHttpClientFactory>()
+                      ?? throw new InvalidOperationException("IHttpClientFactory not registered in DI");
+
+        _player = new PlayerService(VideoViewControl, ImageControl, JsonTable, httpFactory);
 
         _polling = App.Services?.GetRequiredService<PollingService>()
                    ?? throw new InvalidOperationException("PollingService not found");
@@ -171,7 +174,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 StatusText.Text =
                     "Текущий ID экрана не существует в базе экранов. Он будет удалён и экран будет переключён в состояние подключения.");
 
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.Delay(TimeSpan.FromSeconds(5));
             await Dispatcher.UIThread.InvokeAsync(() => SetState(ScreenState.NotPaired));
             
             await DeleteScreenId();
@@ -185,13 +188,36 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private async Task DeleteScreenId()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
-        if (File.Exists(path))
+        if (!File.Exists(path))
+            return;
+
+        try
         {
-            var root = new JsonObject { ["Screen"] = new JsonObject { ["Id"] = string.Empty } };
-            await File.WriteAllTextAsync(path,
-                root.ToJsonString(new JsonSerializerOptions { WriteIndented = true })).ConfigureAwait(false);
+            var json = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+
+            // парсим, или создаём пустой объект
+            var node = JsonNode.Parse(json) as JsonObject ?? new JsonObject();
+
+            // если нет секции "Screen" — создаём её
+            if (node["Screen"] is not JsonObject screenObj)
+            {
+                screenObj = new JsonObject();
+                node["Screen"] = screenObj;
+            }
+
+            // выставляем Id = ""
+            screenObj["Id"] = string.Empty;
+
+            // записываем обратно
+            var updated = node.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(path, updated).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка очистки Screen.Id: " + ex.Message);
         }
     }
+
 
     private void SetState(ScreenState state)
     {
@@ -307,9 +333,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (cfg == null) throw new Exception("Конфиг пуст либо не загружён :(");
 
             isStatic = cfg.isStatic;
-            
             _knownVersion = cfg.Version;
-            
+
+            if (cfg.NotModified)
+                return;
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 Items.Clear();
@@ -364,11 +392,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 switch (item.Type)
                 {
                     case "Video":
-                        await _player.ShowVideoAsync(item.Url, item.DurationSeconds, token);
+                        await _player.ShowVideoAsync(item, token);
                         break;
 
                     case "Image":
-                        await _player.ShowImageAsync(item.Url, item.DurationSeconds, token);
+                        await _player.ShowImageAsync(item, token);
                         break;
 
                     case "InlineJson":

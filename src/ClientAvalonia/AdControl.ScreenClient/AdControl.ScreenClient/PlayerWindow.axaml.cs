@@ -1,11 +1,11 @@
-using AdControl.ScreenClient.Services;
-
 using System.Dynamic;
 using System.Text.Json;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
+using AdControl.ScreenClient.Services;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AdControl.ScreenClient
 {
@@ -22,7 +22,12 @@ namespace AdControl.ScreenClient
         {
             InitializeComponent(); 
             _items = items ?? new List<ConfigItemDto>();
-            _player = new PlayerService(VideoViewControl, ImageControl, JsonTable);
+
+            var httpFactory = App.Services?.GetService<IHttpClientFactory>()
+                      ?? throw new InvalidOperationException("IHttpClientFactory not registered in DI");
+
+            _player = new PlayerService(VideoViewControl, ImageControl, JsonTable, httpFactory);
+
             DataContext = this;
             this.startIndex = startIndex - 1 % _items.Count;
             this.isStatic = isStatic;
@@ -56,10 +61,10 @@ namespace AdControl.ScreenClient
                     switch (item.Type)
                     {
                         case "Video":
-                            await _player.ShowVideoAsync(item.Url, item.DurationSeconds, token);
+                            await _player.ShowVideoAsync(item, token);
                             break;
                         case "Image":
-                            await _player.ShowImageAsync(item.Url, item.DurationSeconds, token, false);
+                            await _player.ShowImageAsync(item, token);
                             break;
                         case "InlineJson":
                             var rows = await GetDynamicListFromJson(item.InlineData);

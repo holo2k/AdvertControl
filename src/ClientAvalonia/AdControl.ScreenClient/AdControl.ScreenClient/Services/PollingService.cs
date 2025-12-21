@@ -7,12 +7,12 @@ namespace AdControl.ScreenClient.Services;
 
 public class ConfigItemDto : IEquatable<ConfigItemDto>
 {
-    public ConfigItemDto(string id, string type, string url, string inlineData, string checksum, long size,
-        int durationSeconds, int order) 
+    public ConfigItemDto(string id, string type, string urlFileName, string inlineData, string checksum, long size,
+        int durationSeconds, int order)
     {
         Id = id;
         Type = type;
-        Url = url;
+        Url = urlFileName; // хранит только имя файла, напр. logo.png
         InlineData = inlineData;
         Checksum = checksum;
         Size = size;
@@ -22,18 +22,60 @@ public class ConfigItemDto : IEquatable<ConfigItemDto>
 
     public string Id { get; set; }
     public string Type { get; set; }
-    public string Url { get; set; }
+    public string Url { get; set; } // file name only
     public string InlineData { get; set; }
     public string Checksum { get; set; }
     public long Size { get; set; }
     public int DurationSeconds { get; set; }
     public int Order { get; set; }
-    
+
+    // фабричный метод для безопасного парсинга JsonElement
+    public static ConfigItemDto FromJsonElement(JsonElement el)
+    {
+        string GetStringOrEmpty(string name)
+        {
+            return el.TryGetProperty(name, out var prop) && prop.ValueKind != JsonValueKind.Null
+                ? prop.GetString() ?? ""
+                : "";
+        }
+
+        long GetLongOrDefault(string name)
+        {
+            return el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var v)
+                ? v
+                : 0L;
+        }
+
+        int GetIntOrDefault(string name)
+        {
+            return el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var v)
+                ? v
+                : 0;
+        }
+
+        var rawUrl = GetStringOrEmpty("url");
+        var fileName = string.IsNullOrEmpty(rawUrl) ? "" : Path.GetFileName(rawUrl); // NORMALIZE -> file name only
+
+        return new ConfigItemDto(
+            id: GetStringOrEmpty("id"),
+            type: GetStringOrEmpty("type"),
+            urlFileName: fileName,
+            inlineData: GetStringOrEmpty("inlineData"),
+            checksum: GetStringOrEmpty("checksum"),
+            size: GetLongOrDefault("size"),
+            durationSeconds: GetIntOrDefault("durationSeconds"),
+            order: GetIntOrDefault("order")
+        );
+    }
+
     public override bool Equals(object? obj)
     {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != GetType()) return false;
+        if (obj is null)
+            return false;
+        if (ReferenceEquals(this, obj))
+            return true;
+        if (obj.GetType() != GetType())
+            return false;
         return Equals((ConfigItemDto)obj);
     }
 
@@ -44,9 +86,13 @@ public class ConfigItemDto : IEquatable<ConfigItemDto>
 
     public bool Equals(ConfigItemDto? other)
     {
-        if (other is null) return false;
-        if (ReferenceEquals(this, other)) return true;
-        return Id == other.Id && Type == other.Type && Url == other.Url && InlineData == other.InlineData && Checksum == other.Checksum && Size == other.Size && DurationSeconds == other.DurationSeconds && Order == other.Order;
+        if (other is null)
+            return false;
+        if (ReferenceEquals(this, other))
+            return true;
+        return Id == other.Id && Type == other.Type && Url == other.Url && InlineData == other.InlineData
+               && Checksum == other.Checksum && Size == other.Size && DurationSeconds == other.DurationSeconds
+               && Order == other.Order;
     }
 }
 
@@ -79,16 +125,7 @@ public class PollingService
             var itemsEl = doc.RootElement.GetProperty("items");
             var items = new List<ConfigItemDto>();
             foreach (var it in itemsEl.EnumerateArray())
-                items.Add(new ConfigItemDto(
-                    it.GetProperty("id").GetString() ?? "",
-                    it.GetProperty("type").GetString() ?? "",
-                    it.GetProperty("url").GetString() ?? "",
-                    it.GetProperty("inlineData").GetString() ?? "",
-                    it.GetProperty("checksum").GetString() ?? "",
-                    it.GetProperty("size").GetInt64(),
-                    it.GetProperty("durationSeconds").GetInt32(),
-                    it.GetProperty("order").GetInt32()
-                ));
+                items.Add(ConfigItemDto.FromJsonElement(it));
             var updatedAt = doc.RootElement.TryGetProperty("updatedAt", out var ua) ? ua.GetInt64() : 0;
             var screensCount = doc.RootElement.TryGetProperty("screensCount", out var sc) ? sc.GetInt32() : 0;
             var isStatic = doc.RootElement.TryGetProperty("isStatic", out var iss) && iss.GetBoolean();
