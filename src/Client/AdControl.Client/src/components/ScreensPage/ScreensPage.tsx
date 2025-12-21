@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table.tsx";
-import { Badge } from "../ui/badge.tsx";
 import {
   Select,
   SelectContent,
@@ -24,10 +23,10 @@ import type { RootState, AppDispatch } from "../../store/store.ts";
 import { fetchScreens, setPagination, createScreen, resetCreateStatus } from "../../store/screenSlice.ts";
 import { Pagination } from "./Pagination.tsx";
 import { CreateScreenForm } from "./CreateScreenForm.tsx";
-import ContentLoader from "react-content-loader";
 import { useNavigate } from 'react-router-dom';
-import {getStatus} from "../../utils.ts";
 import {formatDateShort} from "../../utils.ts";
+import {TableLoader} from "./TableLoader.tsx";
+import {getStatusBadge} from "./StatusBadge.tsx";
 
 
 export function ScreensPage() {
@@ -101,65 +100,6 @@ export function ScreensPage() {
 
     return matchesSearch;
   });
-
-
-  const getStatusBadge = (status: string | undefined) => {
-    const styles = {
-      подключено: "bg-green-100 text-green-800 hover:bg-green-200",
-      ошибка: "bg-red-100 text-red-800 hover:bg-red-200",
-    };
-    return (
-        <Badge className={styles[status as keyof typeof styles] || ""}>
-          {status || "unknown"}
-        </Badge>
-    );
-  };
-
-  // Компонент для загрузки таблицы
-  const TableLoader = () => (
-      <ContentLoader
-          speed={2}
-          width="100%"
-          height={520}
-          viewBox="0 0 1200 520"
-          backgroundColor="#f3f3f3"
-          foregroundColor="#ecebeb"
-          className="w-full"
-      >
-        {/* Заголовки */}
-        <rect x="5%"  y="12"  rx="4" ry="4" width="20%" height="48" />
-        <rect x="28%" y="12"  rx="4" ry="4" width="22%" height="48" />
-        <rect x="52%" y="12"  rx="4" ry="4" width="15%" height="48" />
-        <rect x="68%" y="12"  rx="4" ry="4" width="18%" height="48" />
-        <rect x="88%" y="12"  rx="4" ry="4" width="10%" height="48" />
-
-        {/* Строка 1 */}
-        <rect x="5%"  y="80"  rx="4" ry="4" width="22%" height="40" />
-        <rect x="28%" y="80"  rx="4" ry="4" width="25%" height="40" />
-        <rect x="52%" y="80"  rx="4" ry="4" width="12%" height="40" />
-        <rect x="68%" y="76"  rx="12" ry="12" width="80" height="40" />
-        <rect x="88%" y="76"  rx="6"  ry="6"  width="60" height="40" />
-
-        {/* Строка 2 */}
-        <rect x="5%"  y="140" rx="4" ry="4" width="22%" height="40" />
-        <rect x="28%" y="140" rx="4" ry="4" width="25%" height="40" />
-        <rect x="52%" y="140" rx="4" ry="4" width="12%" height="40" />
-        <rect x="68%" y="136" rx="12" ry="12" width="80" height="40" />
-        <rect x="88%" y="136" rx="6"  ry="6"  width="60" height="40" />
-
-        <rect x="5%"  y="200" rx="4" ry="4" width="22%" height="40" />
-        <rect x="28%" y="200" rx="4" ry="4" width="25%" height="40" />
-        <rect x="52%" y="200" rx="4" ry="4" width="12%" height="40" />
-        <rect x="68%" y="196" rx="12" ry="12" width="80" height="40" />
-        <rect x="88%" y="196" rx="6"  ry="6"  width="60" height="40" />
-
-        <rect x="5%"  y="260" rx="4" ry="4" width="22%" height="40" />
-        <rect x="28%" y="260" rx="4" ry="4" width="25%" height="40" />
-        <rect x="52%" y="260" rx="4" ry="4" width="12%" height="40" />
-        <rect x="68%" y="256" rx="12" ry="12" width="80" height="40" />
-        <rect x="88%" y="256" rx="6"  ry="6"  width="60" height="40" />
-      </ContentLoader>
-  );
 
   return (
       <div className="space-y-6">
@@ -235,7 +175,7 @@ export function ScreensPage() {
                             {screen.location || "Не указано"}
                           </TableCell>
                           <TableCell>{screen.resolution || "Не указано"}</TableCell>
-                          <TableCell>{getStatusBadge(getStatus(screen.lastHeartbeatAt))}</TableCell>
+                          <TableCell>{getStatusBadge(screen.status)}</TableCell>
                           <TableCell>{formatDateShort(screen?.updatedAt || "")}</TableCell>
                         </TableRow>
                     ))}

@@ -107,7 +107,7 @@ export function LeftSidebar({
     /* ================= RENDER ================= */
 
     return (
-        <div className="w-75 border border-gray-200 bg-white overflow-hidden flex rounded-lg flex-col">
+        <div className=" w-75 border border-gray-200 bg-white overflow-hidden flex rounded-lg flex-col">
             <ScrollArea className="flex-1 p-6">
                 <div className="space-y-6">
                     <GeneralSettings config={config} setConfig={setConfig} />

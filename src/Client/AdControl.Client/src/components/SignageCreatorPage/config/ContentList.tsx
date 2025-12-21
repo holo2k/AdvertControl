@@ -1,5 +1,5 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../ui/collapsible.tsx";
-import {ChevronUp, ChevronDown, FileText, Loader2, Upload} from "lucide-react";
+import {ChevronUp, ChevronDown, FileText, Loader2} from "lucide-react";
 import { useState } from "react";
 import { toast } from "../../ui/sonner.tsx";
 import { AddContentButton } from "../content/AddContentButton.tsx";

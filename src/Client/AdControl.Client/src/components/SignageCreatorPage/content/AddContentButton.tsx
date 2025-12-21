@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import axios from "axios";
 import { Button } from "../../ui/button";
 import {
     DropdownMenu,
@@ -97,10 +96,10 @@ export function AddContentButton({ onAdd }: Props) {
 
         try {
             const fileUrl = await uploadFile(file);
-
+            const durationSeconds = await getVideoDuration(file);
             const newItem: ContentItem = {
                 type: "VIDEO",
-                durationSeconds: 10,
+                durationSeconds: durationSeconds,
                 size: file.size,
                 order: 0,
                 url: fileUrl,
@@ -121,7 +120,7 @@ export function AddContentButton({ onAdd }: Props) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button className="w-full gap-2" style={{ backgroundColor: "#2563EB" }}>
+                    <Button className="w-full gap-2" style={{ backgroundColor: "#f1f1f3", color: "#000", border: "1px solid #cdcbcb" }}>
                         <Plus className="w-4 h-4" /> Добавить контент
                     </Button>
                 </DropdownMenuTrigger>
@@ -167,3 +166,22 @@ export function AddContentButton({ onAdd }: Props) {
         </>
     );
 }
+
+const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        video.onloadedmetadata = () => {
+            window.URL.revokeObjectURL(video.src);
+            resolve(Math.ceil(video.duration));
+        };
+
+        video.onerror = () => {
+            window.URL.revokeObjectURL(video.src);
+            reject(new Error('Не удалось получить длительность видео'));
+        };
+
+        video.src = URL.createObjectURL(file);
+    });
+};

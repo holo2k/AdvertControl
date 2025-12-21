@@ -1,4 +1,4 @@
-import { GripVertical, Clock, Copy, Trash2 } from "lucide-react";
+import { GripVertical, Clock, Trash2 } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
     FileText as FileTextIcon,
@@ -6,7 +6,7 @@ import {
     Video as VideoIcon,
 } from "lucide-react";
 import type { ContentItem } from "../types";
-import {truncateString} from "../../../utils.ts";
+import {removeId} from "../../../utils.ts";
 
 interface Props {
     item: ContentItem;
@@ -26,11 +26,9 @@ interface Props {
 
 export function ContentItemCard({
                                     item,
-                                    index,
                                     isSelected,
                                     isDragging,
                                     onSelect,
-                                    onDuplicate,
                                     onDelete,
                                     onDragStart,
                                     onDragOver,
@@ -69,7 +67,7 @@ export function ContentItemCard({
                         <div className="flex items-center gap-2">
                             {typeIcons[item.type]}
                             <span className="text-sm font-medium truncate break-all" style={{maxWidth: "200px",}}>
-                                {truncateString(item.url, 20)  }
+                                {removeId(item?.url || "")  }
                             </span>
                         </div>
                     </div>

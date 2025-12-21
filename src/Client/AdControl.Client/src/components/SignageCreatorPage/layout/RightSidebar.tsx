@@ -7,6 +7,7 @@ import { ImageConfig } from "../content/item-config/ImageConfig";
 import { VideoConfig } from "../content/item-config/VideoConfig";
 import { TextConfig } from "../content/item-config/TextConfig";
 import type { ContentItem } from "../types";
+import {removeId} from "../../../utils.ts";
 
 interface Props {
     item: ContentItem;
@@ -15,8 +16,8 @@ interface Props {
 
 export function RightSidebar({ item, onDurationChange}: Props) {
     return (
-        <div className="w-80 border-l border-gray-200 bg-white">
-            <ScrollArea className="h-full px-6 py-6">
+        <div className="h-full w-75 border border-gray-200 bg-white overflow-hidden flex rounded-lg flex-col">
+            <ScrollArea className="flex-1 p-6">
                 <div className="space-y-6">
                     <h2 className="text-lg font-semibold">Конфигурация объекта</h2>
 
@@ -24,19 +25,19 @@ export function RightSidebar({ item, onDurationChange}: Props) {
                         <div className="space-y-2">
                             <Label>Имя объекта</Label>
                             <div className="w-64 truncate overflow-hidden text-ellipsis">
-                                {item.url}
+                                {removeId(item.url)}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Продолжительность: {item.durationSeconds}s</Label>
-                            <Slider
+                            <Label>Продолжительность: {item.durationSeconds}с</Label>
+                            {item.type !== "VIDEO" && <Slider
                                 min={1}
                                 max={60}
                                 step={1}
                                 value={[item.durationSeconds]}
                                 onValueChange={([v]) => onDurationChange(v)}
-                            />
+                            />}
                         </div>
 
                         <Separator />

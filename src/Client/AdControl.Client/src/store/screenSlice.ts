@@ -11,9 +11,10 @@ export interface ScreenDto {
     location: string;
     resolution: string;
     lastHeartbeatAt: number;
-    pairedAt: number;
-    createdAt: number;
+    pairedAt: string;
+    createdAt: string;
     updatedAt: string;
+    status?: string;
 }
 
 export interface Screen {

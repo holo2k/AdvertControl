@@ -23,11 +23,6 @@ export function joinResolutionData(width: string, height: string): string {
   return `${width}x${height}`;
 }
 
-export function getStatus(lastHeartBeat: number): string {
-  // return lastHeartBeat < 30 ? `подключено` : 'ошибка';
-   return `подключено`;
-}
-
 export function truncateString(str: string, maxLength: number, ellipsis = "...") {
   if (typeof str !== 'string') {
     throw new TypeError('Первый аргумент должен быть строкой');
@@ -55,6 +50,24 @@ export function formatDateShort(dateString?: string | null): string {
   }).format(date);
 }
 
+export function formatDateTimeShort(dateString?: string | null): string {
+  if (!dateString) return "—";
+
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) {
+    return "—";
+  }
+
+  // Вариант 1: Использовать отдельно дату и время
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function buildMinioUrl(
     baseUrl: string,
     filePath?: string | null
@@ -67,4 +80,17 @@ export function buildMinioUrl(
       : filePath;
 
   return `${cleanBase}/${encodeURIComponent(cleanPath)}`;
+}
+
+export function removeId(filename: string): string {
+  const uuidRegex = /_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+  return filename.replace(uuidRegex, '');
+}
+
+export function bytesToMB(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) return '0 МБ';
+  const mb = bytes / (1024 * 1024);
+  const rounded = Math.round(mb * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  const formatted = parseFloat(rounded.toFixed(decimals)).toString();
+  return `${formatted} МБ`;
 }

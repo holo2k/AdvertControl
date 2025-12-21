@@ -85,7 +85,7 @@ export function SignageCreatorPage() {
     }
 
     return (
-        <div className="flex gap-6" style={{ height: "86vh"}}>
+        <div className="flex gap-6" style={{ height: "90vh"}}>
             <LeftSidebar
                 config={config}
                 setConfig={setConfig}

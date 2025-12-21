@@ -6,10 +6,12 @@ import {useNavigate} from "react-router-dom";
 import type { AppDispatch, RootState } from "../../store/store.ts";
 import { fetchScreen } from "../../store/screenSlice.ts";
 import { toast } from "../ui/sonner.tsx";
-import { getStatus } from "../../utils.ts";
 import { ConfigPreview } from "./ConfigPreview.tsx";
 import {ScreenDetailModal} from "./ScreenDetailModal.tsx";
 import { Button } from "../ui/button.tsx";
+import {getStatusBadge} from "../ScreensPage/StatusBadge.tsx";
+import { formatDateTimeShort} from "../../utils.ts";
+import {Label} from "../ui/label.tsx";
 
 export function ScreenDetail() {
     const { id } = useParams<{ id: string }>();
@@ -37,8 +39,11 @@ export function ScreenDetail() {
         name: currentScreen?.screen?.name ?? "",
         location: currentScreen?.screen.location ?? "",
         resolution: currentScreen?.screen.resolution ?? "",
-        status: getStatus(currentScreen?.screen.lastHeartbeatAt ?? 10),
+        status: getStatusBadge(currentScreen?.screen.status ?? ""),
         config: currentScreen?.config,
+        pairedAt: formatDateTimeShort(currentScreen?.screen.pairedAt),
+        createdAt: formatDateTimeShort(currentScreen?.screen.createdAt),
+        updatedAt: formatDateTimeShort(currentScreen?.screen.updatedAt),
     };
 
     const hasConfig = Boolean(currentScreen?.config?.id);
@@ -74,17 +79,11 @@ export function ScreenDetail() {
 
                         <div style={styles.statusWrapper}>
                             <Activity className="w-5 h-5 text-gray-400" />
-                            <span
-                                style={{
-                                    ...styles.statusBadge,
-                                    backgroundColor:
-                                        screenData.status === "подключено" ? "#ecfdf5" : "#fee2e2",
-                                    color:
-                                        screenData.status === "подключено" ? "#166534" : "#991b1b",
-                                }}
-                            >
-              {screenData.status}
-            </span>
+                            <div>
+                                <p style={styles.infoLabel}>Статус</p>
+                                <p style={styles.infoValue}>{screenData.status}</p>
+                            </div>
+
                         </div>
 
                         <div style={styles.infoList}>
@@ -101,6 +100,12 @@ export function ScreenDetail() {
                                 <div>
                                     <p style={styles.infoLabel}>Разрешение</p>
                                     <p style={styles.infoValue}>{screenData.resolution}</p>
+                                </div>
+                            </div>
+                            <div style={styles.infoItem}>
+                                <div style={{marginTop: "10px", marginBottom: "-10px"}}>
+                                    <Label>Последнее обновление</Label>
+                                    <p style={styles.infoValue}>{screenData.updatedAt}</p>
                                 </div>
                             </div>
                         </div>

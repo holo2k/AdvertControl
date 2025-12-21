@@ -11,7 +11,6 @@ interface SidebarProps {
 const menuItems = [
   { path: "/dashboard", label: "Доска", icon: LayoutDashboard },
   { path: "/screens", label: "Экраны", icon: Monitor },
-  { path: "/configurations", label: "Конфигурации", icon: Settings },
   { path: "/templates", label: "Шаблоны", icon: FileText },
 ];
 

@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
 import type { ContentItem } from "../types";
-import {truncateString} from "../../../utils.ts";
+import {removeId, truncateString} from "../../../utils.ts";
 
 interface TimelineProps {
     items: ContentItem[];
@@ -45,7 +45,7 @@ export function Timeline({
                                 }}
                             >
                                 <div className="text-center">
-                                    <div className="truncate max-w-[100px] font-medium">{truncateString(item.url, 20)}</div>
+                                    <div className="truncate max-w-[100px] font-medium">{removeId(item?.url || "")}</div>
                                     <div className="text-gray-500 mt-1">{item.durationSeconds}с</div>
                                 </div>
                             </div>

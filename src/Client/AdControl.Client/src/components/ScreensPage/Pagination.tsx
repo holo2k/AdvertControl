@@ -25,7 +25,6 @@ export function Pagination({ offset, limit, total, onNextPage, onPrevPage }: Pag
             <Button
                 variant="outline"
                 onClick={onNextPage}
-                disabled={offset + limit >= total}
             >
                 Вперёд
             </Button>

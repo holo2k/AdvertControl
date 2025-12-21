@@ -131,7 +131,7 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
                       <DropdownMenuItem onClick={() => navigate("/profile")}>
                         Профиль
                       </DropdownMenuItem>
-                      <DropdownMenuItem>Настройки</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/settings")}>Настройки</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                           className="text-red-600"

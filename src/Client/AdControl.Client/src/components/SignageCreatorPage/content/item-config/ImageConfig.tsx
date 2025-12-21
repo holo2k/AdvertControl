@@ -1,5 +1,6 @@
 import {Label} from "../../../ui/label.tsx";
 import type {ContentItem} from "../../types.ts";
+import {bytesToMB} from "../../../../utils.ts";
 
 
 interface ImageConfigProps {
@@ -13,7 +14,7 @@ export function ImageConfig({ item }: ImageConfigProps) {
 
             <div className="space-y-2">
                 <Label>Размер</Label>
-                {item.size}
+                {bytesToMB(item?.size || 0)}
             </div>
 
             <div className="space-y-2">

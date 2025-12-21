@@ -20,7 +20,7 @@ export const MainLayout = () => {
                     marginLeft: "4rem",
                 }}
             >
-                <div className="p-8"><Outlet /></div>
+                <div style={{ padding: "1rem 1.5rem 0 1.5rem "}}><Outlet /></div>
             </main>
         </div>
     );
