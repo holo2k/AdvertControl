@@ -628,6 +628,7 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
         return screens
             .Select(s => new Protos.Action
             {
+                ScreenId = s.Id.ToString(),
                 Screen = s.Name,
                 Action_ = BuildActionStatus(s),
                 LastUpdate = s.LastHeartbeatAt.HasValue && s.LastHeartbeatAt.Value.Year < 2025 ? 

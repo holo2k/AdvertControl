@@ -57,6 +57,7 @@ message Action {
 	string action = 2;
 	string lastUpdate = 3;
 	bool status = 4;
+	string screenId = 5;
 }
 
 message ScreenLocations {
