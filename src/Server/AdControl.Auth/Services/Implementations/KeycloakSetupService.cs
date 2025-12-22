@@ -105,11 +105,11 @@ public class KeycloakSetupService : IKeycloakSetupService
                     enabled = true,
                     registrationAllowed = true,
 
-                    accessTokenLifespan = 999999999,              
-                    ssoSessionIdleTimeout = 999999999,            
-                    ssoSessionMaxLifespan = 999999999,            
-                    clientSessionIdleTimeout = 999999999,
-                    clientSessionMaxLifespan = 999999999
+                    accessTokenLifespan = 2592000,              
+                    ssoSessionIdleTimeout = 2592000,            
+                    ssoSessionMaxLifespan = 2592000,            
+                    clientSessionIdleTimeout = 2592000,
+                    clientSessionMaxLifespan = 2592000
                 };
                 using var createReq = new HttpRequestMessage(HttpMethod.Post, createRealmUrl)
                 {
@@ -141,9 +141,9 @@ public class KeycloakSetupService : IKeycloakSetupService
                     standardFlowEnabled = true,
                     attributes = new Dictionary<string, string>
                     {
-                        ["access.token.lifespan"] = "999999999",
-                        ["client.session.max.lifespan"] = "999999999",
-                        ["client.session.idle.timeout"] = "999999999"
+                        ["access.token.lifespan"] = "2592000",
+                        ["client.session.max.lifespan"] = "2592000",
+                        ["client.session.idle.timeout"] = "2592000"
                     }
                 };
                 using var createClientReq = new HttpRequestMessage(HttpMethod.Post, clientsUrl)
@@ -213,25 +213,28 @@ public class KeycloakSetupService : IKeycloakSetupService
 
         await CreateUserIfNotExistsAsync(request);
 
+        // Получаем текущий Realm
+        var getRealm = new HttpRequestMessage(HttpMethod.Get, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}");
+        getRealm.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+        var getResp = await _httpClient.SendAsync(getRealm);
+        getResp.EnsureSuccessStatusCode();
+        var realmJson = await getResp.Content.ReadAsStringAsync();
+
+        // Десериализуем в динамический объект
+        var realm = JsonSerializer.Deserialize<Dictionary<string, object>>(realmJson);
+
+        // Меняем только тайминги
+        realm["accessTokenLifespan"] = 2592000;                 // 30 дней
+        realm["accessTokenLifespanForImplicitFlow"] = 2592000; // 30 дней
+        realm["ssoSessionIdleTimeout"] = 2592000;
+        realm["ssoSessionMaxLifespan"] = 2592000;
+        realm["clientSessionIdleTimeout"] = 2592000;
+        realm["clientSessionMaxLifespan"] = 2592000;
+
+        // Отправляем обратно весь объект
         var patchReq = new HttpRequestMessage(HttpMethod.Put, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}");
         patchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
-
-        var body = new
-        {
-            id = "myrealm",
-            realm = "myrealm",
-            enabled = true,
-            registrationAllowed = true,
-            accessTokenLifespan = 2592000,                 // 30 дней
-            accessTokenLifespanForImplicitFlow = 2592000, // 30 дней
-            ssoSessionIdleTimeout = 2592000,              // 30 дней
-            ssoSessionMaxLifespan = 2592000,              // 30 дней
-            clientSessionIdleTimeout = 2592000,           // 30 дней
-            clientSessionMaxLifespan = 2592000           // 30 дней
-        };
-
-
-        patchReq.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        patchReq.Content = new StringContent(JsonSerializer.Serialize(realm), Encoding.UTF8, "application/json");
 
         var patchResp = await _httpClient.SendAsync(patchReq);
         patchResp.EnsureSuccessStatusCode();
