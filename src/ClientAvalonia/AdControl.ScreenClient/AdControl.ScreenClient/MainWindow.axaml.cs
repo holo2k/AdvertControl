@@ -330,7 +330,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = "Обращение к серверу..."; });
 
             var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
-            if (cfg == null) throw new Exception("Конфиг пуст либо не загружён :(");
+            if (cfg == null) throw new Exception("Конфиг пуст либо не загружен :(");
 
             isStatic = cfg.isStatic;
             _knownVersion = cfg.Version;
