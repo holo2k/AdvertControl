@@ -177,7 +177,7 @@ public class KeycloakSetupService : IKeycloakSetupService
             }
         }
 
-        var patchReq = new HttpRequestMessage(HttpMethod.Put, $"{_keycloakBaseUrl}/realms/{_defaultRealm}");
+        var patchReq = new HttpRequestMessage(HttpMethod.Put, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}");
         patchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
 
         var body = new
