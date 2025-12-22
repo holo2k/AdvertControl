@@ -112,7 +112,7 @@ static async Task ConfigureRealmTokenSettingsAsync(WebApplication app)
         ["client_id"] = opts.AdminClientId,
         ["client_secret"] = opts.AdminClientSecret,
         ["username"] = opts.AdminUser,
-        ["password"] = opts.AdminPassword,
+        ["password"] = "admin",
         ["grant_type"] = "password"
     });
 
