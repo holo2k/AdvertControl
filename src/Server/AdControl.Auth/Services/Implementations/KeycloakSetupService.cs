@@ -6,7 +6,9 @@ using System.Text;
 using System.Text.Json;
 using AdControl.Auth.Models;
 using AdControl.Protos;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using static System.Net.WebRequestMethods;
 
 namespace AdControl.Auth;
 
@@ -208,6 +210,28 @@ public class KeycloakSetupService : IKeycloakSetupService
             MasterToken = masterToken,
             Phone = "",
         };
+
+        var patchReq = new HttpRequestMessage(HttpMethod.Put, $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}");
+        patchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+
+        var body = new
+        {
+            id = "myrealm",
+            realm = "myrealm",
+            enabled = true,
+            registrationAllowed = true,
+            accessTokenLifespan = 999999999,
+            accessTokenLifespanForImplicitFlow = 999999999,
+            ssoSessionIdleTimeout = 999999999,
+            ssoSessionMaxLifespan = 999999999,
+            clientSessionIdleTimeout = 999999999,
+            clientSessionMaxLifespan = 999999999
+        };
+
+        patchReq.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+
+        var patchResp = await _httpClient.SendAsync(patchReq);
+        patchResp.EnsureSuccessStatusCode();
 
         await CreateUserIfNotExistsAsync(request);
     }

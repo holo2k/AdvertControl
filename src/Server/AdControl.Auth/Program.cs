@@ -17,7 +17,6 @@ ConfigureServices(builder);
 var app = builder.Build();
 
 await InitializeKeycloakAsync(app);
-await ConfigureRealmTokenSettingsAsync(app);
 
 ConfigureMiddleware(app);
 ConfigureGrpc(app);
@@ -95,51 +94,4 @@ static void ConfigureMiddleware(WebApplication app)
 static void ConfigureGrpc(WebApplication app)
 {
     app.MapGrpcService<AuthService>();
-}
-
-static async Task ConfigureRealmTokenSettingsAsync(WebApplication app)
-{
-    var http = app.Services.GetRequiredService<IHttpClientFactory>().CreateClient();
-    var opts = app.Services.GetRequiredService<IOptions<KeycloakOptions>>().Value;
-
-    var realm = "myrealm";
-    var host = "http://keycloak:8080";
-
-    // 1. Получаем admin token
-    var tokenReq = new HttpRequestMessage(HttpMethod.Post, $"{host}/realms/master/protocol/openid-connect/token");
-    tokenReq.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-    {
-        ["client_id"] = opts.AdminClientId,
-        ["client_secret"] = opts.AdminClientSecret,
-        ["username"] = opts.AdminUser,
-        ["password"] = "admin",
-        ["grant_type"] = "password"
-    });
-
-    var tokenResp = await http.SendAsync(tokenReq);
-    tokenResp.EnsureSuccessStatusCode();
-    var tokenJson = JsonDocument.Parse(await tokenResp.Content.ReadAsStringAsync());
-    var adminToken = tokenJson.RootElement.GetProperty("access_token").GetString();
-
-    // 2. Формируем запрос на обновление tokenSettings
-    var patchReq = new HttpRequestMessage(HttpMethod.Put, $"{host}/admin/realms/{realm}");
-    patchReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", adminToken);
-
-    var body = new
-    {
-        tokenSettings = new
-        {
-            accessTokenLifespan = "999999999",
-            accessTokenLifespanForImplicitFlow = "999999999",
-            ssoSessionIdleTimeout = "999999999",
-            ssoSessionMaxLifespan = "999999999",
-            clientSessionIdleTimeout = "999999999",
-            clientSessionMaxLifespan = "999999999"
-        }
-    };
-
-    patchReq.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-    var patchResp = await http.SendAsync(patchReq);
-    patchResp.EnsureSuccessStatusCode();
 }
