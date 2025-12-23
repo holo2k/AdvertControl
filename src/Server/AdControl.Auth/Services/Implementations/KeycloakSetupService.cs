@@ -158,22 +158,44 @@ public class KeycloakSetupService : IKeycloakSetupService
             else
             {
                 var id = client.GetProperty("id").GetString()!;
-                var updateUrl = $"{clientsUrl}/{id}";
-                var updateObj = new
+                var clientGetUrl = $"{clientsUrl}/{id}";
+
+                // Получаем полный объект клиента
+                using var getClientReq = new HttpRequestMessage(HttpMethod.Get, clientGetUrl);
+                getClientReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+                var getClientResp = await _httpClient.SendAsync(getClientReq);
+                getClientResp.EnsureSuccessStatusCode();
+                var clientJson = await getClientResp.Content.ReadAsStringAsync();
+
+                var clientNode = JsonNode.Parse(clientJson)!.AsObject();
+
+                // Убедимся, что присутствуют нужные поля
+                clientNode["clientId"] = _defaultClientId;
+                clientNode["enabled"] = true;
+                clientNode["publicClient"] = true;
+                clientNode["directAccessGrantsEnabled"] = true;
+                clientNode["standardFlowEnabled"] = true;
+
+                // Гарантируем существование attributes и устанавливаем строки (Keycloak хранит их как string->string)
+                var attrs = clientNode["attributes"]?.AsObject() ?? new JsonObject();
+                attrs["access.token.lifespan"] = "2592000";
+                attrs["client.session.max.lifespan"] = "2592000";
+                attrs["client.session.idle.timeout"] = "2592000";
+                clientNode["attributes"] = attrs;
+
+                // Отправляем обратно полный объект клиента
+                using var updateReq = new HttpRequestMessage(HttpMethod.Put, clientGetUrl)
                 {
-                    id,
-                    clientId = _defaultClientId,
-                    enabled = true,
-                    publicClient = true,
-                    directAccessGrantsEnabled = true,
-                    standardFlowEnabled = true
-                };
-                using var updateReq = new HttpRequestMessage(HttpMethod.Put, updateUrl)
-                {
-                    Content = new StringContent(JsonSerializer.Serialize(updateObj), Encoding.UTF8, "application/json")
+                    Content = new StringContent(clientNode.ToJsonString(), Encoding.UTF8, "application/json")
                 };
                 updateReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
                 var updateResp = await _httpClient.SendAsync(updateReq);
+                if (!updateResp.IsSuccessStatusCode)
+                {
+                    var respBody = await updateResp.Content.ReadAsStringAsync();
+                    Trace.WriteLine($"PUT client failed: {updateResp.StatusCode} {respBody}");
+                    updateResp.EnsureSuccessStatusCode();
+                }
                 updateResp.EnsureSuccessStatusCode();
             }
         }
