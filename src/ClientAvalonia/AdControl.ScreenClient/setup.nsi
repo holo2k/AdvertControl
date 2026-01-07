@@ -24,7 +24,6 @@ Function dirLeave
   GetInstDirError $0
   ${Switch} $0
     ${Case} 0
-      MessageBox MB_OK "valid installation directory"
       ${Break}
     ${Case} 1
       MessageBox MB_OK "invalid installation directory!"
