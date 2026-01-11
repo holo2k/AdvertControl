@@ -187,7 +187,8 @@ export const LandingPage = () => {
             <ImageWithFallback
                 src="./ad-screen.png"
                 alt="Dashboard Interface"
-                className="w-full h-auto"
+                className="w-full h-full"
+                style={{paddingLeft: "2rem"}}
             />
             </motion.div>
           </div>
