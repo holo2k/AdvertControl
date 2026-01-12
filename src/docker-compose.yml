@@ -209,6 +209,8 @@ services:
       - minio
     volumes:
       - miniodata:/data
+    networks:
+      - adcontrol-network
     entrypoint: ["sh", "-c", "mc alias set local http://minio:9000 minioaccess miniosecret && mc mb --ignore-existing local/files && mc anonymous set download local/files"]
 
 
