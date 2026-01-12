@@ -5,6 +5,7 @@ stages:
   - test
   - build-frontend
   - deploy-frontend
+  - release
 
 variables:
   IMAGE_REGISTRY: $CI_REGISTRY_IMAGE
@@ -189,3 +190,50 @@ deploy-frontend-job:
   only:
     - main
   when: on_success
+
+  # Upload Setup.exe to Generic Package Registry
+upload-setup:
+  stage: release
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  variables:
+    PACKAGE_NAME: adcontrol-setup
+    # strip leading "v" if tag like v1.2.3
+    PACKAGE_VERSION: ${CI_COMMIT_TAG#v}
+    LOCAL_PATH: src/ClientAvalonia/AdControl.ScreenClient/Setup.exe
+  script:
+    - |
+      if [ ! -f "$LOCAL_PATH" ]; then
+        echo "ERROR: file not found: $LOCAL_PATH"
+        exit 1
+      fi
+    - echo "Uploading $LOCAL_PATH -> Generic package ${PACKAGE_NAME}/${PACKAGE_VERSION}"
+    - |
+      curl --fail --show-error --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "$LOCAL_PATH" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$PACKAGE_VERSION/Setup.exe"
+    - echo "Upload finished"
+
+# Create release and attach asset link (uses glab)
+create-release-with-asset:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  variables:
+    PACKAGE_NAME: adcontrol-setup
+    PACKAGE_VERSION: ${CI_COMMIT_TAG#v}
+    ASSET_URL: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$PACKAGE_VERSION/Setup.exe"
+    ASSET_FILEPATH: "/windows/Setup.exe"
+  before_script:
+    # glab will pick up CI credentials in CI environment in most runners;
+    # если это не так, можно установить GITLAB_TOKEN
+    - glab version || true
+  script:
+    - |
+      echo "Creating release $CI_COMMIT_TAG with asset link to generic package"
+      glab release create "$CI_COMMIT_TAG" \
+        --name "Release $CI_COMMIT_TAG" \
+        --notes "Release $CI_COMMIT_TAG" \
+        --assets-links="[{\"name\":\"Windows Setup\",\"url\":\"$ASSET_URL\",\"filepath\":\"$ASSET_FILEPATH\",\"link_type\":\"package\"}]"
