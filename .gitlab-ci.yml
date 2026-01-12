@@ -5,6 +5,7 @@ stages:
   - test
   - build-frontend
   - deploy-frontend
+  - release
 
 variables:
   IMAGE_REGISTRY: $CI_REGISTRY_IMAGE
