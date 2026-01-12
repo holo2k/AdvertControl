@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +27,10 @@ export const LoginPage: React.FC = () => {
             setTimeout(() => navigate("/crm"), 1000);
         }
     };
+
+    useEffect(() => {
+        if(localStorage.getItem("token") !== null) navigate("/crm")
+    })
 
     return (
         <div className="login-page-wrapper">
@@ -89,7 +93,7 @@ export const LoginPage: React.FC = () => {
                     {isSuccess && <div className="login-success active">Успешный вход</div>}
                 </form>
                 <footer className="login-footer">
-                    © 2025 AdControl. All rights reserved.
+                    © 2026 AdvertControl. СВАГА
                 </footer>
             </div>
         </div>

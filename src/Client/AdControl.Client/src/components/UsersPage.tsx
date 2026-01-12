@@ -111,7 +111,7 @@ export function UsersPage() {
     const fetchUsers = async () => {
         try {
             setIsLoadingUsers(true);
-            const { data } = await apiClient.get<ApiUser[]>("/get-users");
+            const { data } = await apiClient.post<ApiUser[]>("/auth/get-users");
             setUsers(data);
         } catch (e) {
             console.error(e);
@@ -124,7 +124,7 @@ export function UsersPage() {
         try {
             setIsSubmitting(true);
 
-            await apiClient.post("/users", {
+            await apiClient.post("/auth/users", {
                 username: form.username,
                 password: form.password,
                 repeatPassword: form.repeatPassword,
