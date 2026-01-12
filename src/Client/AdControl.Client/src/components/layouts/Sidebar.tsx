@@ -1,4 +1,4 @@
-import { LayoutDashboard, Monitor, Settings, FileText, ChevronLeft } from "lucide-react";
+import { LayoutDashboard, Monitor, FileText, ChevronLeft, Users } from "lucide-react";
 import { Button } from "../ui/button.tsx";
 import { cn } from "../ui/utils.ts";
 import { Link, useLocation } from "react-router-dom";
@@ -9,9 +9,10 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { path: "/dashboard", label: "Доска", icon: LayoutDashboard },
-  { path: "/screens", label: "Экраны", icon: Monitor },
-  { path: "/templates", label: "Шаблоны", icon: FileText },
+  { path: "dashboard", label: "Доска", icon: LayoutDashboard },
+  { path: "screens", label: "Экраны", icon: Monitor },
+  { path: "templates", label: "Шаблоны", icon: FileText },
+  {path: "users", label: "Пользователи", icon: Users },
 ];
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {

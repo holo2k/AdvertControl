@@ -24,7 +24,7 @@ export const LoginPage: React.FC = () => {
 
         if (resultAction.meta.requestStatus === "fulfilled") {
             setIsSuccess(true);
-            setTimeout(() => navigate("/"), 1000);
+            setTimeout(() => navigate("/crm"), 1000);
         }
     };
 
@@ -44,7 +44,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="login-card">
-                <h1 className="login-logo">AdControl</h1>
+                <h1 className="login-logo">AdvertControl</h1>
                 <p className="login-subtitle">
                     Войдите в систему, чтобы управлять своими экранами
                 </p>

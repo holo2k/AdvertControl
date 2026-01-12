@@ -4,7 +4,7 @@ import {toast} from "sonner";
 const MINIO_PUBLIC_URL = 'https://advertcontrol.ru/files';
 
 const apiClient = axios.create({
-    baseURL: "/api/",
+    baseURL: "https://advertcontrol.ru/api/",
     headers: { "Content-Type": "application/json" },
 });
 

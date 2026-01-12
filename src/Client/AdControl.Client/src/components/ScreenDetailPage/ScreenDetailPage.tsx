@@ -126,7 +126,7 @@ export function ScreenDetail() {
                                             {screenData.config!.screensCount} экранов
                                         </p>
                                     </div>
-                                    <Button onClick={() => navigate(`/screen/${id}/config/edit`, {
+                                    <Button onClick={() => navigate(`screen/${id}/config/edit`, {
                                         state: {
                                             configId: screenData.config.id,
                                         },

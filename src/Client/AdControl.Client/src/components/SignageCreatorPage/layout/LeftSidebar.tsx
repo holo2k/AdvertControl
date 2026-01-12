@@ -93,7 +93,7 @@ export function LeftSidebar({
                 toast.success("Конфиг создан и отправлен на экран");
             }
 
-            navigate(`/screen/${screenId}`);
+            navigate(`screen/${screenId}`);
         } catch (error) {
             console.error(error);
             toast.error(

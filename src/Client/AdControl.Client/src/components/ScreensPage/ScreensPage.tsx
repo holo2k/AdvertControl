@@ -168,7 +168,7 @@ export function ScreensPage() {
                         <TableRow
                             key={screen.id}
                             className="cursor-pointer"
-                            onClick={() => navigate(`/screen/${screen.id}`)}
+                            onClick={() => navigate(`screen/${screen.id}`)}
                         >
                           <TableCell>{screen.name || "Не указано"}</TableCell>
                           <TableCell className="text-gray-600">
