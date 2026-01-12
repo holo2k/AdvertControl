@@ -11,6 +11,7 @@ import {SettingsPage} from "./components/SettingsPage.tsx";
 import {LandingPage} from "./components/LandingPage/LandingPage.tsx"
 import {UsersPage} from "./components/UsersPage.tsx";
 import {ImageGenerationPage} from "./components/ImageGenerationPage.tsx";
+import {FilePage} from "./components/FilePage.tsx";
 
 export default function App() {
     return (
@@ -30,6 +31,7 @@ export default function App() {
                     <Route path="screen/:id/config" element={<SignageCreatorPage />} />
                     <Route path="screen/:id/config/edit" element={<SignageCreatorPage />} />
                     <Route path="ai" element={<ImageGenerationPage />} />
+                    <Route path="files" element={<FilePage />} />
                 </Route>
             </Routes>
         </Router>
