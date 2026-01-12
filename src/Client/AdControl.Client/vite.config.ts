@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 import { env } from 'process';
 
 export default defineConfig(({ mode }) => {
-
+//import.meta.env.VITE_GEMINI_API_KEY
 
   const API = process.env.SERVER_API_URL ?
       `${process.env.SERVER_API_URL}` : 'http://localhost:5000/api';

@@ -10,6 +10,7 @@ import {ScreenDetail} from "./components/ScreenDetailPage/ScreenDetailPage.tsx";
 import {SettingsPage} from "./components/SettingsPage.tsx";
 import {LandingPage} from "./components/LandingPage/LandingPage.tsx"
 import {UsersPage} from "./components/UsersPage.tsx";
+import {ImageGenerationPage} from "./components/ImageGenerationPage.tsx";
 
 export default function App() {
     return (
@@ -28,6 +29,7 @@ export default function App() {
                     <Route path="screen/:id" element={<ScreenDetail />} />
                     <Route path="screen/:id/config" element={<SignageCreatorPage />} />
                     <Route path="screen/:id/config/edit" element={<SignageCreatorPage />} />
+                    <Route path="ai" element={<ImageGenerationPage />} />
                 </Route>
             </Routes>
         </Router>

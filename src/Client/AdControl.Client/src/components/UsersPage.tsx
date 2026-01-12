@@ -1,8 +1,17 @@
-import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, RefreshCw } from "lucide-react";
+import ContentLoader from "react-content-loader";
+
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "./ui/table";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Input } from "./ui/input";
@@ -24,48 +33,173 @@ import {
     SelectValue,
 } from "./ui/select";
 
-const users = [
-    { id: 1, name: "Сара Джонсон", email: "sarah.j@company.com", role: "Администратор", status: "active", initials: "СД" },
-    { id: 2, name: "Майкл Чен", email: "michael.c@company.com", role: "Оператор", status: "active", initials: "МЧ" },
-    { id: 3, name: "Эмили Робертс", email: "emily.r@company.com", role: "Администратор", status: "active", initials: "ЭР" },
-    { id: 4, name: "Дэвид Мартинес", email: "david.m@company.com", role: "Техник", status: "active", initials: "ДМ" },
-    { id: 5, name: "Лиза Андерсон", email: "lisa.a@company.com", role: "Оператор", status: "inactive", initials: "ЛА" },
-    { id: 6, name: "Джеймс Уилсон", email: "james.w@company.com", role: "Техник", status: "active", initials: "ДУ" },
-];
+import { apiClient } from "../api/apiClient";
+import { generateRandomPassword } from "../utils";
+
+/* ===================== TYPES ===================== */
+
+type ApiUser = {
+    id: string;
+    username: string;
+    roles: string[];
+    email: string;
+    emailVerified: boolean;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    enabled: boolean;
+};
+
+type FormState = {
+    username: string;
+    password: string;
+    repeatPassword: string;
+    role: "admin" | "user" | "";
+};
+
+const initialFormState: FormState = {
+    username: "",
+    password: "",
+    repeatPassword: "",
+    role: "",
+};
+
+/* ===================== LOADER ===================== */
+
+const UsersTableLoader = () => (
+    <ContentLoader
+        speed={2}
+        width="100%"
+        height={240}
+        backgroundColor="#f3f3f3"
+        foregroundColor="#ecebeb"
+    >
+        <rect x="0" y="10" rx="6" ry="6" width="100%" height="40" />
+        <rect x="0" y="60" rx="6" ry="6" width="100%" height="40" />
+        <rect x="0" y="110" rx="6" ry="6" width="100%" height="40" />
+        <rect x="0" y="160" rx="6" ry="6" width="100%" height="40" />
+    </ContentLoader>
+);
+
+/* ===================== COMPONENT ===================== */
 
 export function UsersPage() {
+    const [users, setUsers] = useState<ApiUser[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const filteredUsers = users.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const [form, setForm] = useState<FormState>(initialFormState);
+
+    /* ===================== EFFECTS ===================== */
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    useEffect(() => {
+        if (!isDialogOpen) {
+            resetForm();
+        }
+    }, [isDialogOpen]);
+
+    /* ===================== API ===================== */
+
+    const fetchUsers = async () => {
+        try {
+            setIsLoadingUsers(true);
+            const { data } = await apiClient.get<ApiUser[]>("/get-users");
+            setUsers(data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    };
+
+    const handleCreateUser = async () => {
+        try {
+            setIsSubmitting(true);
+
+            await apiClient.post("/users", {
+                username: form.username,
+                password: form.password,
+                repeatPassword: form.repeatPassword,
+                roles: [form.role],
+            });
+
+            await fetchUsers();
+            setIsDialogOpen(false);
+            resetForm();
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    /* ===================== HELPERS ===================== */
+
+    const updateForm = (key: keyof FormState, value: string) => {
+        setForm((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const resetForm = () => {
+        setForm(initialFormState);
+        setShowPassword(false);
+    };
+
+    const generatePassword = () => {
+        const password = generateRandomPassword(10);
+        setForm((prev) => ({
+            ...prev,
+            password,
+            repeatPassword: password,
+        }));
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+    };
+
+    const filteredUsers = users.filter(
+        (u) =>
+            u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (u.email ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getRoleBadge = (role: string) => {
-        const styles = {
-            "Администратор": "bg-purple-100 text-purple-800 hover:bg-purple-200",
-            "Оператор": "bg-blue-100 text-blue-800 hover:bg-blue-200",
-            "Техник": "bg-green-100 text-green-800 hover:bg-green-200",
-        };
-        return <Badge className={styles[role as keyof typeof styles]}>{role}</Badge>;
-    };
-
-    const getStatusBadge = (status: string) => {
-        return status === "active" ? (
-            <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Активен</Badge>
+    const getRoleBadge = (roles: string[]) =>
+        roles.includes("admin") ? (
+            <Badge className="bg-purple-100 text-purple-800">Администратор</Badge>
         ) : (
-            <Badge variant="outline" className="text-gray-600">Неактивен</Badge>
+            <Badge className="bg-blue-100 text-blue-800">Пользователь</Badge>
         );
-    };
+
+    const getStatusBadge = (enabled: boolean) =>
+        enabled ? (
+            <Badge className="bg-green-100 text-green-800">Активен</Badge>
+        ) : (
+            <Badge variant="outline" className="text-gray-600">
+                Отключён
+            </Badge>
+        );
+
+    /* ===================== RENDER ===================== */
 
     return (
         <div className="space-y-6">
+            {/* HEADER */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1>Пользователи</h1>
-                    <p className="text-gray-600 mt-1">Управление доступом пользователей и правами</p>
+                    <p className="text-gray-600 mt-1">
+                        Управление доступом пользователей
+                    </p>
                 </div>
+
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button style={{ backgroundColor: "#2563EB" }} className="gap-2">
@@ -73,96 +207,184 @@ export function UsersPage() {
                             Добавить пользователя
                         </Button>
                     </DialogTrigger>
+
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Добавить нового пользователя</DialogTitle>
+                            <DialogTitle>Новый пользователь</DialogTitle>
                             <DialogDescription>
-                                Создайте новую учетную запись пользователя с соответствующим уровнем доступа.
+                                Создание учетной записи
                             </DialogDescription>
                         </DialogHeader>
+
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                                <Label htmlFor="user-name">Полное имя</Label>
-                                <Input id="user-name" placeholder="Например, Иван Иванов" />
+                                <Label>Логин</Label>
+                                <Input
+                                    value={form.username}
+                                    onChange={(e) =>
+                                        updateForm("username", e.target.value)
+                                    }
+                                />
                             </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email адрес</Label>
-                                <Input id="email" type="email" placeholder="ivan.ivanov@company.com" />
+                                <Label>Пароль</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type={showPassword ? "text" : "password"}
+                                        value={form.password}
+                                        onChange={(e) =>
+                                            updateForm("password", e.target.value)
+                                        }
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={generatePassword}
+                                    >
+                                        <RefreshCw className="h-3 w-3" />
+                                    </Button>
+                                </div>
                             </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="role">Роль</Label>
-                                <Select>
-                                    <SelectTrigger id="role">
+                                <Label>Повторите пароль</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type={showPassword ? "text" : "password"}
+                                        value={form.repeatPassword}
+                                        onChange={(e) =>
+                                            updateForm("repeatPassword", e.target.value)
+                                        }
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(form.password)}
+                                    >
+                                        Копировать
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? "Скрыть" : "Показать"}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Роль</Label>
+                                <Select
+                                    value={form.role}
+                                    onValueChange={(v) =>
+                                        updateForm("role", v)
+                                    }
+                                >
+                                    <SelectTrigger>
                                         <SelectValue placeholder="Выберите роль" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="admin">Администратор - Полный доступ</SelectItem>
-                                        <SelectItem value="operator">Оператор - Управление контентом</SelectItem>
-                                        <SelectItem value="technician">Техник - Обслуживание экранов</SelectItem>
+                                        <SelectItem value="admin">
+                                            Администратор
+                                        </SelectItem>
+                                        <SelectItem value="user">
+                                            Пользователь
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
+
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsDialogOpen(false)}
+                            >
                                 Отмена
                             </Button>
-                            <Button style={{ backgroundColor: "#2563EB" }} onClick={() => setIsDialogOpen(false)}>
-                                Добавить пользователя
+                            <Button
+                                style={{ backgroundColor: "#2563EB" }}
+                                onClick={handleCreateUser}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Создание..." : "Создать"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
             </div>
 
+            {/* TABLE */}
             <Card className="shadow-sm">
                 <div className="p-4 border-b border-gray-200">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
-                            placeholder="Поиск по имени или email..."
+                            className="pl-10"
+                            placeholder="Поиск..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10"
                         />
                     </div>
                 </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Пользователь</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Роль</TableHead>
-                            <TableHead>Статус</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredUsers.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarFallback className="bg-blue-100 text-blue-700">
-                                                {user.initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span>{user.name}</span>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-gray-600">{user.email}</TableCell>
-                                <TableCell>{getRoleBadge(user.role)}</TableCell>
-                                <TableCell>{getStatusBadge(user.status)}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm">
-                                        Редактировать
-                                    </Button>
-                                </TableCell>
+                {isLoadingUsers ? (
+                    <div className="p-4">
+                        <UsersTableLoader />
+                    </div>
+                ) : filteredUsers.length === 0 ? (
+                    <p className="p-4 mb-4 text-gray-500 m-auto">Нет пользователей</p>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Пользователь</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Роль</TableHead>
+                                <TableHead>Статус</TableHead>
+                                <TableHead className="text-right">Действия</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+
+                        <TableBody>
+                            {filteredUsers.map((u) => {
+                                const initials =
+                                    `${u.firstName?.[0] ?? ""}${u.lastName?.[0] ?? ""}` ||
+                                    u.username.slice(0, 2).toUpperCase();
+
+                                return (
+                                    <TableRow key={u.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                                                        {initials}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                {u.username}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{u.email || "—"}</TableCell>
+                                        <TableCell>{getRoleBadge(u.roles)}</TableCell>
+                                        <TableCell>
+                                            {getStatusBadge(u.enabled)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="sm">
+                                                Редактировать
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                )}
             </Card>
         </div>
     );

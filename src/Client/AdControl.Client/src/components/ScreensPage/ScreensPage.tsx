@@ -151,7 +151,7 @@ export function ScreensPage() {
             {status === "loading" ? (
                 <TableLoader />
             ) : filteredScreens.length === 0 ? (
-                <p className="p-4 text-gray-500">Нет экранов</p>
+                <p className="m-auto p-4 text-gray-500 ">Нет экранов</p>
             ) : (
                 <Table>
                   <TableHeader>
