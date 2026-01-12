@@ -1,6 +1,5 @@
 using System.Dynamic;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using System.Xml;
 using AdControl.ScreenClient.Android.Services;
 using AdControl.ScreenClient.Core.Options;
 using AdControl.ScreenClient.Core.Services;
@@ -8,6 +7,8 @@ using AdControl.ScreenClient.Core.Services.Abstractions;
 using Android.Views;
 using Graphics = Android.Graphics;
 using OperationCanceledException = Android.OS.OperationCanceledException;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace AdControl.ScreenClient.Android
 {
@@ -135,30 +136,22 @@ namespace AdControl.ScreenClient.Android
         {
             if (string.IsNullOrWhiteSpace(json))
                 return null;
-            var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(json);
-            if (rows is null || rows.Count == 0)
+
+            var rows = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+            if (rows == null || rows.Count == 0)
                 return null;
+
             var list = new List<ExpandoObject>();
             foreach (var dict in rows)
             {
                 var exp = new ExpandoObject() as IDictionary<string, object?>;
                 foreach (var pair in dict)
-                {
-                    object? value = pair.Value.ValueKind switch
-                    {
-                        JsonValueKind.String => pair.Value.GetString(),
-                        JsonValueKind.Number => pair.Value.TryGetDecimal(out var d) ? d : pair.Value.GetRawText(),
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        _ => null
-                    };
-                    exp[pair.Key] = value;
-                }
+                    exp[pair.Key] = pair.Value;
                 list.Add((ExpandoObject)exp);
             }
-
             return list;
         }
+
 
         // Основной цикл показа (аналог StartLoopAsync + ShowItemsAsync)
         public async Task StartAsync(CancellationToken token)
@@ -362,14 +355,8 @@ namespace AdControl.ScreenClient.Android
         {
             try
             {
-                var path = Path.Combine(FilesDir.AbsolutePath, "appsettings.json");
-                if (!File.Exists(path))
-                    return string.Empty;
-                var json = File.ReadAllText(path);
-                var node = JsonNode.Parse(json) as JsonObject;
-                if (node == null)
-                    return string.Empty;
-                if (node["Screen"] is JsonObject scr && scr["Id"] != null)
+                var node = LoadAppSettings();
+                if (node["Screen"] is JObject scr && scr["Id"] != null)
                     return scr["Id"]!.ToString();
                 return string.Empty;
             }
@@ -384,9 +371,9 @@ namespace AdControl.ScreenClient.Android
             try
             {
                 var node = LoadAppSettings();
-                if (node["Screen"] is not JsonObject screenObj)
+                if (node["Screen"] is not JObject screenObj)
                 {
-                    screenObj = new JsonObject();
+                    screenObj = new JObject();
                     node["Screen"] = screenObj;
                 }
                 screenObj["Id"] = screenId;
@@ -402,21 +389,31 @@ namespace AdControl.ScreenClient.Android
         {
             try
             {
-                var path = Path.Combine(FilesDir.AbsolutePath, "appsettings.json");
+                var path = AppSettingsPath();
                 if (!File.Exists(path))
                     return;
-                var json = await File.ReadAllTextAsync(path);
-                var node = JsonNode.Parse(json) as JsonObject ?? new JsonObject();
-                if (node["Screen"] is not JsonObject screenObj)
+
+                var text = await File.ReadAllTextAsync(path);
+                JObject node;
+                try
+                { node = JObject.Parse(text); }
+                catch { node = new JObject(); }
+
+                if (node["Screen"] is not JObject screenObj)
                 {
-                    screenObj = new JsonObject();
+                    screenObj = new JObject();
                     node["Screen"] = screenObj;
                 }
+
                 screenObj["Id"] = string.Empty;
-                await File.WriteAllTextAsync(path, node.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+                await File.WriteAllTextAsync(path, node.ToString(Newtonsoft.Json.Formatting.Indented));
             }
-            catch { /* ignore */ }
+            catch
+            {
+                // ignore
+            }
         }
+
 
         // Генерация QR и установка изображения + текст кода
         private void UpdateCodeAndQr(string code)
@@ -493,31 +490,31 @@ namespace AdControl.ScreenClient.Android
             }
         }
 
-        JsonObject LoadAppSettings()
+        private JObject LoadAppSettings()
         {
             try
             {
-                var path = AppSettingsPath();
-                if (!System.IO.File.Exists(path))
-                    return new JsonObject();
+                var path = Path.Combine(FilesDir.AbsolutePath, "appsettings.json");
+                if (!File.Exists(path))
+                    return new JObject();
 
-                var text = System.IO.File.ReadAllText(path);
-                return JsonNode.Parse(text) as JsonObject ?? new JsonObject();
+                var text = File.ReadAllText(path);
+                return JObject.Parse(text);
             }
             catch
             {
-                return new JsonObject();
+                return new JObject();
             }
         }
 
-        async Task SaveAppSettingsAsync(JsonObject node)
+        private async Task SaveAppSettingsAsync(JObject node)
         {
             await _appSettingsLock.WaitAsync();
             try
             {
-                var path = AppSettingsPath();
-                var text = node.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-                await System.IO.File.WriteAllTextAsync(path, text);
+                var path = Path.Combine(FilesDir.AbsolutePath, "appsettings.json");
+                var text = node.ToString(Newtonsoft.Json.Formatting.Indented);
+                await File.WriteAllTextAsync(path, text);
             }
             finally
             {

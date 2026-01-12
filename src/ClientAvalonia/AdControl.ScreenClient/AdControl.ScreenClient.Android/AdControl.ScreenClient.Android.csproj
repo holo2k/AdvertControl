@@ -23,6 +23,7 @@
     <PackageReference Include="Avalonia" Version="11.3.10" />
     <PackageReference Include="Avalonia.Android" Version="11.3.10" />
     <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SkiaSharp" Version="3.119.1" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>

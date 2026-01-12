@@ -1,15 +1,18 @@
 ﻿using System.Dynamic;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace AdControl.ScreenClient.Core.Services
 {
     public static class ParsingHelper
     {
-        public static async Task<List<ExpandoObject>?> GetDynamicListFromJson(string json)
+        public static Task<List<ExpandoObject>?> GetDynamicListFromJson(string json)
         {
-            var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(json);
+            if (string.IsNullOrWhiteSpace(json))
+                return Task.FromResult<List<ExpandoObject>?>(null);
+
+            var rows = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
             if (rows is null || rows.Count == 0)
-                return null;
+                return Task.FromResult<List<ExpandoObject>?>(null);
 
             var list = new List<ExpandoObject>();
             foreach (var dict in rows)
@@ -17,13 +20,16 @@ namespace AdControl.ScreenClient.Core.Services
                 var exp = new ExpandoObject() as IDictionary<string, object?>;
                 foreach (var pair in dict)
                 {
-                    object? value = pair.Value.ValueKind switch
+                    object? value = pair.Value switch
                     {
-                        JsonValueKind.String => pair.Value.GetString(),
-                        JsonValueKind.Number => pair.Value.TryGetDecimal(out var d) ? d : pair.Value.GetRawText(),
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        _ => null
+                        long l => l,
+                        int i => i,
+                        double d => d,
+                        float f => f,
+                        bool b => b,
+                        string s => s,
+                        null => null,
+                        _ => pair.Value.ToString()
                     };
                     exp[pair.Key] = value;
                 }
@@ -31,7 +37,7 @@ namespace AdControl.ScreenClient.Core.Services
                 list.Add((ExpandoObject)exp);
             }
 
-            return list;
+            return Task.FromResult<List<ExpandoObject>?>(list);
         }
     }
 }

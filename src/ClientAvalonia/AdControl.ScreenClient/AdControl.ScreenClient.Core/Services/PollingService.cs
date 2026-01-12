@@ -1,8 +1,9 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using AdControl.Protos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdControl.ScreenClient.Core.Services;
 
@@ -29,45 +30,6 @@ public class ConfigItemDto : IEquatable<ConfigItemDto>
     public long Size { get; set; }
     public int DurationSeconds { get; set; }
     public int Order { get; set; }
-
-    // фабричный метод для безопасного парсинга JsonElement
-    public static ConfigItemDto FromJsonElement(JsonElement el)
-    {
-        string GetStringOrEmpty(string name)
-        {
-            return el.TryGetProperty(name, out var prop) && prop.ValueKind != JsonValueKind.Null
-                ? prop.GetString() ?? ""
-                : "";
-        }
-
-        long GetLongOrDefault(string name)
-        {
-            return el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var v)
-                ? v
-                : 0L;
-        }
-
-        int GetIntOrDefault(string name)
-        {
-            return el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var v)
-                ? v
-                : 0;
-        }
-
-        var rawUrl = GetStringOrEmpty("url");
-        var fileName = string.IsNullOrEmpty(rawUrl) ? "" : Path.GetFileName(rawUrl); // NORMALIZE -> file name only
-
-        return new ConfigItemDto(
-            id: GetStringOrEmpty("id"),
-            type: GetStringOrEmpty("type"),
-            urlFileName: fileName,
-            inlineData: GetStringOrEmpty("inlineData"),
-            checksum: GetStringOrEmpty("checksum"),
-            size: GetLongOrDefault("size"),
-            durationSeconds: GetIntOrDefault("durationSeconds"),
-            order: GetIntOrDefault("order")
-        );
-    }
 
     public override bool Equals(object? obj)
     {
@@ -98,6 +60,47 @@ public class ConfigItemDto : IEquatable<ConfigItemDto>
 }
 
 public record ConfigDto(long Version, long UpdatedAt, ConfigItemDto[] Items, bool NotModified = false, int WindowCount = 0, bool isStatic = false);
+public static class ConfigItemDtoExtensions
+{
+    public static ConfigItemDto FromJObject(JObject el)
+    {
+        string GetStringOrEmpty(string name)
+        {
+            return el.TryGetValue(name, StringComparison.OrdinalIgnoreCase, out var t) && t.Type != JTokenType.Null
+                ? t.ToString()
+                : "";
+        }
+
+        long GetLongOrDefault(string name)
+        {
+            return el.TryGetValue(name, StringComparison.OrdinalIgnoreCase, out var t) && t.Type == JTokenType.Integer
+                ? t.Value<long>()
+                : 0L;
+        }
+
+        int GetIntOrDefault(string name)
+        {
+            return el.TryGetValue(name, StringComparison.OrdinalIgnoreCase, out var t) &&
+                   (t.Type == JTokenType.Integer || t.Type == JTokenType.Float)
+                ? t.Value<int>()
+                : 0;
+        }
+
+        var rawUrl = GetStringOrEmpty("url");
+        var fileName = string.IsNullOrEmpty(rawUrl) ? "" : Path.GetFileName(rawUrl);
+
+        return new ConfigItemDto(
+            id: GetStringOrEmpty("id"),
+            type: GetStringOrEmpty("type"),
+            urlFileName: fileName,
+            inlineData: GetStringOrEmpty("inlineData"),
+            checksum: GetStringOrEmpty("checksum"),
+            size: GetLongOrDefault("size"),
+            durationSeconds: GetIntOrDefault("durationSeconds"),
+            order: GetIntOrDefault("order")
+        );
+    }
+}
 
 public class PollingService
 {
@@ -119,25 +122,34 @@ public class PollingService
             using var resp = await client.GetAsync(url);
             if (resp.StatusCode == HttpStatusCode.NotModified)
                 return new ConfigDto(knownVersion, 0, Array.Empty<ConfigItemDto>(), true);
+
             resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var ver = doc.RootElement.GetProperty("version").GetInt64();
-            var itemsEl = doc.RootElement.GetProperty("items");
+            var jo = JObject.Parse(json);
+
+            var ver = jo.Value<long?>("version") ?? 0L;
+            var itemsToken = jo["items"] as JArray;
             var items = new List<ConfigItemDto>();
-            foreach (var it in itemsEl.EnumerateArray())
-                items.Add(ConfigItemDto.FromJsonElement(it));
-            var updatedAt = doc.RootElement.TryGetProperty("updatedAt", out var ua) ? ua.GetInt64() : 0;
-            var screensCount = doc.RootElement.TryGetProperty("screensCount", out var sc) ? sc.GetInt32() : 0;
-            var isStatic = doc.RootElement.TryGetProperty("isStatic", out var iss) && iss.GetBoolean();
+            if (itemsToken != null)
+            {
+                foreach (var it in itemsToken)
+                {
+                    if (it is JObject itemObj)
+                    {
+                        items.Add(ConfigItemDtoExtensions.FromJObject(itemObj));
+                    }
+                }
+            }
+
+            var updatedAt = jo.Value<long?>("updatedAt") ?? 0L;
+            var screensCount = jo.Value<int?>("screensCount") ?? 0;
+            var isStatic = jo.Value<bool?>("isStatic") ?? false;
             var notModified = knownVersion == ver;
 
             return new ConfigDto(
                 ver,
                 updatedAt,
-                items
-                    .OrderBy(x => x.Order)
-                    .ToArray(),
+                items.OrderBy(x => x.Order).ToArray(),
                 notModified,
                 screensCount,
                 isStatic
@@ -158,8 +170,10 @@ public class PollingService
         {
             var grpcReq = new GetConfigForScreenRequest { ScreenId = screenId, KnownVersion = knownVersion };
             var rpc = await _avaloniaClient.GetConfigForScreenAsync(grpcReq);
-            if (!string.IsNullOrEmpty(rpc.Error)) throw new Exception(rpc.Error);
-            if (rpc.NotModified) return new ConfigDto(knownVersion, 0, Array.Empty<ConfigItemDto>(), true);
+            if (!string.IsNullOrEmpty(rpc.Error))
+                throw new Exception(rpc.Error);
+            if (rpc.NotModified)
+                return new ConfigDto(knownVersion, 0, Array.Empty<ConfigItemDto>(), true);
 
             var proto = rpc.Config;
             var itemsList = new List<ConfigItemDto>();
@@ -180,9 +194,7 @@ public class PollingService
             return new ConfigDto(
                 proto.Version,
                 proto.UpdatedAt,
-                itemsList
-                    .OrderBy(x => x.Order)
-                    .ToArray(),
+                itemsList.OrderBy(x => x.Order).ToArray(),
                 notModified,
                 proto.ScreensCount,
                 proto.IsStatic
@@ -205,7 +217,7 @@ public class PollingService
             TtlMinutes = ttlMinutes,
             Info = info
         };
-        var json = JsonSerializer.Serialize(payload);
+        var json = JsonConvert.SerializeObject(payload);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
         try
         {
@@ -226,15 +238,13 @@ public class PollingService
         {
             var url = $"/api/polling/pair/status?tempDisplayId={Uri.EscapeDataString(tempDisplayId)}";
             using var resp = await client.GetAsync(url);
-            if (!resp.IsSuccessStatusCode) return (false, null);
+            if (!resp.IsSuccessStatusCode)
+                return (false, null);
             var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var assigned = doc.RootElement.GetProperty("assigned").GetBoolean();
-            var screenId = doc.RootElement.TryGetProperty("screenId", out var sid) &&
-                           sid.ValueKind != JsonValueKind.Null
-                ? sid.GetString()
-                : null;
-            return (assigned, screenId);
+            var jo = JObject.Parse(json);
+            var assigned = jo.Value<bool?>("assigned") ?? false;
+            var screenId = jo.Value<string?>("screenId");
+            return (assigned, string.IsNullOrEmpty(screenId) ? null : screenId);
         }
         catch
         {
