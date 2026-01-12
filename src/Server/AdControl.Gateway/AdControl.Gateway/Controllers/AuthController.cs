@@ -4,6 +4,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AdControl.Gateway.Controllers;
 
@@ -30,6 +31,10 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return Unauthorized();
+
         var request = new RegisterRequest
         {
             Name = dto.Name,
@@ -41,7 +46,7 @@ public class AuthController : ControllerBase
             Roles = { dto.Roles }
         };
 
-        var resp = await _authServiceClient.RegisterAsync(request);
+        var resp = await _authServiceClient.RegisterAsync(request, BuildAuthMetadata(HttpContext));
         return Ok(resp);
     }
 
@@ -73,7 +78,9 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Logout()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return Unauthorized();
 
         var request = new LogoutRequest
         {
@@ -96,6 +103,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> UpdateCurrent(UpdateUserDto dto)
     {
         var resp = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(resp.Id))
+            return Unauthorized();
 
         var request = new UpdateUserRequest
         {
@@ -123,6 +132,9 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetCurrentUserId()
     {
         var resp = await GetUserIdAsync();
+        if (string.IsNullOrEmpty(resp.Id))
+            return Unauthorized();
+
         return Ok(resp);
     }
 
@@ -132,16 +144,19 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCurrentUserInfo()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return Unauthorized();
+
         var currentUserRequest = new UserIdRequest
         {
             Token = token
         };
 
         var currentUserIdResponse = await _authServiceClient.GetCurrentUserIdAsync(currentUserRequest);
-        
+
         var id = currentUserIdResponse.Id;
-        
+
         if (id is null)
             return Unauthorized();
 
@@ -161,7 +176,9 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetUserInfo(string id)
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return Unauthorized();
 
         var requestUserId = new UserIdRequest { Token = token };
         var currentUserId = await _authServiceClient.GetCurrentUserIdAsync(requestUserId);
@@ -184,12 +201,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetUsers()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return Unauthorized();
 
         var requestUserId = new UserIdRequest { Token = token };
         var currentUserId = await _authServiceClient.GetCurrentUserIdAsync(requestUserId);
 
-        if (currentUserId.Id == "")
+        if (string.IsNullOrEmpty(currentUserId.Id))
             return Unauthorized();
 
         var request = new GetUsersRequest();
@@ -200,7 +219,10 @@ public class AuthController : ControllerBase
 
     private async Task<UserIdResponse> GetUserIdAsync()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var token = GetBearerToken();
+        if (IsTokenExpired(token))
+            return new UserIdResponse { Id = "" };
+
         var request = new UserIdRequest
         {
             Token = token
@@ -217,5 +239,34 @@ public class AuthController : ControllerBase
         if (http.Request.Headers.TryGetValue("Authorization", out var auth))
             metadata.Add("Authorization", auth.ToString());
         return metadata;
+    }
+
+    private string GetBearerToken()
+    {
+        var header = Request.Headers["Authorization"].ToString();
+        if (string.IsNullOrEmpty(header))
+            return string.Empty;
+        return header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? header.Substring("Bearer ".Length).Trim()
+            : header.Trim();
+    }
+
+    private bool IsTokenExpired(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+            return true;
+
+        try
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            // ValidTo хранит время в UTC
+            return jwt.ValidTo < DateTime.UtcNow;
+        }
+        catch
+        {
+            // Если токен не валидный — считаем его недействительным/просроченным
+            return true;
+        }
     }
 }
