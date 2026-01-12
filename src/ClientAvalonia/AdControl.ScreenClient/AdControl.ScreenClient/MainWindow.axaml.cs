@@ -9,6 +9,7 @@ using AdControl.ScreenClient.Core.Services;
 using AdControl.ScreenClient.Core.Services.Abstractions;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
@@ -275,22 +276,35 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 StatusText.Text = $"Ошибка во время цикла обращения к серверу: {ex.Message}");
         }
     }
-    
+
     private void OpenPlayerWindows(ConfigDto cfg)
     {
         var windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 0;
-
         if (windowCount <= 1)
             return;
 
+        var screens = Screens.All.ToList();
+
         for (var i = 1; i < windowCount; i++)
         {
-            var win = new PlayerWindow(cfg.Items?.ToList(), i+1);
+            var win = new PlayerWindow(cfg.Items?.ToList(), i + 1);
+
+            // если экранов меньше, чем окон — циклически используем их
+            var screenIndex = i % screens.Count;
+            var screen = screens[screenIndex];
+
+            var area = screen.WorkingArea;
+
+            win.Position = new PixelPoint(area.X, area.Y);
+            win.Width = area.Width;
+            win.Height = area.Height;
+            win.WindowState = WindowState.Normal;
+
             _playerWindows.Add(win);
             win.Show();
         }
     }
-    
+
     private bool _playerWindowsOpened;
 
     private async Task PollOnce(CancellationToken token)
