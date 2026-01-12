@@ -109,9 +109,8 @@ public class ScreenController : ControllerBase
 
 
     /// <summary>
-    ///     Удаление экрана (не реализовано).
+    ///     Удаление экрана.
     /// </summary>
-    /// <response code="501">Метод не реализован</response>
     [HttpDelete("{id}")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status501NotImplemented)]

@@ -5,6 +5,7 @@ stages:
   - test
   - build-frontend
   - deploy-frontend
+  - release
 
 variables:
   IMAGE_REGISTRY: $CI_REGISTRY_IMAGE
@@ -189,3 +190,55 @@ deploy-frontend-job:
   only:
     - main
   when: on_success
+
+build-screenclient-archive:
+  stage: release
+  image: alpine:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - apk add --no-cache zip
+    - cd src/ClientAvalonia
+    - zip -r AdControl.ScreenClient.zip AdControl.ScreenClient
+  artifacts:
+    paths:
+      - src/ClientAvalonia/AdControl.ScreenClient.zip
+    expire_in: 1 hour
+
+upload-screenclient-package:
+  stage: release
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - build-screenclient-archive
+  variables:
+    PACKAGE_NAME: adcontrol-screenclient
+    PACKAGE_VERSION: ${CI_COMMIT_TAG#v}
+    FILE_PATH: src/ClientAvalonia/AdControl.ScreenClient.zip
+  script:
+    - |
+      curl --fail --show-error \
+        --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        --upload-file "$FILE_PATH" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/$PACKAGE_NAME/$PACKAGE_VERSION/AdControl.ScreenClient.zip"
+
+create-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - upload-screenclient-package
+  script:
+    - |
+      glab release create "$CI_COMMIT_TAG" \
+        --name "Release $CI_COMMIT_TAG" \
+        --notes "Screen Client release ($CI_COMMIT_TAG)" \
+        --assets-links="[
+          {
+            \"name\":\"Screen Client (Windows)\",
+            \"url\":\"$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/adcontrol-screenclient/${CI_COMMIT_TAG#v}/AdControl.ScreenClient.zip\",
+            \"link_type\":\"package\"
+          }
+        ]"

@@ -9,6 +9,7 @@ using AdControl.ScreenClient.Core.Services;
 using AdControl.ScreenClient.Core.Services.Abstractions;
 using AdControl.ScreenClient.Enums;
 using AdControl.ScreenClient.Services;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
@@ -275,66 +276,76 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 StatusText.Text = $"Ошибка во время цикла обращения к серверу: {ex.Message}");
         }
     }
-    
+
     private void OpenPlayerWindows(ConfigDto cfg)
     {
         var windowCount = cfg.WindowCount > 0 ? cfg.WindowCount : 0;
-
         if (windowCount <= 1)
             return;
 
-        for (var i = 1; i < windowCount; i++)
+        var screens = Screens.All.ToList();
+        if (screens.Count == 0)
+            return;
+
+        // main window — индекс 0, дополнительные окна — 1..windowCount-1
+        for (var idx = 1; idx < windowCount; idx++)
         {
-            var win = new PlayerWindow(cfg.Items?.ToList(), i+1);
+            // передаём idx — это желаемый zero-based сдвиг для этого окна
+            var win = new PlayerWindow(cfg.Items?.ToList(), idx);
+
+            var screen = screens[idx % screens.Count];
+            var area = screen.WorkingArea;
+
+            win.Position = new PixelPoint(area.X, area.Y);
+            win.Width = area.Width;
+            win.Height = area.Height;
+            win.WindowState = WindowState.FullScreen;
+
             _playerWindows.Add(win);
             win.Show();
         }
     }
-    
+
     private bool _playerWindowsOpened;
 
     private async Task PollOnce(CancellationToken token)
+{
+    try
     {
-        try
+        var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
+        if (cfg == null) throw new Exception("Конфиг пуст либо не загружен :(");
+
+        isStatic = cfg.isStatic;
+        _knownVersion = cfg.Version;
+
+        if (cfg.NotModified)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = "Обращение к серверу..."; });
+            Items.Clear();
+            foreach (var i in cfg.Items)
+                Items.Add(i);
 
-            var cfg = await _polling.GetConfigAsync(_screenId, _knownVersion);
-            if (cfg == null) throw new Exception("Конфиг пуст либо не загружен :(");
+            StatusText.Text = string.Empty; // очищаем только после успешного получения
+        });
 
-            isStatic = cfg.isStatic;
-            _knownVersion = cfg.Version;
-
-            if (cfg.NotModified)
-                return;
-
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                Items.Clear();
-                foreach (var i in cfg.Items)
-                    Items.Add(i);
-
-                StatusText.Text = $"";
-            });
-
-            if (!_playerWindowsOpened)
-            {
-                _playerWindowsOpened = true;
-                await Dispatcher.UIThread.InvokeAsync(() => OpenPlayerWindows(cfg));
-            }
-
-            foreach (var pW in _playerWindows)
-            {
-                await Dispatcher.UIThread.InvokeAsync(() => pW.UpdateItems(cfg.Items.ToList()));
-            }
-
-            
+        if (!_playerWindowsOpened)
+        {
+            _playerWindowsOpened = true;
+            await Dispatcher.UIThread.InvokeAsync(() => OpenPlayerWindows(cfg));
         }
-        catch (Exception ex)
+
+        foreach (var pW in _playerWindows)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"{ex.Message}"; });
+            await Dispatcher.UIThread.InvokeAsync(() => pW.UpdateItems(cfg.Items.ToList()));
         }
     }
+    catch (Exception ex)
+    {
+        await Dispatcher.UIThread.InvokeAsync(() => { StatusText.Text = $"{ex.Message}"; });
+    }
+}
 
     private async Task ShowItemsAsync(CancellationToken token)
     {
