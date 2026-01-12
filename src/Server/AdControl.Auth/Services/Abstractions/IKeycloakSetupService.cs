@@ -15,4 +15,5 @@ public interface IKeycloakSetupService
     Task<bool> LogoutAsync(string accessToken);
     public Task<string?> GetCurrentUserIdAsync(string token);
     public Task<JsonElement?> GetUserByIdAsync(string userId);
+    public Task<JsonElement?> GetUsersAsync();
 }

@@ -170,7 +170,30 @@ public class AuthController : ControllerBase
             return Unauthorized();
 
         var request = new UserInfoRequest { Id = id };
-        var resp = await _authServiceClient.GetUserInfoAsync(request);
+        var resp = await _authServiceClient.GetUserInfoAsync(request, BuildAuthMetadata(HttpContext));
+
+        return Ok(resp);
+    }
+
+    /// <summary>
+    ///     Возвращает информацию о пользователях.
+    /// </summary>
+    [HttpPost("get-users")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUsers(string id)
+    {
+        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+        var requestUserId = new UserIdRequest { Token = token };
+        var currentUserId = await _authServiceClient.GetCurrentUserIdAsync(requestUserId);
+
+        if (id != currentUserId.Id)
+            return Unauthorized();
+
+        var request = new GetUsersRequest();
+        var resp = await _authServiceClient.GetUsersAsync(request);
 
         return Ok(resp);
     }

@@ -473,4 +473,22 @@ public class KeycloakSetupService : IKeycloakSetupService
         using var doc = JsonDocument.Parse(body);
         return doc.RootElement.GetProperty("access_token").GetString()!;
     }
+
+    public async Task<JsonElement?> GetUsersAsync()
+    {
+        var masterToken = await AcquireMasterTokenAsync();
+        var url = $"{_keycloakBaseUrl}/admin/realms/{_defaultRealm}/users";
+
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", masterToken);
+
+        using var resp = await _httpClient.SendAsync(req);
+        if (resp.StatusCode == HttpStatusCode.NotFound)
+            return null;
+        resp.EnsureSuccessStatusCode();
+
+        var body = await resp.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        return doc.RootElement.Clone(); // клон, безопасно вернуть после dispose
+    }
 }

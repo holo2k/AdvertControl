@@ -5,13 +5,15 @@ option csharp_namespace = "AdControl.Protos";
 message LoginRequest { string email = 1; string password = 2;}
 message LoginResponse {string token = 1;}
 message RegisterRequest {string email = 1; string password = 2; string repeatPassword = 3; repeated string roles = 4; string name = 5; string secondName = 6; string phone = 7; }
-message RegisterResponse{string token = 1;}
-message LogoutRequest{string token = 1;}
-message LogoutResponse{bool success = 1;}
-message UserIdRequest{string token = 1;}
-message UserIdResponse{string id = 1;}
-message UserInfoRequest{string id = 1;}
-message UserInfoResponse{string username = 1; repeated string roles=2; string email = 3; string emailVerified = 4; string firstName = 5; string lastName = 6; string phoneNumber = 7; bool enabled = 8;}
+message RegisterResponse {string token = 1;}
+message LogoutRequest {string token = 1;}
+message LogoutResponse {bool success = 1;}
+message UserIdRequest {string token = 1;}
+message UserIdResponse {string id = 1;}
+message UserInfoRequest {string id = 1;}
+message UserInfoResponse {string userId = 1; string username = 2; string role = 3; string email = 4; string firstName = 5; string lastName = 6; string phoneNumber = 7; bool enabled = 8;}
+message GetUsersRequest { };
+message GetUsersResponse {repeated UserInfoResponse users = 1;}
 
 message UpdateUserRequest {
   string id = 1;
@@ -34,4 +36,5 @@ service AuthService {
   rpc GetCurrentUserId(UserIdRequest) returns (UserIdResponse);
   rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse);
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
 }

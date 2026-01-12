@@ -88,40 +88,23 @@ public class AuthService : Protos.AuthService.AuthServiceBase
         if (userJson == null)
             return new UserInfoResponse();
 
-        var root = userJson.Value;
+        return ParseUser(userJson.Value);
+    }
 
-        string? GetString(string name)
+    public override async Task<GetUsersResponse> GetUsers(GetUsersRequest request, ServerCallContext context)
+    {
+        var usersJson = await _keycloakSetupService.GetUsersAsync();
+        if (usersJson == null || usersJson.Value.ValueKind != JsonValueKind.Array)
+            return new GetUsersResponse();
+
+        var response = new GetUsersResponse();
+
+        foreach (var root in usersJson.Value.EnumerateArray())
         {
-            return root.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
-                ? prop.GetString()
-                : string.Empty;
+            response.Users.Add(ParseUser(root));
         }
 
-        var phone = string.Empty;
-        if (root.TryGetProperty("attributes", out var attr) &&
-            attr.TryGetProperty("phoneNumber", out var phoneProp) &&
-            phoneProp.ValueKind == JsonValueKind.Array &&
-            phoneProp.EnumerateArray().Any())
-            phone = phoneProp.EnumerateArray().First().GetString() ?? string.Empty;
-
-        var resp = new UserInfoResponse
-        {
-            Username = GetString("username"),
-            Email = GetString("email"),
-            EmailVerified = GetString("emailVerified"),
-            FirstName = GetString("firstName"),
-            LastName = GetString("lastName"),
-            PhoneNumber = phone,
-            Enabled = root.TryGetProperty("enabled", out var enabledProp) && enabledProp.GetBoolean()
-        };
-
-        var roles = root.TryGetProperty("roles", out var rolesProp)
-            ? rolesProp.EnumerateArray().Select(role => role.GetString()).ToList()!
-            : new List<string>();
-
-        resp.Roles.AddRange(roles);
-
-        return resp;
+        return response;
     }
 
     private static string? GetUserIdFromMetadata(ServerCallContext context)
@@ -145,5 +128,52 @@ public class AuthService : Protos.AuthService.AuthServiceBase
 
         var sub = jwt.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier)?.Value;
         return sub;
+    }
+
+    private UserInfoResponse ParseUser(JsonElement root)
+    {
+        static string GetString(JsonElement el, string name)
+        {
+            return el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+                ? prop.GetString() ?? string.Empty
+                : string.Empty;
+        }
+
+        // userId
+        var userId = root.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.String
+            ? idProp.GetString() ?? string.Empty
+            : string.Empty;
+
+        // phone
+        var phone = string.Empty;
+        if (root.TryGetProperty("attributes", out var attr) &&
+            attr.ValueKind == JsonValueKind.Object &&
+            attr.TryGetProperty("phoneNumber", out var phoneProp) &&
+            phoneProp.ValueKind == JsonValueKind.Array &&
+            phoneProp.EnumerateArray().Any())
+        {
+            phone = phoneProp.EnumerateArray().First().GetString() ?? string.Empty;
+        }
+
+        // role — первая непустая строка из roles[]
+        var role = string.Empty;
+        if (root.TryGetProperty("roles", out var rolesProp) && rolesProp.ValueKind == JsonValueKind.Array)
+        {
+            role = rolesProp.EnumerateArray()
+                .Select(r => r.ValueKind == JsonValueKind.String ? r.GetString() : null)
+                .FirstOrDefault(s => !string.IsNullOrEmpty(s)) ?? string.Empty;
+        }
+
+        return new UserInfoResponse
+        {
+            UserId = userId,
+            Username = GetString(root, "username"),
+            Role = role,
+            Email = GetString(root, "email"),
+            FirstName = GetString(root, "firstName"),
+            LastName = GetString(root, "lastName"),
+            PhoneNumber = phone,
+            Enabled = root.TryGetProperty("enabled", out var enabledProp) && enabledProp.ValueKind == JsonValueKind.True
+        };
     }
 }
