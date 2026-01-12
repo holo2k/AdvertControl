@@ -33,7 +33,7 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
         var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD") ?? "YourPwd";
         options.ListenAnyIP(port, listenOptions =>
         {
-            listenOptions.UseHttps(certPath, certPassword);
+            //listenOptions.UseHttps(certPath, certPassword);
             listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
         });
     });
