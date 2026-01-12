@@ -36,11 +36,8 @@ export const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      {/* Hero Section - Full Screen with Advanced Animations */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-    {/* Animated Background - Теперь на всю секцию */}
+      <section className="min-h-screen relative h-screen flex items-center justify-center overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white">
-          {/* Animated Gradient Orbs */}
           <motion.div
             animate={{
               scale: [1, 1.2, 1],

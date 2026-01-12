@@ -44,7 +44,7 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
   const handleLogout = () => {
     // @ts-expect-error фикс линтера
     dispatch(logoutUser());
-    setTimeout(() => navigate("/login"), 50);
+    setTimeout(() => navigate("/"), 50);
   };
 
   // ContentLoader для имени пользователя
@@ -63,10 +63,10 @@ export function Header({ isMinimal = false }: { isMinimal?: boolean }) {
 
   return (
       <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-50">
-        <div className="flex items-center gap-2">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2">
           <img src="/icon.ico" alt="Логотип AdvertControl" className="h-8 w-8"/>
           <span className="font-semibold text-gray-800">AdvertControl</span>
-        </div>
+        </button>
 
         {!isMinimal && (
             <div className="flex items-center gap-4">
