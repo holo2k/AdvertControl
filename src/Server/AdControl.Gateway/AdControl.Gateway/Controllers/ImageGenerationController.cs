@@ -1,12 +1,9 @@
 ﻿using AdControl.Gateway.Application.Dtos;
-using AdControl.Gateway.Application.Extensions;
 using AdControl.Gateway.Application.Services.Abstractions;
 using AdControl.Protos;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static AdControl.Protos.AuthService;
-using static AdControl.Protos.FileService;
 
 namespace AdControl.Gateway.Controllers
 {
@@ -19,7 +16,10 @@ namespace AdControl.Gateway.Controllers
         private readonly FileService.FileServiceClient _fileServiceClient;
         private readonly AuthService.AuthServiceClient _authServiceClient;
 
-        public ImageGenerationController(IImageGenerationService imageService, FileServiceClient fileServiceClient, AuthServiceClient authServiceClient)
+        public ImageGenerationController(
+            IImageGenerationService imageService,
+            FileService.FileServiceClient fileServiceClient,
+            AuthService.AuthServiceClient authServiceClient)
         {
             _imageService = imageService;
             _fileServiceClient = fileServiceClient;
@@ -37,32 +37,22 @@ namespace AdControl.Gateway.Controllers
             var base64 = await _imageService.GenerateImageAsync(request.Prompt, ct);
             var bytes = Convert.FromBase64String(base64);
 
-            var fileName = $"generated-{Guid.NewGuid().ToString().Substring(0, 8)}.jpg";
-            var file = bytes.ToFile(fileName);
-
-            if (file == null || file.Length == 0)
-                return BadRequest("File is empty.");
+            if (bytes.Length == 0)
+                return BadRequest("Generated image is empty.");
 
             var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
-            var currentUserRequest = new UserIdRequest { Token = token };
-            var currentUser = _authServiceClient.GetCurrentUserId(currentUserRequest);
+            var currentUser = _authServiceClient.GetCurrentUserId(new UserIdRequest { Token = token });
             var userId = currentUser.Id;
 
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
+            var fileName = $"generated_{Guid.NewGuid():N}_{userId}.jpg";
 
-            var extension = Path.GetExtension(file.FileName);
-            var safeFileName = Path.GetFileNameWithoutExtension(file.FileName);
-
-            var newFileName = $"{safeFileName}_{Guid.NewGuid().ToString().Substring(0, 8)}_{userId}{extension}";
-
-            var uploadFileRequest = new UploadFileRequest
+            var uploadRequest = new UploadFileRequest
             {
-                FileName = newFileName,
-                FileData = ByteString.CopyFrom(ms.ToArray())
+                FileName = fileName,
+                FileData = ByteString.CopyFrom(bytes)
             };
 
-            var resp = await _fileServiceClient.UploadFileAsync(uploadFileRequest);
+            var resp = await _fileServiceClient.UploadFileAsync(uploadRequest);
 
             return Ok(resp);
         }
