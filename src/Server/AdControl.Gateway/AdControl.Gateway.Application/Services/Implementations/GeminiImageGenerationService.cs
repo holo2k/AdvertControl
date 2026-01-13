@@ -26,7 +26,7 @@ namespace AdControl.Gateway.Application.Services.Implementations
 
             var requestBody = new
             {
-                model = "bytedance-seed/seedream-4.5",
+                model = "google/gemini-2.5-flash-image",
                 messages = new[]
                 {
                     new { role = "user", content = new[] { new { type = "text", text = prompt } } }
