@@ -3,6 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using AdControl.Gateway.Application.Minio;
+using AdControl.Gateway.Application.Services.Abstractions;
+using AdControl.Gateway.Application.Services.Implementations;
 using AdControl.Protos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -48,6 +50,8 @@ static void ConfigureKestrel(WebApplicationBuilder builder)
 
 static void ConfigureServices(WebApplicationBuilder builder)
 {
+    builder.Services.AddHttpClient<IImageGenerationService, GeminiImageGenerationService>();
+
     // Controllers + JSON
     builder.Services.AddControllers().AddJsonOptions(options =>
     {
