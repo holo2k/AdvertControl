@@ -43,7 +43,7 @@ public class ConfigController : ControllerBase
 
                 var ci = new ConfigItem
                 {
-                    Id = it.Id ?? Guid.CreateVersion7().ToString(),
+                    Id = it.Id ?? Guid.NewGuid().ToString(),
                     ConfigId = "",
                     Type = type,
                     Url = it.Url ?? "",
@@ -146,6 +146,7 @@ public class ConfigController : ControllerBase
         return Ok(response);
     }
 
+    [Obsolete("Метод устарел. Используйте /update-config")]
     [HttpPatch("{id}/update")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -164,6 +165,41 @@ public class ConfigController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("{id}/update-config")]
+    [Authorize]
+    public async Task<IActionResult> UpdateConfig(string id, [FromBody] ConfigDto dto)
+    {
+        var protoItems = dto.Items.Select(i => new ConfigItem
+        {
+            Id = i.Id.ToString(),
+            ConfigId = i.Id.ToString(), 
+            Type = Enum.TryParse<ItemType>(i.Type, true, out var t)
+                ? t
+                : ItemType.Image,
+            Url = i.Url,
+            InlineData = i.InlineData,
+            Checksum = i.Checksum,
+            Size = i.Size,
+            DurationSeconds = i.DurationSeconds,
+            Order = i.Order
+        });
+        
+        var request = new Config
+        {
+            CreatedAt = DateTimeToUnixMs(dto.CreatedAt),
+            Name = dto.Name,
+            ScreensCount = dto.ScreensCount,
+            IsStatic = dto.IsStatic,
+            UpdatedAt = DateTimeToUnixMs(dto.UpdatedAt),
+            UserId = dto.UserId?.ToString() ?? "",
+            Version = dto.Version,
+            Items = { protoItems }
+        };
+
+        var response = await _screenClient.UpdateConfigAsync(request);
+        return Ok(response);
+    }
+    
     [HttpDelete("{id}/remove-items")]
     [Authorize]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -187,5 +223,10 @@ public class ConfigController : ControllerBase
         if (http.Request.Headers.TryGetValue("Authorization", out var auth))
             metadata.Add("Authorization", auth.ToString());
         return metadata;
+    }
+    
+    private static long DateTimeToUnixMs(DateTime dt)
+    {
+        return new DateTimeOffset(dt.ToUniversalTime()).ToUnixTimeMilliseconds();
     }
 }

@@ -475,6 +475,87 @@ public class GrpcScreenService : ScreenService.ScreenServiceBase
             };
         }
     }
+    
+    public override async Task<UpdateConfigResponseV2> UpdateConfig(Config request,
+        ServerCallContext context)
+    {
+        var userIdString = GetUserIdFromMetadata(context);
+        Guid? userId = null;
+        if (Guid.TryParse(userIdString, out var g))
+            userId = g;
+        else
+            throw new UnauthorizedAccessException();
+        try
+        {
+            var guidId = Guid.Parse(request.Id);
+            var config = await _configs.GetAsync(guidId);
+            if (config == null)
+                throw new ArgumentException("config not found");
+
+            config.IsStatic = request.IsStatic;
+            config.UserId = userId;
+            config.CreatedAt = new DateTime(request.CreatedAt);
+            config.Items = request.Items.Select(i => new ConfigItem
+            {
+                Id = string.IsNullOrEmpty(i.Id) ? Guid.NewGuid() : Guid.Parse(i.Id),
+                ConfigId = Guid.Empty, // will be set in service
+                Type = i.Type.ToString(),
+                Url = i.Url,
+                InlineData = i.InlineData,
+                Checksum = i.Checksum,
+                Size = i.Size,
+                DurationSeconds = i.DurationSeconds,
+                Order = i.Order
+            }).ToList();
+            config.Version = request.Version;
+            config.Name = request.Name;
+            config.ScreensCount = request.ScreensCount;
+            config.UpdatedAt = new DateTime(request.UpdatedAt);
+            
+            var newConfig = await _configs.UpdateAsync(config);
+            var protoItems = newConfig.Items.Select(i => new AdControl.Protos.ConfigItem
+            {
+                Id = i.Id.ToString(),
+                ConfigId = i.Id.ToString(), 
+                Type = Enum.TryParse<ItemType>(i.Type, true, out var t)
+                    ? t
+                    : ItemType.Image,                
+                Url = i.Url,
+                InlineData = i.InlineData,
+                Checksum = i.Checksum,
+                Size = i.Size,
+                DurationSeconds = i.DurationSeconds,
+                Order = i.Order
+            });
+            
+            return new UpdateConfigResponseV2
+            {
+                Success = true,
+                Error = "",
+                Config = new Config
+                {
+                    CreatedAt = DateTimeToUnixMs(newConfig.CreatedAt),
+                    Name = newConfig.Name,
+                    ScreensCount = newConfig.ScreensCount,
+                    IsStatic = newConfig.IsStatic,
+                    UpdatedAt = DateTimeToUnixMs(newConfig.UpdatedAt),
+                    UserId = newConfig.UserId?.ToString() ?? "",
+                    Version = newConfig.Version,
+                    Items = { protoItems }
+                }
+            };
+        }
+
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "UpdateConfigFields failed");
+            return new UpdateConfigResponseV2
+            {
+                Success = false,
+                Error = $"UpdateConfigFields failed. \n Detailed: {ex.Message}",
+            };
+        }
+    }
 
     public override async Task<RemoveItemResponse> RemoveConfigItem(RemoveItemRequest request, ServerCallContext context)
     {

@@ -109,6 +109,7 @@ message RemoveItemRequest{string id = 1; string itemId = 2;}
 message RemoveItemResponse{bool success = 1;}
 message UpdateConfigRequest { string id = 1; string Name = 2; int32 ScreensCount = 3; bool isStatic = 4;}
 message UpdateConfigResponse { bool success = 1; string error = 2;}
+message UpdateConfigResponseV2 {bool success = 1; string error = 2; Config config = 3;}
 
 message GetDashboardRequest { }
 message GetDashboardResponse {bool success = 1; string error = 2; Dashboard dashboard = 3;}
@@ -129,4 +130,5 @@ service ScreenService {
   rpc UpdateScreenFields(UpdateScreenFieldsRequest) returns (UpdateScreenFieldsResponse);
   rpc UpdateConfigFields(UpdateConfigRequest) returns (UpdateConfigResponse);
   rpc GetDashboard(GetDashboardRequest) returns (GetDashboardResponse);
+  rpc UpdateConfig(Config) returns (UpdateConfigResponseV2);
 }
