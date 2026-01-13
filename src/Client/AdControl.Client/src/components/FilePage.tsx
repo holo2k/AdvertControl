@@ -119,7 +119,7 @@ export const FilePage = () => {
             )}
 
             {/* Основной контент */}
-            <div className="space-y-6">
+            <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold">Файлы</h1>
@@ -131,10 +131,10 @@ export const FilePage = () => {
 
                 <div className="flex justify-center">
                     <div
-                        className="grid gap-2 p-2"
+                        className="grid gap-3 p-2 sm:p-4"
                         style={{
-                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 300px))",
-                            width: "100%"
+                            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                            width: "100%",
                         }}
                     >
                         {/* LOADING */}
@@ -164,7 +164,7 @@ export const FilePage = () => {
                                 return (
                                     <div
                                         key={file}
-                                        className="flex flex-col rounded-lg border hover:shadow-md cursor-pointer transition-shadow duration-200"
+                                        className="flex flex-col rounded-lg border hover:shadow-md cursor-pointer transition-shadow duration-200 bg-white"
                                         style={{
                                             maxWidth: "280px",
                                             minWidth: "100px",
