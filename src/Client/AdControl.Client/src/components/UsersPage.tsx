@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, RefreshCw } from "lucide-react";
+import { Plus, Search, RefreshCw, Copy, Eye, EyeOff } from "lucide-react";
 import ContentLoader from "react-content-loader";
 
 import { Button } from "./ui/button";
@@ -204,9 +204,9 @@ export function UsersPage() {
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button style={{ backgroundColor: "#2563EB" }} className="gap-2">
-                            <Plus className="h-4 w-4" />
-                            Добавить пользователя
-                        </Button>
+                        <Plus className="h-4 w-4" />
+                        <span className="element-plus">Добавить пользователя</span>
+                    </Button>
                     </DialogTrigger>
 
                     <DialogContent>
@@ -265,7 +265,7 @@ export function UsersPage() {
                                         size="sm"
                                         onClick={() => copyToClipboard(form.password)}
                                     >
-                                        Копировать
+                                        <Copy />
                                     </Button>
                                     <Button
                                         type="button"
@@ -273,7 +273,7 @@ export function UsersPage() {
                                         size="sm"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? "Скрыть" : "Показать"}
+                                        {showPassword ? <Eye /> : <EyeOff />}
                                     </Button>
                                 </div>
                             </div>

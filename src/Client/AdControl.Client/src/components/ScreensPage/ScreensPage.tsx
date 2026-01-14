@@ -115,7 +115,7 @@ export function ScreensPage() {
               onClick={() => setIsDialogOpen(true)}
           >
             <Plus className="h-4 w-4" />
-            Добавить экран
+            <span className="element-plus">Добавить экран</span>
           </Button>
         </div>
 

@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import { DashboardPage } from "./components/DashboardPage";
 import { ScreensPage } from "./components/ScreensPage/ScreensPage.tsx";
-import { TemplatesPage } from "./components/TemplatesPage";
 import { LoginPage } from "./components/loginPage/LoginPage.tsx";
 import { MainLayout } from "./components/layouts/MainLayout";
 import {ProfileScreen} from "./components/ProfileScreen/ProfileScreen.tsx";
@@ -23,7 +22,6 @@ export default function App() {
                     <Route index element={<DashboardPage />} />
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="screens" element={<ScreensPage />} />
-                    <Route path="templates" element={<TemplatesPage />} />
                     <Route path="profile" element={<ProfileScreen />} />
                     <Route path="users" element={<UsersPage />} />
                     <Route path="settings" element={<SettingsPage />} />

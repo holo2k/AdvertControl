@@ -1,4 +1,4 @@
-import { LayoutDashboard, Monitor, FileText, ChevronLeft, Users, Brain, ImagePlay } from "lucide-react";
+import { LayoutDashboard, Monitor, ChevronLeft, Users, Brain, ImagePlay } from "lucide-react";
 import { Button } from "../ui/button.tsx";
 import { cn } from "../ui/utils.ts";
 import { Link, useLocation } from "react-router-dom";
@@ -12,7 +12,6 @@ const menuItems = [
   { path: "dashboard", label: "Доска", icon: LayoutDashboard },
   { path: "screens", label: "Экраны", icon: Monitor },
   { path: "files", label: "Медиафайлы", icon: ImagePlay },
-  { path: "templates", label: "Шаблоны", icon: FileText },
   { path: "users", label: "Пользователи", icon: Users },
   { path: "ai", label: "Генерация", icon: Brain },
 ];

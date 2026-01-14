@@ -2628,7 +2628,7 @@ html {
   right: 0;
   background-color: white;
   border-top: 1px solid #e5e7eb;
-  padding: 0.5rem 0; /* py-2 = 0.5rem сверху и снизу */
+  padding: 0.5rem 0 1rem 0;
   z-index: 50;
 
   /* Скрыта на 1024px+ */
@@ -2682,4 +2682,14 @@ html {
 
 @media (min-width: 768px) {
   .landing-btn { font-size: 1.25rem; }
+}
+
+.element-plus {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .element-plus {
+    display: none !important;
+  }
 }
