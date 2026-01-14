@@ -137,6 +137,7 @@ services:
     container_name: adcontrol-gateway
     image: hub.66bit.ru/urfu-2025/advertising-screen-management-system/adcontrol-gateway:latest
     environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - Grpc__ScreenService=https://adcontrol-web:5001
       - Grpc__AvaloniaLogicService=https://adcontrol-avalonia-logic:5002
       - Grpc__FileService=https://adcontrol-web:5001
