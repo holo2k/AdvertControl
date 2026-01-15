@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiClient, MINIO_PUBLIC_URL } from "../api/apiClient";
 import ContentLoader from "react-content-loader";
+import {File, X } from "lucide-react";
 
 export const FilePage = () => {
     const [files, setFiles] = useState<string[]>([]);
@@ -69,22 +70,10 @@ export const FilePage = () => {
                         {/* Кнопка закрытия */}
                         <button
                             onClick={handleCloseModal}
-                            className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors z-10 rounded-full p-2"
+                            className="absolute right-0 text-white hover:text-gray-300 transition-colors z-10 rounded-full p-2"
                             aria-label="Закрыть"
                         >
-                            <svg
-                                className="w-6 h-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
+                            <X width={24} color={"white"}/>
                         </button>
 
                         {/* Контент */}
@@ -114,6 +103,7 @@ export const FilePage = () => {
                                 />
                             </div>
                         )}
+                        <p className="text-sm" style={{color:"white", justifySelf: "center", marginTop: "2px"}}>{selectedFile}</p>
                     </div>
                 </div>
             )}
@@ -198,7 +188,7 @@ export const FilePage = () => {
                                             {!isImage(file) && !isVideo(file) && (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
                                                     <div className="text-center p-2">
-                                                        <div className="text-2xl mb-1">📄</div>
+                                                        <File />
                                                         <span className="text-blue-600 text-xs font-medium">
                                                             Файл
                                                         </span>
@@ -209,8 +199,14 @@ export const FilePage = () => {
 
                                         <div className="pt-2 border-t">
                                             <p
-                                                className="text-xs text-gray-700 truncate text-center"
+                                                className="text-sm text-gray-700 text-center truncate px-2"
                                                 title={file}
+                                                style={{
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                    width: "100%",
+                                                }}
                                             >
                                                 {file}
                                             </p>

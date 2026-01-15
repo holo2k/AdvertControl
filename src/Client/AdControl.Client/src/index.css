@@ -2703,3 +2703,21 @@ html {
     display: none !important;
   }
 }
+
+.image-generated {
+  max-height: 300px;
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  .image-generated {
+    max-height: 52vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .image-generated {
+    max-height: 60vh;
+  }
+}
+
+
