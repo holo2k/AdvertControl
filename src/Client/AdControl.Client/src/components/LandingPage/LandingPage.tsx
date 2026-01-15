@@ -10,7 +10,12 @@ import "./index.css"
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../layouts/Header';
 import {useSelector} from "react-redux";
-
+import {
+    FaApple,
+    FaUbuntu,
+    FaWindows,
+    FaAndroid,
+} from 'react-icons/fa';
 
 
 export const LandingPage = () => {
@@ -267,30 +272,96 @@ export const LandingPage = () => {
   </div>
 </section>
 
-      {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] to-[#1d4ed8]"></div>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-        </div>
+          {/* CTA Section */}
+          <section className="py-20 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB] to-[#1d4ed8]"></div>
+              <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+              </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="relative max-w-4xl mx-auto px-6 text-center text-white"
-        >
-          <h2 className="text-4xl lg:text-5xl mb-6">
-            Готовы начать?
-          </h2>
-          <Button variant="secondary" className="bg-white text-[#2563EB] hover:bg-gray-50 text-lg px-12 py-5"
-          onClick={() => navigate("/login")}>
-            Перейти в личный кабинет
-          </Button>
-        </motion.div>
-      </section>
+              <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7 }}
+                  className="relative max-w-4xl mx-auto px-6 text-center text-white"
+              >
+                  <h2 className="text-4xl lg:text-5xl mb-4">
+                      Готовы начать?
+                  </h2>
+                  <p className="mb-8 text-blue-100 landing-subheading">
+                      Скачайте клиент для вашей платформы
+                  </p>
+
+                  <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-10">
+                      {/* Ссылка на App Store */}
+                      <motion.a
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className=" flex items-center gap-3 bg-black hover:bg-gray-900 text-white px-6 py-4 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl w-full max-w-sm bg-white"
+                      >
+                          <div className="text-3xl">
+                              <FaApple color="black"/>
+                          </div>
+                          <div className="text-left">
+                              <div className="text-sm text-gray-600">Скачать для</div>
+                              <div className="text-xl text-gray-600 font-semibold text-black">MacOS</div>
+                          </div>
+                      </motion.a>
+
+                      {/* Ссылка на Windows */}
+                      <motion.a
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          href="https://disk.yandex.ru/d/qCo8Z6X1h7O1mA"
+                          className=" flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl w-full max-w-sm bg-white"
+                      >
+                          <div className="text-3xl">
+                              <FaWindows color="#0078d7" />
+                          </div>
+                          <div className="text-left">
+                              <div className="text-sm text-gray-600 ">Скачать для</div>
+                              <div className="text-xl text-gray-600 font-semibold">Windows</div>
+                          </div>
+                      </motion.a>
+                      <motion.a
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl w-full max-w-sm bg-white"
+                      >
+                          <div className="text-3xl">
+                              <FaUbuntu color="#DD4814"/>
+                          </div>
+                          <div className="text-left">
+                              <div className="text-sm text-gray-600">Скачать для</div>
+                              <div className="text-xl text-gray-600 font-semibold">Linux</div>
+                          </div>
+                      </motion.a>
+                      {/* Ссылка на Google Play */}
+                      <motion.a
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          href="https://disk.yandex.ru/d/ET1ha-TPIjr9Rg"
+                          className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-4 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl w-full max-w-sm bg-white"
+                      >
+                          <div className="text-3xl">
+                              <FaAndroid color="#3DDC84" />
+                          </div>
+                          <div className="text-left">
+                              <div className="text-sm text-gray-600">Скачать для </div>
+                              <div className="text-xl text-gray-600 font-semibold">Android</div>
+                          </div>
+                      </motion.a>
+                  </div>
+
+
+                  <Button variant="secondary" className="mt-6 bg-white text-[#2563EB] hover:bg-gray-50 text-lg px-14 py-4"
+                          onClick={() => navigate("/login")}>
+                      Перейти в личный кабинет
+                  </Button>
+              </motion.div>
+          </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-12">
