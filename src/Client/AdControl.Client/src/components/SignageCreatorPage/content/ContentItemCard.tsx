@@ -17,8 +17,6 @@ interface Props {
     onSelect: () => void;
     onDuplicate: () => void;
     onDelete: () => void;
-    onMoveUp: () => void;
-    onMoveDown: () => void;
     onDragStart: () => void;
     onDragOver: (e: React.DragEvent) => void;
     onDragEnd: () => void;

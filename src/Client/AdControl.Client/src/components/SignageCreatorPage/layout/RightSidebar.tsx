@@ -25,7 +25,7 @@ export function RightSidebar({ item, onDurationChange}: Props) {
                         <div className="space-y-2">
                             <Label>Имя объекта</Label>
                             <div className="w-64 truncate overflow-hidden text-ellipsis">
-                                {removeId(item.url)}
+                                {removeId(item?.url || "")}
                             </div>
                         </div>
 

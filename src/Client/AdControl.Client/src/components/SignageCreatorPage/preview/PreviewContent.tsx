@@ -52,7 +52,7 @@ export function PreviewContent({ item }: PreviewContentProps) {
             )}
 
             {/* IMAGE — теперь через прямую MinIO ссылку */}
-            {(item.type === "IMAGE" || item.type === "Image") && (
+            {(item.type === "IMAGE") && (
                 <>
                     {fullImageUrl ? (
                         <img
@@ -79,7 +79,7 @@ export function PreviewContent({ item }: PreviewContentProps) {
             )}
 
             {/* VIDEO — если добавишь позже */}
-            {(item.type === "VIDEO" || item.type === "Video") && (
+            {(item.type === "VIDEO") && (
                 // аналогично, если video тоже в MinIO
                 <>
                     {item.url ? (

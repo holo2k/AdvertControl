@@ -1,4 +1,4 @@
-export type ContentType = "IMAGE" | "VIDEO" | "TEXT" | "TABLE";
+export type ContentType = "IMAGE" | "VIDEO" | "TEXT" | "TABLE" ;
 
 export interface ContentItem {
     type: ContentType;

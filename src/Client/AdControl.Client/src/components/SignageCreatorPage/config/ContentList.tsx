@@ -1,5 +1,5 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../ui/collapsible.tsx";
-import {ChevronUp, ChevronDown, FileText, Loader2} from "lucide-react";
+import {ChevronUp, ChevronDown, FileText} from "lucide-react";
 import { useState } from "react";
 import { toast } from "../../ui/sonner.tsx";
 import { AddContentButton } from "../content/AddContentButton.tsx";
@@ -16,7 +16,6 @@ interface Props {
 export function ContentList({ items, setConfig, selectedItem, setSelectedItem }: Props) {
     const [open, setOpen] = useState(true);
     const [draggedId, setDraggedId] = useState<string | null>(null);
-    const [uploading, setUploading] = useState(false);
 
     const getNextOrder = () => {
         if (items.length === 0) return 0;
@@ -141,13 +140,6 @@ export function ContentList({ items, setConfig, selectedItem, setSelectedItem }:
                 <div className="flex flex-col sm:flex-row gap-2">
                     <AddContentButton onAdd={handleAdd} />
                 </div>
-
-                {uploading && (
-                    <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-lg">
-                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-                        <p className="text-sm text-gray-600">Загрузка на сервер...</p>
-                    </div>
-                )}
 
                 {sortedItems.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">

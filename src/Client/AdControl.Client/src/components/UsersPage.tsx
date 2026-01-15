@@ -141,7 +141,7 @@ export function UsersPage() {
                 phone: form.phone,
                 password: form.password,
                 repeatPassword: form.password,
-                roles: form.role,
+                roles: [form.role],
             });
 
             await fetchUsers();
