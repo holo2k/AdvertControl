@@ -31,6 +31,11 @@
     flex-direction: column;
 }
 
+.profile-avatar-container {
+    display: flex;
+    flex-direction: row;
+}
+
 .profile-avatar {
     width: 5rem;
     height: 5rem;
@@ -123,5 +128,18 @@
 
     .profile-actions button {
         width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+    }
+    .avatar-fallback {
+        font-size: 1.5rem;
+    }
+    .profile-username {
+        font-size: 1.25rem;
     }
 }

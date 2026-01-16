@@ -107,15 +107,8 @@ export const ProfileScreen = () => {
 
     return (
         <div className="profile-screen">
-            <div className="profile-header">
-                <h1>
-                    {isExternalProfile ? "Профиль пользователя" : "Личная информация"}
-                    {isExternalProfile && currentData?.username && `: ${currentData.username}`}
-                </h1>
-            </div>
-
             <Card className="profile-card">
-                <div style={{ display: "flex", flexDirection: "row" }}>
+                <div className="profile-avatar-container">
                     <Avatar className="profile-avatar">
                         <AvatarFallback className="avatar-fallback">
                             {initials}
@@ -126,14 +119,14 @@ export const ProfileScreen = () => {
 
                 <CardContent className="profile-content">
                     <div className="form-field">
-                        <Label>Email</Label>
+                        <Label>ID</Label>
                         <Input
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            disabled={isExternalProfile} // Запрещаем редактирование для внешнего профиля
+                            value={id}
+                            onChange={(e) => setFirstname(e.target.value)}
+                            disabled={isExternalProfile}
+                            style={{fontSize: "14px"}}
                         />
                     </div>
-
                     <div className="form-field">
                         <Label>Имя</Label>
                         <Input
