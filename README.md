@@ -14,7 +14,7 @@
 
 ## Команда
 | Тимлид-аналитик | Backend-Разработчик | Backend-Разработчик | Frontend-Разработчик + Дизайнер|
-| :---: | :---: | :---: | :---: | :---: |
+| :---: | :---: | :---: | :---: |
 | [Погирейчик Андрей](https://t.me/PuppyHater) | [Беликов Никита](https://t.me/holo21k) | [Якшибаев Данил](https://t.me/sapkjfl) | [Егоров Евгений](https://t.me/callme_jewel) |
 
 ---
@@ -74,5 +74,6 @@
 Проект распространяется под лицензией **Apache License 2.0**.
 Полный текст лицензии доступен по ссылке:
 > [Apache License 2.0](https://github.com/holo2k/AdvertControl/blob/main/LICENSE)
+
 
 
