@@ -84,10 +84,7 @@
 
 ## Лицензия
 
-Проект распространяется под лицензией **Apache License 2.0**.
-Полный текст лицензии доступен по ссылке:
-> [Apache License 2.0](https://github.com/holo2k/AdvertControl/blob/main/LICENSE)
-
+Copyright © 2026 SwagaTeam. All rights reserved.
 
 
 
