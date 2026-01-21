@@ -145,6 +145,9 @@ export const FilePage = () => {
                         {/* FILES */}
                         {!loading &&
                             files.map(file => {
+                                if (file === "photo_2026-01-20_23-03-11_fdb5f84d_ca59a71e-8efc-410a-9ac0-a94c33df5641.jpg") {
+                                    return null;
+                                }
                                 const url = `${MINIO_PUBLIC_URL}/${file}`;
 
                                 return (

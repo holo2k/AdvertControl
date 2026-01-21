@@ -76,7 +76,7 @@ export const ScreenDetailModal = ({
 
     const handleCreate = () => {
         if (mode === "new") {
-            navigate(`screen/${screenId}/config`);
+            navigate(`/crm/screen/${screenId}/config`);
             return;
         }
 
@@ -86,7 +86,7 @@ export const ScreenDetailModal = ({
                 return;
             }
 
-            navigate(`screen/${screenId}/config`, {
+            navigate(`/crm/screen/${screenId}/config`, {
                 state: {
                     configId: selectedConfigId,
                 },
