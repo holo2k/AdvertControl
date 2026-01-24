@@ -70,7 +70,7 @@
 * Rest-запросы: axios
 * Библиотека компонентов: Radix UI
 * Drag & Drop: dnd-kit
-* Анимации фона: Web-GL
+* Рендеринг графики: WebGL, Three.js
 * PWA: vite-plugin-pwa
 ---
 
@@ -85,6 +85,7 @@
 ## Лицензия
 
 Copyright © 2026 SwagaTeam. All rights reserved.
+
 
 
 
