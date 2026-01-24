@@ -1,6 +1,5 @@
 import {useEffect, useState} from "react";
 import {X} from "lucide-react";
-import {Button} from "../../ui/button.tsx";
 import type {ContentItem} from "../types.ts";
 import {PreviewContent} from "./PreviewContent.tsx";
 
@@ -12,7 +11,6 @@ export function FullscreenPreview({
     onClose: () => void;
 }) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(true);
 
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {
@@ -26,14 +24,14 @@ export function FullscreenPreview({
     }, [onClose]);
 
     useEffect(() => {
-        if (!isPlaying || items.length === 0) return;
+        if (items.length === 0) return;
 
         const timer = setTimeout(() => {
             setCurrentIndex((prev) => (prev + 1) % items.length);
         }, items[currentIndex].durationSeconds * 1000);
 
         return () => clearTimeout(timer);
-    }, [isPlaying, currentIndex, items]);
+    }, [currentIndex, items]);
 
     return (
         <div className="fixed inset-0 bg-black z-50">

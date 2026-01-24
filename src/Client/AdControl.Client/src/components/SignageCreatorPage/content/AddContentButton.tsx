@@ -63,7 +63,6 @@ export function AddContentButton({ onAdd }: Props) {
             };
 
             onAdd("IMAGE", newItem);
-            toast.success("Изображение загружено");
         } catch {
             toast.error("Ошибка загрузки изображения");
         } finally {
@@ -100,7 +99,6 @@ export function AddContentButton({ onAdd }: Props) {
             };
 
             onAdd("VIDEO", newItem);
-            toast.success("Видео загружено");
         } catch {
             toast.error("Ошибка загрузки видео");
         } finally {
@@ -115,22 +113,20 @@ export function AddContentButton({ onAdd }: Props) {
             const newItem: ContentItem = {
                 type: "IMAGE",
                 durationSeconds: 5,
-                size: 0,
+                size: await getFileSizeFromUrl(`${MINIO_PUBLIC_URL}/${fileName}`),
                 url: fileName,
                 order: 1
             };
             onAdd("IMAGE", newItem);
-            toast.success("Изображение добавлено из ранее загруженных");
         } else {
             const newItem: ContentItem = {
                 type: "VIDEO",
-                durationSeconds: await getVideoDurationFromUrl(`${MINIO_PUBLIC_URL}/ ${fileName}`),
-                size: 0,
+                durationSeconds: await getVideoDurationFromUrl(`${MINIO_PUBLIC_URL}/${fileName}`),
+                size: await getFileSizeFromUrl(`${MINIO_PUBLIC_URL}/${fileName}`),
                 order: 0,
                 url: fileName,
             };
             onAdd("VIDEO", newItem);
-            toast.success("Видео добавлено из ранее загруженных");
         }
 
         setIsModalOpen(false);
@@ -231,4 +227,20 @@ const getVideoDurationFromUrl = (url: string): Promise<number> => {
         // Для CORS видео
         video.crossOrigin = 'anonymous';
     });
+};
+
+const getFileSizeFromUrl = async (url: string): Promise<number> => {
+    const response = await fetch(url, { method: 'HEAD' });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const contentLength = response.headers.get('content-length');
+
+    if (!contentLength) {
+        throw new Error('Не удалось получить размер файла');
+    }
+
+    return parseInt(contentLength, 10);
 };

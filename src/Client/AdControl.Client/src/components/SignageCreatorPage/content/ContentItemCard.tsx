@@ -1,4 +1,4 @@
-import { GripVertical, Clock, Trash2 } from "lucide-react";
+import { GripVertical, Clock, Trash2, File } from "lucide-react";
 import { Button } from "../../ui/button";
 import {
     FileText as FileTextIcon,
@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { ContentItem } from "../types";
 import {removeId} from "../../../utils.ts";
+import {bytesToMB} from "../../../utils.ts";
 
 interface Props {
     item: ContentItem;
@@ -73,7 +74,11 @@ export function ContentItemCard({
                     <div className="flex justify-between">
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                             <Clock className="w-3 h-3" />
-                            <span>{item.durationSeconds} секунд</span>
+                            <span>{item.durationSeconds} сек</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                            <File className="w-3 h-3" />
+                            <span>{bytesToMB(item.size)}</span>
                         </div>
 
                         <div className="flex gap-1">

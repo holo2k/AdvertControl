@@ -9,9 +9,6 @@ interface ConfigPreviewProps {
     resolution: string;
 }
 
-/**
- * Парсит строку "1920x1080"
- */
 function parseResolution(resolution: string): { width: number; height: number } | null {
     if (!resolution) return null;
 
@@ -133,15 +130,6 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
         }
     };
 
-    /** Обработчик клика по индикатору прогресса */
-    const handleProgressClick = (index: number) => {
-        setCurrentItemIndex(index);
-        // Если было на паузе, автоматически запускаем воспроизведение
-        if (!isPlaying) {
-            setIsPlaying(true);
-        }
-    };
-
     /** Обработчик события окончания видео */
     const handleVideoEnded = () => {
         // Если видео закончилось и автоплей включен, переходим к следующему
@@ -169,10 +157,12 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="flex flex-col h-full w-full overflow-hidden">
             {/* ХОЛСТ */}
             <div
-                className="rounded-lg overflow-hidden relative mx-auto"
+                className={`rounded-lg overflow-hidden relative mx-auto min-h-0 ${
+                    aspectRatio >= 1 ? 'w-full' : 'h-full'
+                }`}
                 style={{
                     aspectRatio,
                     border: "1px solid rgb(229, 231, 235)",
@@ -185,10 +175,9 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
                             src={mediaUrl}
                             autoPlay={isPlaying}
                             muted
-                            loop={false} // Не используем loop, т.к. управляем вручную
+                            loop={false}
                             playsInline
-                            className="absolute inset-0 w-full h-full"
-                            style={{ objectFit: "cover" }}
+                            className="w-full h-full object-cover"
                             onEnded={handleVideoEnded}
                             onError={handleVideoError}
                         />
@@ -196,8 +185,8 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
                         <img
                             src={mediaUrl}
                             alt={removeId(currentItem?.url || "")}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            style={{ objectFit: "cover" }}
+                            className="w-full h-full object-cover"
+                            style={{ maxWidth: "200%", maxHeight: "200%" }}
                             onError={() => console.error("Ошибка загрузки изображения")}
                         />
                     )
@@ -207,9 +196,8 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
                     </div>
                 )}
             </div>
-
             {/* ИНФО + КНОПКИ */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between"  style={{marginTop: "auto"}}>
                 <div className="text-sm text-gray-600">
                     <div className="font-medium">{removeId(currentItem?.url || "")}</div>
                     <div className="text-xs">
@@ -244,21 +232,6 @@ export function ConfigPreview({ config, resolution }: ConfigPreviewProps) {
                 </div>
             </div>
 
-            {/* ПРОГРЕСС */}
-            <div className="flex gap-1">
-                {sortedItems.map((_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => handleProgressClick(i)}
-                        className={`h-1 flex-1 rounded cursor-pointer transition-all ${
-                            i === currentItemIndex
-                                ? "bg-blue-600"
-                                : "bg-gray-300 hover:bg-gray-400"
-                        }`}
-                        aria-label={`Перейти к слайду ${i + 1}`}
-                    />
-                ))}
-            </div>
         </div>
     );
 }

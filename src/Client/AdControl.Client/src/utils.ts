@@ -1,23 +1,27 @@
-export function getScreensWord(count: number): string {
+export function getWordByCount(count: number, wordForms: [string, string, string]): string {
   const lastDigit = count % 10;
   const lastTwoDigits = count % 100;
 
-  // Исключения для чисел 11-14
   if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
-    return `${count} экранов`;
+    return `${count} ${wordForms[2]}`;
   }
 
   switch (lastDigit) {
     case 1:
-      return `${count} экран`;
+      return `${count} ${wordForms[0]}`;
     case 2:
     case 3:
     case 4:
-      return `${count} экрана`;
+      return `${count} ${wordForms[1]}`;
     default:
-      return `${count} экранов`;
+      return `${count} ${wordForms[2]}`;
   }
 }
+
+// Использование:
+getWordByCount(1, ['объект', 'объекта', 'объектов']); // "1 объект"
+getWordByCount(2, ['объект', 'объекта', 'объектов']); // "2 объекта"
+getWordByCount(5, ['объект', 'объекта', 'объектов']); // "5 объектов"
 
 export function joinResolutionData(width: string, height: string): string {
   return `${width}x${height}`;
@@ -87,8 +91,8 @@ export function removeId(filename: string): string {
   return filename.replace(uuidRegex, '');
 }
 
-export function bytesToMB(bytes: number, decimals: number = 2): string {
-  if (bytes === 0) return '0 МБ';
+export function bytesToMB(bytes: number | undefined, decimals: number = 2): string {
+  if (bytes === 0 || bytes === undefined) return '0 МБ';
   const mb = bytes / (1024 * 1024);
   const rounded = Math.round(mb * Math.pow(10, decimals)) / Math.pow(10, decimals);
   const formatted = parseFloat(rounded.toFixed(decimals)).toString();

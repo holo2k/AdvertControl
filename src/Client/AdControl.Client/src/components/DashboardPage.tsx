@@ -6,6 +6,7 @@ import {apiClient} from "../api/apiClient.ts";
 import ContentLoader from "react-content-loader";
 import {getStatusBadge} from "./ScreensPage/StatusBadge.tsx";
 import {useNavigate} from "react-router-dom";
+import {getWordByCount} from "../utils.ts";
 
 type DashboardResponse = {
   success: boolean;
@@ -204,7 +205,7 @@ export function DashboardPage() {
                                 <div>
                                     <p className="text-gray-900">{location.city}</p>
                                     <p className="text-gray-500">
-                                        {location.count} screens
+                                        {getWordByCount(location.count, ["экран", "экрана", "экранов"])}
                                     </p>
                                 </div>
                                 <div

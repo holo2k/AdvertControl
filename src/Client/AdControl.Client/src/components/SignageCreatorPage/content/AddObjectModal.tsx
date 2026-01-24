@@ -20,7 +20,6 @@ export const AddObjectModal = ({dialogOpen, setDialogOpen, onFileSelect} : AddOb
         const fetchFiles = async () => {
             try {
                 const response = await apiClient.get("files/get-current-user-files-name");
-                console.log(response);
                 setFiles(response.data.filesName);
             } catch {
                 setError("Не удалось загрузить файлы");

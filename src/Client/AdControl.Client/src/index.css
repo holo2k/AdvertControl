@@ -757,6 +757,10 @@
     max-height: var(--radix-select-content-available-height);
   }
 
+  .min-h-0 {
+    min-height: calc(var(--spacing) * 0);
+  }
+
   .min-h-16 {
     min-height: calc(var(--spacing) * 16);
   }
